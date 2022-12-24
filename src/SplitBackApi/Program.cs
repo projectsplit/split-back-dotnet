@@ -25,6 +25,6 @@ public class Program {
 
     app.UseAuthorization();
 
-    app..Run();
+    app.Run();
   }
 }
