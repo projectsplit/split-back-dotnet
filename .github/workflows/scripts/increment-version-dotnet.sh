@@ -19,7 +19,7 @@ xmlstarlet edit --inplace --omit-decl --update $VERSION_XML_PATH -v $NEW_VERSION
 git status
 git diff
 
-COMMIT_MESSAGE=Changed version from $LAST_VERSION to $NEW_VERSION
+COMMIT_MESSAGE=$(echo Changed version from $LAST_VERSION to $NEW_VERSION)
 
 git config user.name github-actions
 git config user.email github-actions@github.com
