@@ -16,7 +16,7 @@ jobs:
     - uses: actions/checkout@v3
     - name: Increment version in .csproj
       run: |
-        apt-get update && apt-get install xmlstarlet -y
+        sudo apt-get update && apt-get install xmlstarlet -y
         chmod +x ${{ env.VERSION_SCRIPT }}
         ${{ env.VERSION_SCRIPT }} ./src/SplitBackApi/SplitBackApi.csproj
     - name: Setup .NET
