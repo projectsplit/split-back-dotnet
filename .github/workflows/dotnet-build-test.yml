@@ -1,4 +1,4 @@
-name: dotnet-build-test
+name: dotnet-build-test.yml
 
 on:
   pull_request:
