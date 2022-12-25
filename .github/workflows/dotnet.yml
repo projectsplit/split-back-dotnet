@@ -1,8 +1,8 @@
 name: .NET
 
 on:
-  push:
-    branches: [ "master" ]
+  # push:
+  #   branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
 
@@ -10,15 +10,15 @@ jobs:
   build:
     name: Build and test
     runs-on: ubuntu-latest
-    env:
-      VERSION_SCRIPT: ./.github/workflows/scripts/increment-version-dotnet.sh
+    # env:
+    #   VERSION_SCRIPT: ./.github/workflows/scripts/increment-version-dotnet.sh
     steps:
     - uses: actions/checkout@v3
-    - name: Increment version in .csproj
-      run: |
-        sudo apt-get update && sudo apt-get install xmlstarlet -y
-        chmod +x ${{ env.VERSION_SCRIPT }}
-        ${{ env.VERSION_SCRIPT }} ./src/SplitBackApi/SplitBackApi.csproj
+    # - name: Increment version in .csproj
+    #   run: |
+    #     sudo apt-get update && sudo apt-get install xmlstarlet -y
+    #     chmod +x ${{ env.VERSION_SCRIPT }}
+    #     ${{ env.VERSION_SCRIPT }} ./src/SplitBackApi/SplitBackApi.csproj
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
