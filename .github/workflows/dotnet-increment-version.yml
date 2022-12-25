@@ -1,0 +1,20 @@
+name: dotnet-build-test
+
+on:
+  merge:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    name: Increment Version
+    runs-on: ubuntu-latest
+    env:
+      VERSION_SCRIPT: ./.github/workflows/scripts/increment-version-dotnet.sh
+    steps:
+    - uses: actions/checkout@v3
+    - name: Increment version in .csproj
+      run: |
+        sudo apt-get update
+        sudo apt-get install xmlstarlet -y
+        chmod +x ${{ env.VERSION_SCRIPT }}
+        ${{ env.VERSION_SCRIPT }} ./src/SplitBackApi/SplitBackApi.csproj
