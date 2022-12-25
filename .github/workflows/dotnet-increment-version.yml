@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Print current branch
-      run: Current branch ${{ github.head_ref }}
+      run: echo Current branch ${{ github.head_ref }}
     - name: Increment version in .csproj
       run: |
         chmod +x ${{ env.VERSION_SCRIPT }}
