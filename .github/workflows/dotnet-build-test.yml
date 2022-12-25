@@ -1,8 +1,11 @@
 name: dotnet-build-test
 
+
 on:
   pull_request:
     branches: [ "master" ]
+    paths-ignore:
+      - '.github/**'
 
 jobs:
   build-test:
