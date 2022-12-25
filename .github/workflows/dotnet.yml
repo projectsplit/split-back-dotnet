@@ -3,10 +3,9 @@ name: .NET
 jobs:
   build-and-test:
     name: Build and test
-    on:
-      pull_request:
-        branches: 
-          - master
+    trigger:
+      event:
+        - push
     runs-on: ubuntu-latest
     # env:
     #   VERSION_SCRIPT: ./.github/workflows/scripts/increment-version-dotnet.sh
