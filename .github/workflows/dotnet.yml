@@ -5,7 +5,8 @@ jobs:
     name: Build and test
     on:
       pull_request:
-        branches: [ "master" ]
+        branches: 
+          - master
     runs-on: ubuntu-latest
     # env:
     #   VERSION_SCRIPT: ./.github/workflows/scripts/increment-version-dotnet.sh
