@@ -12,8 +12,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+    - name: Set up environment variables
+      env:
+        VERSION_SCRIPT: ./.github/workflows/scripts/myscript.sh
     - name: Increment version in .csproj
-      run: ./.github/workflows/scripts/increment-version-dotnet.sh
+      run: |
+        chmod +x ${{ env.VERSION_SCRIPT }}
+        ${{ env.VERSION_SCRIPT }} ./src/SplitBackApi/SplitBackApi.csproj
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
