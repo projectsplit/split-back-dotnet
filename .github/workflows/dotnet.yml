@@ -11,7 +11,7 @@ jobs:
     name: Build and test
     runs-on: ubuntu-latest
     env:
-      VERSION_SCRIPT: ./.github/workflows/scripts/myscript.sh
+      VERSION_SCRIPT: ./.github/workflows/scripts/increment-version-dotnet.sh
     steps:
     - uses: actions/checkout@v3
     - name: Increment version in .csproj
