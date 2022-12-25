@@ -25,4 +25,4 @@ git config user.name github-actions
 git config user.email github-actions@github.com
 git add .
 git commit -m "$COMMIT_MESSAGE"
-git push
+git push https://${GITHUB_ACTOR}:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git
