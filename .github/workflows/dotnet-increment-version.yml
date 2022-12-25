@@ -1,11 +1,11 @@
 name: dotnet-build-test
 
 on:
-  merge:
+  push:
     branches: [ "master" ]
 
 jobs:
-  build:
+  version-increment:
     name: Increment Version
     runs-on: ubuntu-latest
     env:
