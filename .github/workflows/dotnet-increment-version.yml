@@ -4,7 +4,6 @@ on:
   push:
     branches: [ "master" ]
 
-
 jobs:
   version-increment:
     name: Increment Version
