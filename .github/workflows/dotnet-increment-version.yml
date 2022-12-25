@@ -13,6 +13,8 @@ jobs:
       CSPROJ_LOCATION: ./src/SplitBackApi/SplitBackApi.csproj
     steps:
     - uses: actions/checkout@v3
+    - name: Print current branch
+      run: git rev-parse --abbrev-ref HEAD
     - name: Increment version in .csproj
       run: |
         chmod +x ${{ env.VERSION_SCRIPT }}
