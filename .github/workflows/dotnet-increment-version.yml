@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VERSION_SCRIPT: ./.github/workflows/scripts/increment-version-dotnet.sh
+      CSPROJ_LOCATION: ./src/SplitBackApi/SplitBackApi.csproj
     steps:
     - uses: actions/checkout@v3
     - name: Increment version in .csproj
@@ -17,4 +18,4 @@ jobs:
         sudo apt-get update
         sudo apt-get install xmlstarlet -y
         chmod +x ${{ env.VERSION_SCRIPT }}
-        ${{ env.VERSION_SCRIPT }} ./src/SplitBackApi/SplitBackApi.csproj
+        ${{ env.VERSION_SCRIPT }} ${{ env.CSPROJ_LOCATION }}
