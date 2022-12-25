@@ -11,10 +11,11 @@ jobs:
     env:
       VERSION_SCRIPT: ./.github/workflows/scripts/increment-version-dotnet.sh
       CSPROJ_LOCATION: ./src/SplitBackApi/SplitBackApi.csproj
+      BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
     steps:
     - uses: actions/checkout@v3
     - name: Print current branch
-      run: echo Current branch ${{ github.ref }}
+      run: echo Current branch ${{ env.BRANCH_NAME }}
     - name: Increment version in .csproj
       run: |
         chmod +x ${{ env.VERSION_SCRIPT }}
