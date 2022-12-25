@@ -11,7 +11,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Print current branch
-      run: echo running on branch ${GITHUB_REF##*/}
+      run: Current branch ${{ github.head_ref }}
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
