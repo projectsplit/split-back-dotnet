@@ -16,5 +16,11 @@ if [[ $CURRENT_MONTH -gt $LAST_VERSION_MONTH ]]; then NEW_VERSION=$CURRENT_MONTH
 if [[ $CURRENT_MONTH -lt $LAST_VERSION_MONTH ]]; then exit 1; fi
 
 xmlstarlet edit --inplace --omit-decl --update $VERSION_XML_PATH -v $NEW_VERSION $CSPROJ_FILE
+git status
+git diff
 
-echo $LAST_VERSION" -> "$NEW_VERSION
+COMMIT_MESSAGE=Changed version from $LAST_VERSION to $NEW_VERSION
+
+git add .
+git commit -m "$COMMIT_MESSAGE"
+git push
