@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Print current branch
-      run: echo Current branch ${{ env.BRANCH_NAME }}
+      run: echo ${{ env.BRANCH_NAME }}
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
