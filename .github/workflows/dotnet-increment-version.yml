@@ -1,4 +1,4 @@
-name: dotnet-build-test
+name: dotnet-increment-version
 
 on:
   push:
