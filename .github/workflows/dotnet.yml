@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+    - name: Increment version in .csproj
+      run: ./.github/workflows/scripts/increment-version-dotnet.sh
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
