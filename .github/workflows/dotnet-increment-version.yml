@@ -15,8 +15,10 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Print current branch
-      run: echo Current branch ${{ env.BRANCH_NAME }}
+      run: echo ${{ env.BRANCH_NAME }}
     - name: Increment version in .csproj
       run: |
         chmod +x ${{ env.VERSION_SCRIPT }}
         ${{ env.VERSION_SCRIPT }} ${{ env.CSPROJ_LOCATION }}
+    - name: Print Diffs
+      run: git diff
