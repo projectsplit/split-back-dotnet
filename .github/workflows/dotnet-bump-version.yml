@@ -15,7 +15,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
       with:
-        token: ${{ secrets.THANOSKAT_PAT }}
+        token: ${{ secrets.ADMIN_TOKEN }}
     - name: Print current branch
       run: echo ${{ env.BRANCH_NAME }}
     - name: Bump version in .csproj
