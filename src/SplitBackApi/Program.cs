@@ -33,21 +33,22 @@ public class Program {
 
     // https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
     builder.Services.AddSwaggerWithAutorization();
 
     var app = builder.Build();
 
-    app.UseHttpsRedirection();
-    app.MapAuthenticationEndpoints();
-    app.UseAuthorization();
-
     if(app.Environment.IsDevelopment()) {
       app.UseSwagger();
       app.UseSwaggerUI();
-      app.MapGet("/", (IOptions<AppSettings> appSettings) => {
+      app.MapGet("/appsettings", (IOptions<AppSettings> appSettings) => {
         return appSettings.Value;
       });
     }
+
+    app.UseHttpsRedirection();
+    app.MapAuthenticationEndpoints();
+    app.UseAuthorization();
 
     app.Run();
   }
