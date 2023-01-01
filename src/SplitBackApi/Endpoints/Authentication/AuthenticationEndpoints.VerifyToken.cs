@@ -29,7 +29,7 @@ public static partial class AuthenticationEndpoints {
     if(unique is null) return Results.BadRequest("Unique claim is missing");
 
     var sessionFound = await repo.GetSessionByUnique(unique);
-    if(sessionFound is not null) return Results.BadRequest("No session found with this unique");
+    if(sessionFound is not null) return Results.BadRequest("Unique has already been used");
 
     var emailClaim = validatedToken.Payload.Claims.FirstOrDefault(claim => claim.Type == "email");
     if(emailClaim is null) return Results.BadRequest("Email claim is missing");
