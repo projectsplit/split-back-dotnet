@@ -6,7 +6,6 @@ public class AppSettings {
   
   public JwtSettings Jwt { get; set; } = null!;
   public MongoDbSettings MongoDb { get; set; } = null!;
-  public int AnInt { get; set; }
 }
 
 public class JwtSettings {

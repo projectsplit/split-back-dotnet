@@ -1,5 +1,11 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using SplitBackApi.Configuration;
+using SplitBackApi.Services;
+using SplitBackApi.Data;
+using SplitBackApi.Endpoints;
+using SplitBackApi.Extensions;
 
 namespace SplitBackApi;
 
@@ -9,31 +15,39 @@ public class Program {
 
     var builder = WebApplication.CreateBuilder(args);
 
-    builder.Services.Configure<AppSettings>(
-      builder.Configuration.GetSection(AppSettings.SectionName));
+    var configSection = builder.Configuration.GetSection(AppSettings.SectionName);
+    builder.Services.Configure<AppSettings>(configSection);
 
-    // Add services to the container.
+    builder.Services.AddScoped<IRepository, MongoDbRepository>();
+    builder.Services.AddScoped<AuthService>();
+    builder.Services.AddJwtBearerAuthentication();
+
     builder.Services.AddAuthorization();
 
-    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+    builder.Services.AddAuthorization(options => {
+      options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+        .RequireAuthenticatedUser()
+        .Build();
+    });
+
+    // https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen();
+    builder.Services.AddSwaggerWithAutorization();
 
     var app = builder.Build();
 
-    // Configure the HTTP request pipeline.
-    if (app.Environment.IsDevelopment()) {
-      app.UseSwagger();
-      app.UseSwaggerUI();
-    }
-
     app.UseHttpsRedirection();
-
+    app.MapAuthenticationEndpoints();
     app.UseAuthorization();
 
-    app.MapGet("/", (IOptions<AppSettings> appSettings) => {
-      return appSettings.Value;
-    });
+    if(app.Environment.IsDevelopment()) {
+      app.UseSwagger();
+      app.UseSwaggerUI();
+      app.MapGet("/", (IOptions<AppSettings> appSettings) => {
+        return appSettings.Value;
+      });
+    }
 
     app.Run();
   }
