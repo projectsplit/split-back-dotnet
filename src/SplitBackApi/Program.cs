@@ -51,6 +51,6 @@ public class Program {
     app.MapAuthenticationEndpoints();
     app.UseAuthorization();
 
-    app.R un();
+    app.Run();
   }
 }
