@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using SplitBackApi.Data;
-using SplitBackApi.Entities;
+using SplitBackApi.Domain;
 using SplitBackApi.Services;
 
 namespace SplitBackApi.Endpoints;
