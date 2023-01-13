@@ -20,11 +20,11 @@ public class UserProfile : Profile
     CreateMap<UserCreateDto, User>();
     CreateMap<LabelDto, Label>();
 
-    CreateMap<ExpenseParticipantDto, Participant>()
+    CreateMap<ParticipantDto, Participant>()
     .ForMember(dest => dest.Id, opt => opt
     .MapFrom(src => src.ParticipantId));
 
-    CreateMap<ExpenseSpenderDto, Spender>()
+    CreateMap<SpenderDto, Spender>()
     .ForMember(dest => dest.Id, opt => opt
     .MapFrom(src => src.SpenderId));
 

@@ -11,8 +11,8 @@ public interface IExpenseDto
   public bool SplitEqually { get; set; }
   [MaxLength(3)]
   public string IsoCode { get; set; }
-  public LabelDto? Label { get; set; }
-  public ICollection<ExpenseParticipantDto> ExpenseParticipants { get; set; }
-  public ICollection<ExpenseSpenderDto> ExpenseSpenders { get; set; }
+  //public ICollection<LabelDto> Labels { get; set; }
+  public ICollection<ParticipantDto> Participants { get; set; }
+  public ICollection<SpenderDto> Spenders { get; set; }
 
 }

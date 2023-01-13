@@ -14,7 +14,6 @@ public interface IRepository {
   Task<User> GetUserById(string userId);
   
   Task<User> GetUserByEmail(string email);
-  
   //Session
   Task AddSession(Session session);
   

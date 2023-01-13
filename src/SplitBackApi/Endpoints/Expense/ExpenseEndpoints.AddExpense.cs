@@ -4,7 +4,6 @@ using SplitBackApi.Helper;
 using SplitBackApi.Endpoints.Requests;
 using SplitBackApi.Extensions;
 namespace SplitBackApi.Endpoints;
-
 public static partial class ExpenseEndpoints
 {
     private static async Task<IResult> AddExpense(IRepository repo, HttpRequest request, NewExpenseDto newExpenseDto)

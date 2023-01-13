@@ -1,5 +1,4 @@
 using MongoDB.Bson;
-
 namespace SplitBackApi.Domain;
 
 public class Expense : EntityBase {
@@ -8,11 +7,11 @@ public class Expense : EntityBase {
 
   public decimal Amount { get; set; }
 
-  public ICollection<Spender> ExpenseSpenders { get; set; } = new List<Spender>();
+  public ICollection<Spender> Spenders { get; set; } = new List<Spender>();
 
   public ICollection<Participant> Participants { get; set; } = new List<Participant>();
 
-  public ICollection<ObjectId> Labels { get; set; } = new List<ObjectId>();
+  //public ICollection<ObjectId> Labels { get; set; } = new List<ObjectId>();
 
   public string IsoCode { get; set; } = string.Empty;
 

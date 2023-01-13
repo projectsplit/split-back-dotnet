@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 namespace SplitBackApi.Endpoints.Requests;
-  public class ExpenseParticipantDto
+  public class ParticipantDto
   {
     [MaxLength(20)]
     public string ParticipantId { get; set; } = null!;

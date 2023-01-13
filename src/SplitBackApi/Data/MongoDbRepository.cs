@@ -110,9 +110,9 @@ public class MongoDbRepository : IRepository
         var updateExpense = Builders<Group>.Update
           .Set("Expenses.$.Description", newExpense.Description)
           .Set("Expenses.$.Amount", newExpense.Amount)
-          .Set("Expenses.$.ExpenseSpenders", newExpense.ExpenseSpenders)
-          .Set("Expenses.$.ExpenseParticipants", newExpense.Participants)
-          .Set("Expenses.$.Label", newExpense.Labels)
+          .Set("Expenses.$.Spenders", newExpense.Spenders)
+          .Set("Expenses.$.Participants", newExpense.Participants)
+          //.Set("Expenses.$.Label", newExpense.Labels)
           .Set("Expenses.$.IsoCode", newExpense.IsoCode);
 
         var client = new MongoClient(_connectionString);

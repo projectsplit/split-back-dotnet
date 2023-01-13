@@ -35,6 +35,8 @@ public class Program {
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
     builder.Services.AddSwaggerWithAutorization();
+    builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+   
 
     var app = builder.Build();
 
@@ -45,10 +47,9 @@ public class Program {
         return appSettings.Value;
       });
     }
-
-
     app.UseHttpsRedirection();
     app.MapAuthenticationEndpoints();
+    app.MapExpenseEndpoints();
     app.UseAuthorization();
 
     app.Run();

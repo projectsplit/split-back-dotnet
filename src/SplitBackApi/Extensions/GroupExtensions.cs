@@ -41,7 +41,7 @@ public static class GroupExtensions
           participants.Single(p => p.Id == expenseParticipant.Id).TotalAmountTaken += expenseParticipant.ContributionAmount;
         });
 
-        expense.ExpenseSpenders.ToList().ForEach(expenseSpender =>
+        expense.Spenders.ToList().ForEach(expenseSpender =>
         {
           participants.Single(p => p.Id == expenseSpender.Id).TotalAmountGiven += expenseSpender.AmountSpent;
         });
@@ -135,7 +135,7 @@ public static class GroupExtensions
 
   public static Dictionary<string, List<TransactionTimelineItem>> GetTransactionHistory(this Group group)
   {
-    var userId = ObjectId.Parse("6398c3714604309d8de95eb5");//this is going to be the authorized user's Id.
+    var userId = ObjectId.Parse("63b7f4db07148f61a575a3bb");//this is going to be the authorized user's Id.
     var uniqueIsoCodeList = group.UniqueCurrencyCodes();
     var transactionTimelineForEachCurrency = new Dictionary<string, List<TransactionTimelineItem>>();
 
@@ -192,7 +192,6 @@ public static class GroupExtensions
 
 public record Participant
 {
-
   public Participant(ObjectId id, decimal totalAmountGiven, decimal totalAmountTaken)
   {
     Id = id;

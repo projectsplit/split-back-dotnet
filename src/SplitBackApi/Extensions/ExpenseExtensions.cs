@@ -8,7 +8,7 @@ public static class ExpenseExtensions
 
   public static TransactionMemberDetail? ToTransactionMemberDetailFromUserId(this Expense expense, ObjectId userId) {
 
-    bool isSpender = expense.ExpenseSpenders.ToList().Any(es => es.Id == userId);
+    bool isSpender = expense.Spenders.ToList().Any(es => es.Id == userId);
     bool isParticipant = expense.Participants.ToList().Any(ep => ep.Id == userId);
     decimal lent = 0;
     decimal borrowed = 0;
@@ -19,7 +19,7 @@ public static class ExpenseExtensions
 
     if(isSpender && isParticipant) {
 
-      var spenderAmount = expense.ExpenseSpenders.ToList().Single(es => es.Id == userId).AmountSpent;
+      var spenderAmount = expense.Spenders.ToList().Single(es => es.Id == userId).AmountSpent;
       var participantAmount = expense.Participants.ToList().Single(ep => ep.Id == userId).ContributionAmount;
       lent = spenderAmount - participantAmount;
       paid = spenderAmount;
@@ -28,7 +28,7 @@ public static class ExpenseExtensions
 
     if (isSpender && !isParticipant) {
 
-      var spenderAmount = expense.ExpenseSpenders.ToList().Single(es => es.Id == userId).AmountSpent;
+      var spenderAmount = expense.Spenders.ToList().Single(es => es.Id == userId).AmountSpent;
       lent = spenderAmount;
       paid = spenderAmount;
     }
