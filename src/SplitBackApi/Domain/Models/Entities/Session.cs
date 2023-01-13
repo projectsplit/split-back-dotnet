@@ -7,8 +7,7 @@ public class Session : EntityBase {
 
   public string RefreshToken { get; set; } = String.Empty;
 
-  [BsonRepresentation(BsonType.ObjectId)] 
-  public string UserId { get; set; } = default!;
+  public ObjectId UserId { get; set; } = default!;
 
   public string Unique { get; set; } = String.Empty;
 }

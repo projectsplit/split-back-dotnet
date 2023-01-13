@@ -7,11 +7,9 @@ public class Group : EntityBase {
 
   public string Title { get; set; } = String.Empty;
   
-  [BsonRepresentation(BsonType.ObjectId)] 
-  public string CreatorId { get; set; } = string.Empty;
+  public ObjectId CreatorId { get; set; } 
   
-  [BsonRepresentation(BsonType.ObjectId)]
-  public ICollection<string> Members { get; set; } = new List<string>();
+  public ICollection<ObjectId> Members { get; set; } = new List<ObjectId>();
   
   public ICollection<Expense> Expenses { get; set; } = new List<Expense>();
   

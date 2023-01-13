@@ -4,7 +4,7 @@ namespace SplitBackApi.Domain;
 
 public class Spender {
 
-  public ObjectId MemberId { get; set; }
+  public ObjectId Id { get; set; }
 
   public decimal AmountSpent { get; set; }
 }
