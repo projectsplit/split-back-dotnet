@@ -6,10 +6,11 @@ public static partial class ExpenseEndpoints
         var expenseGroup = app.MapGroup("/expense")
           .WithTags("Expense")
           .AllowAnonymous();
-        expenseGroup.MapPost("/addExpense", AddExpense);
+       // expenseGroup.MapPost("/addExpense", AddExpense);
         expenseGroup.MapPost("/addComment", AddComment);
-        expenseGroup.MapPost("/editExpense", EditExpense);
-        expenseGroup.MapPost("/removeOrRestoreExpense", RemoveOrRestoreExpense);
+        //expenseGroup.MapPost("/editExpense", EditExpense);
+       // expenseGroup.MapPost("/removeExpense", RemoveExpense);
+        //expenseGroup.MapPost("/restoreExpense", RestoreExpense);
         expenseGroup.MapPost("/txHistory", TxHistory);
     }
 }

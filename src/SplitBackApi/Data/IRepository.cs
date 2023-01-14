@@ -1,6 +1,7 @@
 using MongoDB.Bson;
 using SplitBackApi.Domain;
 using SplitBackApi.Endpoints.Requests;
+using LanguageExt.Common;
 using MongoDB.Driver;
 
 namespace SplitBackApi.Data;
@@ -33,15 +34,19 @@ public interface IRepository {
 
   Task EditExpense(EditExpenseDto editExpenseDto);
 
-  Task RemoveOrRestoreExpense(RemoveRestoreExpenseDto removeRestoreExpenseDto);
+  Task RemoveExpense(RemoveRestoreExpenseDto removeRestoreExpenseDto);
+
+  Task RestoreExpense(RemoveRestoreExpenseDto removeRestoreExpenseDto);
 
   Task AddNewTransfer(NewTransferDto newTransferDto);
 
   Task EditTransfer(EditTransferDto editTransferDto);
 
-  Task RemoveOrRestoreTransfer(RemoveRestoreTransferDto removeRestoreTransferDto);
+  Task RemoveTransfer(RemoveRestoreTransferDto removeRestoreTransferDto);
 
-  Task<Group?> GetGroupById(ObjectId groupId);
+  Task RestoreTransfer(RemoveRestoreTransferDto removeRestoreTransferDto);
+
+  Task<Result<Group>> GetGroupById(ObjectId groupId);
 
   Task<bool> EmailExists(string Email);
 
