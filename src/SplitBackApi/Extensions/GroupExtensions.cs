@@ -34,7 +34,7 @@ public static class GroupExtensions
         participants.Add(new Participant(member, 0m, 0m));
       });
 
-      group.Expenses.Where(exp => exp.IsoCode == currentIsoCode && exp.IsDeleted == false).ToList().ForEach(expense =>
+      group.Expenses.Where(exp => exp.IsoCode == currentIsoCode ).ToList().ForEach(expense =>
       {
         expense.Participants.ToList().ForEach(expenseParticipant =>
         {
@@ -47,7 +47,7 @@ public static class GroupExtensions
         });
       });
 
-      group.Transfers.Where(tr => tr.IsoCode == currentIsoCode && tr.IsDeleted == false).ToList().ForEach(transfer =>
+      group.Transfers.Where(tr => tr.IsoCode == currentIsoCode).ToList().ForEach(transfer =>
       {
 
         participants.Single(p => p.Id == transfer.ReceiverId).TotalAmountTaken += transfer.Amount;

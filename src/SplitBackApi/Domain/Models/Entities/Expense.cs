@@ -19,5 +19,4 @@ public class Expense : EntityBase {
 
   public ICollection<ExpenseSnapshot> History { get; set; } = new List<ExpenseSnapshot>();
 
-  public bool IsDeleted { get; set; } = false;
 }

@@ -3,6 +3,7 @@ using SplitBackApi.Domain;
 using SplitBackApi.Endpoints.Requests;
 using LanguageExt.Common;
 using MongoDB.Driver;
+using LanguageExt;
 
 namespace SplitBackApi.Data;
 
@@ -24,27 +25,29 @@ public interface IRepository {
 
   Task CreateGroup(Group group);
 
-  Task AddComment(NewCommentDto newComment, ObjectId userId);
+  Task AddComment(Comment newComment, ObjectId expenseId, ObjectId groupId);
 
-  Task AddToHistory(Group oldGroup, ObjectId Id, FilterDefinition<Group>? filter, bool isExpense);
+  Task AddExpenseToHistory(Group oldGroup, ObjectId Id, FilterDefinition<Group>? filter);
+
+  Task AddTransferToHistory(Group oldGroup, ObjectId Id, FilterDefinition<Group>? filter);
 
   Task AddLabel(Label label);
 
-  Task AddNewExpense(NewExpenseDto newExpenseDto);
+  Task AddNewExpense(Expense newExpense, ObjectId groupId);
 
-  Task EditExpense(EditExpenseDto editExpenseDto);
+  Task<Result<Unit>> EditExpense(Expense newExpense, ObjectId groupId, ObjectId expenseId);
 
-  Task RemoveExpense(RemoveRestoreExpenseDto removeRestoreExpenseDto);
+  Task RemoveExpense(string groupId, string expenseId);
 
-  Task RestoreExpense(RemoveRestoreExpenseDto removeRestoreExpenseDto);
+  Task RestoreExpense(string groupId, string expenseId);
 
-  Task AddNewTransfer(NewTransferDto newTransferDto);
+  Task AddNewTransfer(Transfer newTransfer, ObjectId groupId);
 
-  Task EditTransfer(EditTransferDto editTransferDto);
+  Task EditTransfer(Transfer newTransfer, ObjectId groupId, ObjectId transferId);
 
-  Task RemoveTransfer(RemoveRestoreTransferDto removeRestoreTransferDto);
+  Task RemoveTransfer(string groupId, string transferId);
 
-  Task RestoreTransfer(RemoveRestoreTransferDto removeRestoreTransferDto);
+  Task RestoreTransfer(string groupId, string transferId);
 
   Task<Result<Group>> GetGroupById(ObjectId groupId);
 

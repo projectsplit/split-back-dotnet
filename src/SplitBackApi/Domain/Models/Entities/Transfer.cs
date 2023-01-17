@@ -17,5 +17,4 @@ public class Transfer : EntityBase {
   
   public ICollection<TransferSnapshot> History { get; set; } = new List<TransferSnapshot>();
 
-  public bool IsDeleted { get; set; } = false;
 }

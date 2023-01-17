@@ -4,7 +4,7 @@ public static class InvitationCodeGenerator
 {
   public static string GenerateInvitationCode()
   {
-    using (var rng = new RNGCryptoServiceProvider())
+    using (var rng = RandomNumberGenerator.Create())
     {
       byte[] data = new byte[4];
       rng.GetBytes(data);

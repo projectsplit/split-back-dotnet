@@ -50,6 +50,8 @@ public class Program {
     app.UseHttpsRedirection();
     app.MapAuthenticationEndpoints();
     app.MapExpenseEndpoints();
+    app.MapTransferEndpoints();
+    app.MapInvitationEndpoints();
     app.UseAuthorization();
 
     app.Run();
