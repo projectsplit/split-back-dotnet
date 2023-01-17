@@ -4,7 +4,7 @@ namespace SplitBackApi.Domain;
 
 public class Comment : EntityBase {
     
-  public ObjectId CommenterId { get; set; }
+  public ObjectId CommentorId { get; set; }
   
   public string Text { get; set; } = string.Empty;
 }

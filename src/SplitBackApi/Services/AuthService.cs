@@ -6,7 +6,6 @@ using Microsoft.IdentityModel.Tokens;
 using SplitBackApi.Configuration;
 
 namespace SplitBackApi.Services;
-
 public class AuthService {
 
   private readonly JwtSettings _jwtSettings;

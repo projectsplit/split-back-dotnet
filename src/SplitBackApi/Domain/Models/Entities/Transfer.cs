@@ -1,6 +1,4 @@
 ﻿using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
-
 namespace SplitBackApi.Domain;
 
 public class Transfer : EntityBase {
@@ -9,15 +7,14 @@ public class Transfer : EntityBase {
   
   public decimal Amount { get; set; }
   
-  public string CurrencyCode { get; set; } = string.Empty;
+  public string IsoCode { get; set; } = string.Empty;
   
   public DateTime TransferTime { get; set; }
   
-  [BsonRepresentation(BsonType.ObjectId)] 
-  public string SenderId { get; set; }
+  public ObjectId SenderId { get; set; }
   
-  [BsonRepresentation(BsonType.ObjectId)] 
-  public string ReceiverId { get; set; }
+  public ObjectId ReceiverId { get; set; }
   
   public ICollection<TransferSnapshot> History { get; set; } = new List<TransferSnapshot>();
+
 }

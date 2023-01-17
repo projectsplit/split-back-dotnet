@@ -9,13 +9,13 @@ public class TransferSnapshot : EntityBase {
   
   public decimal Amount { get; set; }
   
-  public string CurrencyCode { get; set; } = string.Empty;
+  public string IsoCode { get; set; } = string.Empty;
   
-  public DateTime TransferTime { get; set; }
+  public DateTime ModifiedAt { get; set; }
   
-  [BsonRepresentation(BsonType.ObjectId)] 
-  public string SenderId { get; set; }
-  
-  [BsonRepresentation(BsonType.ObjectId)] 
-  public string ReceiverId { get; set; }
+  public ObjectId SenderId { get; set; }
+
+  public ObjectId ReceiverId { get; set; }
+
+  public bool IsDeleted { get; set; }
 }
