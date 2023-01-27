@@ -11,13 +11,14 @@ public static partial class TransferEndpoints {
   private static async Task<IResult> RemoveTransfer(IRepository repo, RemoveRestoreTransferDto removeRestoreTransferDto) {
 
     var groupId = ObjectId.Parse(removeRestoreTransferDto.GroupId);
-    await repo.RemoveTransfer(removeRestoreTransferDto.GroupId, removeRestoreTransferDto.TransferId);
-    var result = await repo.GetGroupById(groupId);
 
-    return result.Match(group => {
-      return Results.Ok(group.PendingTransactions());
-    }, e => {
-      return Results.BadRequest(e.Message);
-    });
+    var removeTransferRes = await repo.RemoveTransfer(removeRestoreTransferDto.GroupId, removeRestoreTransferDto.TransferId);
+    if(removeTransferRes.IsFailure) return Results.BadRequest(removeTransferRes.Error);
+
+    var getGroupRes = await repo.GetGroupById(groupId);
+    if(getGroupRes.IsFailure) return Results.BadRequest(getGroupRes.Error);
+
+    return Results.Ok(getGroupRes.Value.PendingTransactions());
+
   }
 }

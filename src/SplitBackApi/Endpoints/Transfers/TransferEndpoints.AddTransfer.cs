@@ -23,14 +23,13 @@ public static partial class TransferEndpoints {
     var newTransfer = mapper.Map<Transfer>(newTransferDto);
     newTransfer.CreationTime = DateTime.Now;
 
-    await repo.AddNewTransfer(newTransfer, groupId);
-    var result = await repo.GetGroupById(groupId);
+    var transferRes = await repo.AddNewTransfer(newTransfer, groupId);
+    if(transferRes.IsFailure) return Results.BadRequest(transferRes.Error);
 
-    return result.Match(group => {
-      return Results.Ok(group.PendingTransactions());
-    }, e => {
-      return Results.BadRequest(e.Message);
-    });
+    var getGroupRes = await repo.GetGroupById(groupId);
+    if(getGroupRes.IsFailure) return Results.BadRequest(getGroupRes.Error);
+
+    return Results.Ok(getGroupRes.Value.PendingTransactions());
 
   }
 }

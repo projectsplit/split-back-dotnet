@@ -16,19 +16,21 @@ public static partial class InvitationEndpoints {
     session.StartTransaction();
     try {
       var invitation = repo.GetInvitationByCode(dto.Code).Result;
-      if(invitation is null) return Results.BadRequest("Invitation not found");
+      if(invitation.IsFailure) return Results.BadRequest(invitation.Error);
 
-      var groupDoc = repo.CheckAndAddUserInGroupMembers(authedUserId, invitation.GroupId).Result;
-      if(groupDoc is null) return Results.BadRequest("Member already exists in group");
+      var groupDoc = repo.CheckAndAddUserInGroupMembers(authedUserId, invitation.Value.GroupId).Result;
+      if(groupDoc.IsFailure) return Results.BadRequest(groupDoc.Error);
 
-      var inviter = repo.GetUserById(invitation.Inviter).Result;
-      var userDoc = repo.CheckAndAddGroupInUser(authedUserId, invitation.GroupId).Result;
-      if(userDoc is null) return Results.BadRequest("Group already exists in user");
+      var inviter = repo.GetUserById(invitation.Value.Inviter).Result;
+      if(inviter.IsFailure) return Results.BadRequest(inviter.Error);
+      
+      var userDoc = repo.CheckAndAddGroupInUser(authedUserId, invitation.Value.GroupId).Result;
+      if(userDoc.IsFailure) return Results.BadRequest(userDoc.Error);
 
       await session.CommitTransactionAsync();
       return Results.Ok(new {
         Message = "User joined group",
-        group = groupDoc.Title
+        group = groupDoc.Value.Title
       });
     } catch(Exception ex) {
       await session.AbortTransactionAsync();

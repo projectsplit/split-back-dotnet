@@ -12,21 +12,21 @@ public static partial class AuthenticationEndpoints {
     AuthService authService,
     HttpRequest request
   ) {
-    
+
     var unique = request.Cookies["unique"];
     if(unique is null) return Results.Unauthorized();
-    
+
     var sessionFound = await repo.GetSessionByUnique(unique);
     if(sessionFound is null) return Results.Unauthorized();
-    
+
     var userFound = await repo.GetUserById(sessionFound.UserId);
-    if(userFound is null) return Results.Unauthorized();
-    
+    if(userFound.IsFailure) return Results.Unauthorized();
+
     response.DeleteUniqueCookie();
     response.AppendRefreshTokenCookie(sessionFound.RefreshToken);
-    
-    var accessToken = authService.GenerateAccessToken(userFound.Id.ToString());
-    
+
+    var accessToken = authService.GenerateAccessToken(userFound.Value.Id.ToString());
+
     return Results.Ok(accessToken);
   }
 }

@@ -19,21 +19,18 @@ public static partial class ExpenseEndpoints {
         Field = x.PropertyName
       }));
     }
-    
+
     ExpenseSetUp.AllocateAmountEqually(newExpenseDto);
 
     var newExpense = mapper.Map<Expense>(newExpenseDto);
     newExpense.CreationTime = DateTime.Now;
 
-    await repo.AddNewExpense(newExpense, groupId);
+    var addExpenseRes = await repo.AddNewExpense(newExpense, groupId);
+    if(addExpenseRes.IsFailure) return Results.BadRequest(addExpenseRes.Error);
+    
+    var getGroupRes = await repo.GetGroupById(groupId);
+    if(getGroupRes.IsFailure) return Results.BadRequest(getGroupRes.Error);
 
-    var result = await repo.GetGroupById(groupId);
-
-    return result.Match(group => {
-      return Results.Ok(group.PendingTransactions());
-    }, e => {
-      return Results.BadRequest(e.Message);
-    });
-
+    return Results.Ok(getGroupRes.Value.PendingTransactions());
   }
 }

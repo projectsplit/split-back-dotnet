@@ -24,19 +24,15 @@ public static partial class ExpenseEndpoints {
 
     ExpenseSetUp.AllocateAmountEqually(editExpenseDto);
 
-   var newExpense = mapper.Map<Expense>(editExpenseDto);
-   var expenseId = ObjectId.Parse(editExpenseDto.ExpenseId);
+    var newExpense = mapper.Map<Expense>(editExpenseDto);
+    var expenseId = ObjectId.Parse(editExpenseDto.ExpenseId);
 
-   await repo.EditExpense(newExpense, groupId, expenseId);
-   
-    var getGroupResult = await repo.GetGroupById(groupId);
+    var editExpenseRes = await repo.EditExpense(newExpense, groupId, expenseId);
+    if(editExpenseRes.IsFailure) return Results.BadRequest(editExpenseRes.Error);
 
-    return getGroupResult.Match(group => {
-      return Results.Ok(group.PendingTransactions());
+    var getGroupRes = await repo.GetGroupById(groupId);
+    if(getGroupRes.IsFailure) return Results.BadRequest(getGroupRes.Error);
 
-    }, e => {
-
-      return Results.BadRequest(e.Message);
-    });
+    return Results.Ok(getGroupRes.Value.PendingTransactions());
   }
 }

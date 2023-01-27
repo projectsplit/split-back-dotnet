@@ -1,6 +1,4 @@
-﻿using MongoDB.Bson;
-
-namespace SplitBackApi.Domain;
+﻿namespace SplitBackApi.Domain;
 
 public class Label : EntityBase {
 
