@@ -33,7 +33,7 @@ public static partial class ExpenseEndpoints {
     var newExpense = mapper.Map<Expense>(newExpenseDto);
     newExpense.CreationTime = DateTime.Now;
 
-    var addNewExpenseResult = await repo.AddNewExpense(newExpense, groupId);
+    var addNewExpenseResult = await repo.CreateExpense(newExpense, groupId);
     if(addNewExpenseResult.IsFailure) return Results.BadRequest(addNewExpenseResult.Error);
     
     var getGroupResult = await repo.GetGroupById(groupId);

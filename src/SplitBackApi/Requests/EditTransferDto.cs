@@ -6,7 +6,7 @@ public class EditTransferDto : ITransferDto {
   
   public string GroupId { get; set; }
   
-  public string? Description { get; set; }
+  public string Description { get; set; }
   
   public string IsoCode { get; set; }
   

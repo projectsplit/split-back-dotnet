@@ -1,6 +1,4 @@
-﻿using SplitBackApi.Extensions;
-
-namespace SplitBackApi.Endpoints;
+﻿namespace SplitBackApi.Endpoints;
 
 public static partial class AuthenticationEndpoints {
   

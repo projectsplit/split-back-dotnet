@@ -28,7 +28,7 @@ public static partial class TransferEndpoints {
     var newTransfer = mapper.Map<Transfer>(newTransferDto);
     newTransfer.CreationTime = DateTime.Now;
 
-    var transferRes = await repo.AddNewTransfer(newTransfer, groupId);
+    var transferRes = await repo.CreateTransfer(newTransfer, groupId);
     if(transferRes.IsFailure) return Results.BadRequest(transferRes.Error);
 
     var getGroupRes = await repo.GetGroupById(groupId);

@@ -47,14 +47,14 @@ public static partial class AuthenticationEndpoints {
             Email = emailClaim.Value,
             Nickname = nicknameClaim.Value,
           };
-          await repo.AddUser(newUser);
+          await repo.CreateUser(newUser);
 
           var newSession = new Session {
             RefreshToken = newRefreshToken,
             UserId = newUser.Id,
             Unique = unique
           };
-          await repo.AddSession(newSession);
+          await repo.CreateSession(newSession);
 
           return Results.Ok();
         }
@@ -64,7 +64,7 @@ public static partial class AuthenticationEndpoints {
           var userFound = await repo.GetUserByEmail(emailClaim.Value);
           if(userFound is null) return Results.NotFound("User does not exist");
 
-          await repo.AddSession(new Session {
+          await repo.CreateSession(new Session {
             RefreshToken = newRefreshToken,
             UserId = userFound.Id,
             Unique = unique
