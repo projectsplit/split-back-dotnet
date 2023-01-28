@@ -2,15 +2,15 @@ namespace SplitBackApi.Requests;
 
 public class NewExpenseDto : IExpenseDto {
 
-  public string GroupId { get; set; } = null!;
+  public string GroupId { get; set; }
 
-  public string Description { get; set; } = null!;
+  public string Description { get; set; }
 
-  public string Amount { get; set; } = null!;
+  public string Amount { get; set; }
 
   public bool SplitEqually { get; set; }
 
-  public string IsoCode { get; set; } = null!;
+  public string IsoCode { get; set; }
 
   //public ICollection<LabelDto> Labels { get; set; } = new List<LabelDto>();
 

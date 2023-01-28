@@ -16,7 +16,7 @@ public static partial class AuthenticationEndpoints {
     [FromBody] RequestSignUpRequest request
   ) {
 
-    if(await repo.UserExistsWithEmail(request.Email)) {
+    if(await repo.UserExistsByEmail(request.Email)) {
       return Results.Ok("User already exists!");
     }
 
