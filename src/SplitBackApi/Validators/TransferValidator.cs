@@ -1,6 +1,6 @@
 using FluentValidation;
 using SplitBackApi.Extensions;
-using SplitBackApi.Endpoints.Requests;
+using SplitBackApi.Requests;
 using NMoneys;
 
 //Probably need to validate max length of amounts

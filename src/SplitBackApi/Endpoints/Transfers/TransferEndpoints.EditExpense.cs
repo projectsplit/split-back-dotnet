@@ -1,15 +1,19 @@
 using SplitBackApi.Data;
 using MongoDB.Bson;
-using SplitBackApi.Helper;
-using SplitBackApi.Endpoints.Requests;
+using SplitBackApi.Requests;
 using SplitBackApi.Extensions;
 using SplitBackApi.Domain;
 using AutoMapper;
 
 namespace SplitBackApi.Endpoints;
-public static partial class TransferEndpoints {
-  private static async Task<IResult> EditTransfer(IRepository repo, HttpRequest request, EditTransferDto editTransferDto, IMapper mapper) {
 
+public static partial class TransferEndpoints {
+  
+  private static async Task<IResult> EditTransfer(
+    IRepository repo,
+    HttpRequest request,
+    EditTransferDto editTransferDto,
+    IMapper mapper) {
 
     var groupId = ObjectId.Parse(editTransferDto.GroupId);
     var transferValidator = new TransferValidator();
@@ -21,21 +25,16 @@ public static partial class TransferEndpoints {
         Field = x.PropertyName
       }));
     }
-    
+
     var newTransfer = mapper.Map<Transfer>(editTransferDto);
     var transferId = ObjectId.Parse(editTransferDto.TransferId);
 
-    await repo.EditTransfer(newTransfer,groupId,transferId);
-    var getGroupResult = await repo.GetGroupById(groupId);
-    return getGroupResult.Match(group => {
-      return Results.Ok(group.PendingTransactions());
+    var editTansferRes = await repo.EditTransfer(newTransfer, groupId, transferId);
+    if(editTansferRes.IsFailure) return Results.BadRequest(editTansferRes.Error);
 
-    }, e => {
+    var getGroupRes = await repo.GetGroupById(groupId);
+    if(getGroupRes.IsFailure) return Results.BadRequest(getGroupRes.Error);
 
-      return Results.BadRequest(e.Message);
-    });
-
-
-
+    return Results.Ok(getGroupRes.Value.PendingTransactions());
   }
 }

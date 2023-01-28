@@ -31,7 +31,7 @@ public static class GroupExtensions
 
       group.Members.ToList().ForEach(member =>
       {
-        participants.Add(new Participant(member, 0m, 0m));
+        participants.Add(new Participant(member.UserId, 0m, 0m));
       });
 
       group.Expenses.Where(exp => exp.IsoCode == currentIsoCode ).ToList().ForEach(expense =>

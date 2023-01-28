@@ -20,6 +20,8 @@ public class Program {
 
     builder.Services.AddScoped<IRepository, MongoDbRepository>();
     builder.Services.AddScoped<AuthService>();
+    builder.Services.AddScoped<GroupPermissionsMiddleware>();
+
     builder.Services.AddJwtBearerAuthentication();
 
     builder.Services.AddAuthorization();
@@ -36,7 +38,7 @@ public class Program {
     builder.Services.AddSwaggerGen();
     builder.Services.AddSwaggerWithAutorization();
     builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-   
+    builder.Services.AddScoped<RoleService>();
 
     var app = builder.Build();
 
@@ -47,12 +49,16 @@ public class Program {
         return appSettings.Value;
       });
     }
+
     app.UseHttpsRedirection();
     app.MapAuthenticationEndpoints();
     app.MapExpenseEndpoints();
     app.MapTransferEndpoints();
     app.MapInvitationEndpoints();
+    app.MapRolesEndpoints();
+    app.MapGroupEndpoints();
     app.UseAuthorization();
+    app.UseGroupPermissionMiddleware();
 
     app.Run();
   }

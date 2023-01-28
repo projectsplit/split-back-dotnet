@@ -1,42 +1,40 @@
 using SplitBackApi.Data;
-using MongoDB.Bson;
-using SplitBackApi.Helper;
-using SplitBackApi.Endpoints.Requests;
+using SplitBackApi.Requests;
 using SplitBackApi.Extensions;
-using SplitBackApi.Domain;
 using Microsoft.Extensions.Options;
 using SplitBackApi.Configuration;
-using MongoDB.Driver;
 
 namespace SplitBackApi.Endpoints;
+
 public static partial class InvitationEndpoints {
-  private static async Task<IResult> Verify(HttpContext httpContext, IRepository repo, VerifyInvitationDto dto, IOptions<AppSettings> appSettings) {
 
-    var authedUserId = httpContext.GetAuthorizedUserId();
-    var client = new MongoClient(appSettings.Value.MongoDb.ConnectionString);
-    using var session = await client.StartSessionAsync();
-    session.StartTransaction();
-    try {
-      var invitation = repo.GetInvitationByCode(dto.Code).Result;
-      if(invitation is null) return Results.BadRequest("Invitation not found");
+  private static async Task<IResult> Verify(
+    HttpContext httpContext,
+    IRepository repo,
+    VerifyInvitationRequest request,
+    IOptions<AppSettings> appSettings) {
 
-      var groupDoc = repo.CheckIfUserInGroupMembers(authedUserId, invitation.GroupId).Result;
-      if(groupDoc is null) return Results.BadRequest("Member already exists in group");
+    var authenticatedUserId = httpContext.GetAuthorizedUserId();
 
-      var inviter = repo.GetUserById(invitation.Inviter).Result;
-      var userDoc = repo.CheckIfGroupInUser(authedUserId, invitation.GroupId).Result;
-      if(userDoc is null) return Results.BadRequest("Group already exists in user");
+    var invitationResult = await repo.GetInvitationByCode(request.Code);
+    if(invitationResult.IsFailure) return Results.BadRequest(invitationResult.Error);
+    var invitation = invitationResult.Value;
+    
+    var groupResult = await repo.GetGroupIfUserIsNotMember(authenticatedUserId, invitation.GroupId);
+    if(groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
+    var group = groupResult.Value;
 
-      await session.CommitTransactionAsync();
-      return Results.Ok(new {
-        Message = "Invitation is valid",
-        InviterNickName = inviter.Nickname,
-        group = groupDoc.Title
-      });
-    } catch(Exception ex) {
-      //await session.AbortTransactionAsync();
-      return Results.BadRequest(ex.Message);
-    }
+    var inviterResult = await repo.GetUserById(invitation.Inviter);
+    if(inviterResult.IsFailure) return Results.BadRequest(inviterResult.Error);
+    var inviter = inviterResult.Value;
 
+    var userResult = await repo.GetUserIfGroupNotExistsInUserGroups(authenticatedUserId, invitation.GroupId);
+    if(userResult.IsFailure) return Results.BadRequest(userResult.Error);
+
+    return Results.Ok(new {
+      Message = "Invitation is valid",
+      InviterNickName = inviter.Nickname,
+      group = group.Title
+    });
   }
 }

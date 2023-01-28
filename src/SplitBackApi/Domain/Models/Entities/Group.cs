@@ -9,7 +9,7 @@ public class Group : EntityBase {
 
   public ObjectId CreatorId { get; set; }
 
-  public ICollection<ObjectId> Members { get; set; } = new List<ObjectId>();
+  public ICollection<Member> Members { get; set; } = new List<Member>();
 
   public ICollection<Expense> Expenses { get; set; } = new List<Expense>();
 
@@ -19,7 +19,9 @@ public class Group : EntityBase {
 
   public string BaseCurrencyCode { get; set; } = string.Empty;
 
-  public ICollection<Expense> DeletedExpenses {get;set;} = new List<Expense>();
-  
-  public ICollection<Transfer> DeletedTransfers {get;set;} = new List<Transfer>();
+  public ICollection<Expense> DeletedExpenses { get; set; } = new List<Expense>();
+
+  public ICollection<Transfer> DeletedTransfers { get; set; } = new List<Transfer>();
+
+  public ICollection<Role> Roles { get; set; } = new List<Role>();
 }

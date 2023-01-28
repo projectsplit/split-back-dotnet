@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using SplitBackApi.Domain;
-using SplitBackApi.Endpoints.Requests;
+using SplitBackApi.Requests;
 using MongoDB.Bson;
 
 namespace SplitBackApi.Configuration;
