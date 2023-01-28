@@ -1,11 +1,15 @@
 using SplitBackApi.Data;
-using SplitBackApi.Endpoints.Requests;
+using SplitBackApi.Requests;
 using MongoDB.Bson;
 using SplitBackApi.Domain;
 
 namespace SplitBackApi.Endpoints;
+
 public static partial class RolesEndpoints {
-  private static async Task<IResult> CreateRole(IRepository repo, CreateRoleRequest request) {
+  
+  private static async Task<IResult> CreateRole(
+    IRepository repo,
+    CreateRoleRequest request) {
 
     //need to bring in list of integers as presented in permission class and then build a flags int here before creating the role.
     var newRole = new Role {

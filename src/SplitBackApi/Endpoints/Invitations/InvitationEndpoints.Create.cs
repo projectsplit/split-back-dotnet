@@ -1,16 +1,19 @@
 using SplitBackApi.Data;
 using MongoDB.Bson;
-using SplitBackApi.Helper;
-using SplitBackApi.Endpoints.Requests;
-using SplitBackApi.Extensions;
+using SplitBackApi.Requests;
 
 using Microsoft.Extensions.Options;
 using SplitBackApi.Configuration;
 using MongoDB.Driver;
 
 namespace SplitBackApi.Endpoints;
+
 public static partial class InvitationEndpoints {
-  private static async Task<IResult> Create(IRepository repo, InvitationDto invitationDto, IOptions<AppSettings> appSettings) {
+  
+  private static async Task<IResult> Create(
+    IRepository repo,
+    InvitationDto invitationDto,
+    IOptions<AppSettings> appSettings) {
 
     var client = new MongoClient(appSettings.Value.MongoDb.ConnectionString);
     using var session = await client.StartSessionAsync();

@@ -1,5 +1,5 @@
 using FluentValidation;
-using SplitBackApi.Endpoints.Requests;
+using SplitBackApi.Requests;
 using SplitBackApi.Extensions;
 using NMoneys;
 

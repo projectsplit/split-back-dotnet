@@ -1,12 +1,12 @@
 using SplitBackApi.Data;
-using SplitBackApi.Endpoints.Requests;
+using SplitBackApi.Requests;
 using MongoDB.Bson;
-using SplitBackApi.Domain;
-using SplitBackApi.Extensions;
 using SplitBackApi.Services;
 
 namespace SplitBackApi.Endpoints;
+
 public static partial class RolesEndpoints {
+  
   private static async Task<IResult> AddRoleToUser(
   IRepository repo,
   AddRoleToUserRequest request,

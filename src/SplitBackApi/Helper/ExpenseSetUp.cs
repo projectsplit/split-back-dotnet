@@ -1,6 +1,6 @@
 using NMoneys.Allocations;
 using SplitBackApi.Extensions;
-using SplitBackApi.Endpoints.Requests;
+using SplitBackApi.Requests;
 using NMoneys;
 
 namespace SplitBackApi.Helper

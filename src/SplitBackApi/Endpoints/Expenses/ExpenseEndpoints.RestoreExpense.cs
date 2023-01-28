@@ -1,5 +1,5 @@
 using SplitBackApi.Data;
-using SplitBackApi.Endpoints.Requests;
+using SplitBackApi.Requests;
 using SplitBackApi.Extensions;
 using MongoDB.Bson;
 namespace SplitBackApi.Endpoints;

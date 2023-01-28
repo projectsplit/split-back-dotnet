@@ -1,14 +1,19 @@
 using SplitBackApi.Data;
 using MongoDB.Bson;
-using SplitBackApi.Helper;
-using SplitBackApi.Endpoints.Requests;
+using SplitBackApi.Requests;
 using SplitBackApi.Extensions;
 using SplitBackApi.Domain;
 using AutoMapper;
 
 namespace SplitBackApi.Endpoints;
+
 public static partial class TransferEndpoints {
-  private static async Task<IResult> AddTransfer(IRepository repo, HttpRequest request, NewTransferDto newTransferDto, IMapper mapper) {
+
+  private static async Task<IResult> AddTransfer(
+    IRepository repo,
+    HttpRequest request,
+    NewTransferDto newTransferDto,
+    IMapper mapper) {
 
     var groupId = ObjectId.Parse(newTransferDto.GroupId);
     var transferValidator = new TransferValidator();

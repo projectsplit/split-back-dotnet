@@ -1,10 +1,12 @@
 using SplitBackApi.Data;
-using SplitBackApi.Endpoints.Requests;
+using SplitBackApi.Requests;
 using MongoDB.Bson;
 using SplitBackApi.Domain;
 
 namespace SplitBackApi.Endpoints;
+
 public static partial class RolesEndpoints {
+  
   private static async Task<IResult> EditRole(IRepository repo, EditRoleRequest request) {
 
     var newRole = new Role {

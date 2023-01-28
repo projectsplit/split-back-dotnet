@@ -11,6 +11,7 @@ using SplitBackApi.Services;
 namespace SplitBackApi.Data;
 
 public class MongoDbRepository : IRepository {
+  
   private readonly IMongoCollection<Session> _sessionCollection;
   private readonly IMongoCollection<User> _userCollection;
   private readonly IMongoCollection<Group> _groupCollection;
@@ -370,15 +371,28 @@ public class MongoDbRepository : IRepository {
     await _invitationCollection.InsertOneAsync(invitation);
   }
 
-  public async Task<Result<Group>> CheckIfUserInGroupMembers(ObjectId userId, ObjectId groupId) {
-    var group = await _groupCollection.Find(Builders<Group>.Filter.Eq("_id", groupId) & Builders<Group>.Filter.Ne("Members", userId)).SingleOrDefaultAsync();
+  public async Task<Result<Group>> GetGroupIfUserIsNotMember(ObjectId userId, ObjectId groupId) {
+    
+    var group = await _groupCollection.Find(
+      Builders<Group>.Filter.Eq("_id", groupId) & Builders<Group>.Filter.Ne("Members", userId))
+      .SingleOrDefaultAsync();
+      
     if(group is null) return Result.Failure<Group>($"User {userId} already exists in group {groupId}");
+    
     return group;
   }
-  public async Task<Result<Group>> CheckAndAddUserInGroupMembers(ObjectId userId, ObjectId groupId) {
-    var newMember = new Member { UserId = userId, Roles = new List<ObjectId>() };
+  
+  public async Task<Result<Group>> AddUserInGroupMembersOrFail(ObjectId userId, ObjectId groupId) {
+    
+    var newMember = new Member {
+      UserId = userId,
+      Roles = new List<ObjectId>()
+    };
 
-    var filter = Builders<Group>.Filter.Eq("_id", groupId) & Builders<Group>.Filter.Ne("Members.$.UserId", userId);
+    var filter = 
+      Builders<Group>.Filter.Eq("_id", groupId) &
+      Builders<Group>.Filter.Ne("Members.$.UserId", userId);
+      
     var updateGroup = Builders<Group>.Update.AddToSet("Members", newMember);
 
     var group = await _groupCollection.FindOneAndUpdateAsync(filter, updateGroup);
@@ -386,20 +400,35 @@ public class MongoDbRepository : IRepository {
     if(group is null) return Result.Failure<Group>($"User {userId} already exists in group {groupId}");
     return group;
   }
-  public async Task<Result<User>> CheckIfGroupInUser(ObjectId userId, ObjectId groupId) {
-    var user = await _userCollection.Find(Builders<User>.Filter.Eq("_id", userId) & Builders<User>.Filter.Ne("Groups", groupId)).SingleOrDefaultAsync();
+  
+  public async Task<Result<User>> GetUserIfGroupNotExistsInUserGroups(ObjectId userId, ObjectId groupId) {
+    
+    var user = await _userCollection.Find(
+      Builders<User>.Filter.Eq("_id", userId) & Builders<User>.Filter.Ne("Groups", groupId))
+      .SingleOrDefaultAsync();
+      
     if(user is null) return Result.Failure<User>($"Group {groupId} already exists in user {userId}");
+    
     return user;
   }
 
-  public async Task<Result<User>> CheckAndAddGroupInUser(ObjectId userId, ObjectId groupId) {
-    var filter = Builders<User>.Filter.Eq("_id", userId) & Builders<User>.Filter.Ne("Groups", groupId);
-    var updateUser = Builders<User>.Update.AddToSet("Groups", groupId);
-    var user = await _userCollection.FindOneAndUpdateAsync(filter, updateUser);
+  public async Task<Result<User>> AddGroupInUserOrFail(ObjectId userId, ObjectId groupId) {
+    
+    var filter = 
+      Builders<User>.Filter.Eq("_id", userId) &
+      Builders<User>.Filter.Ne("Groups", groupId);
+      
+    var update = 
+      Builders<User>.Update.AddToSet("Groups", groupId);
+    
+    var user = await _userCollection.FindOneAndUpdateAsync(filter, update);
     if(user is null) return Result.Failure<User>($"Group {groupId} already exists in user {userId}");
+    
     return user;
   }
+  
   public async Task<DeleteResult> DeleteInvitation(ObjectId userId, ObjectId groupId) {
+    
     return await _invitationCollection.DeleteManyAsync(Builders<Invitation>.Filter.Eq("Inviter", userId) & Builders<Invitation>.Filter.Eq("GroupId", groupId));
   }
 

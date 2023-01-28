@@ -6,8 +6,6 @@ using SplitBackApi.Services;
 using SplitBackApi.Data;
 using SplitBackApi.Endpoints;
 using SplitBackApi.Extensions;
-using MongoDB.Bson;
-using SplitBackApi.Endpoints.Requests;
 
 namespace SplitBackApi;
 
@@ -22,8 +20,7 @@ public class Program {
 
     builder.Services.AddScoped<IRepository, MongoDbRepository>();
     builder.Services.AddScoped<AuthService>();
-    builder.Services.AddScoped<PermissionCheckMiddleware>();
-
+    builder.Services.AddScoped<GroupPermissionsMiddleware>();
 
     builder.Services.AddJwtBearerAuthentication();
 
@@ -61,9 +58,8 @@ public class Program {
     app.MapRolesEndpoints();
     app.MapGroupEndpoints();
     app.UseAuthorization();
-    app.UsePermissions();
+    app.UseGroupPermissionMiddleware();
 
     app.Run();
   }
-
 }

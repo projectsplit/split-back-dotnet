@@ -1,7 +1,6 @@
 using SplitBackApi.Data;
-using SplitBackApi.Endpoints.Requests;
+using SplitBackApi.Requests;
 using SplitBackApi.Extensions;
-using SplitBackApi.Helper;
 using MongoDB.Bson;
 using SplitBackApi.Domain;
 using AutoMapper;
@@ -9,7 +8,11 @@ using AutoMapper;
 namespace SplitBackApi.Endpoints;
 
 public static partial class ExpenseEndpoints {
-  private static async Task<IResult> EditExpense(IRepository repo, EditExpenseDto editExpenseDto, IMapper mapper) {
+  
+  private static async Task<IResult> EditExpense(
+    IRepository repo,
+    EditExpenseDto editExpenseDto,
+    IMapper mapper) {
 
     var groupId = ObjectId.Parse(editExpenseDto.GroupId);
     var expenseValidator = new ExpenseValidator();
@@ -22,17 +25,18 @@ public static partial class ExpenseEndpoints {
       }));
     }
 
-    ExpenseSetUp.AllocateAmountEqually(editExpenseDto);
+    // ExpenseSetUp.AllocateAmountEqually(editExpenseDto);
 
     var newExpense = mapper.Map<Expense>(editExpenseDto);
     var expenseId = ObjectId.Parse(editExpenseDto.ExpenseId);
 
-    var editExpenseRes = await repo.EditExpense(newExpense, groupId, expenseId);
-    if(editExpenseRes.IsFailure) return Results.BadRequest(editExpenseRes.Error);
+    var editExpenseResult = await repo.EditExpense(newExpense, groupId, expenseId);
+    if(editExpenseResult.IsFailure) return Results.BadRequest(editExpenseResult.Error);
 
-    var getGroupRes = await repo.GetGroupById(groupId);
-    if(getGroupRes.IsFailure) return Results.BadRequest(getGroupRes.Error);
+    var getGroupResult = await repo.GetGroupById(groupId);
+    if(getGroupResult.IsFailure) return Results.BadRequest(getGroupResult.Error);
+    var group = getGroupResult.Value;
 
-    return Results.Ok(getGroupRes.Value.PendingTransactions());
+    return Results.Ok(group.PendingTransactions());
   }
 }

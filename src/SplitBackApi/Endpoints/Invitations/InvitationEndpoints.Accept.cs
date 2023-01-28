@@ -1,41 +1,38 @@
 using SplitBackApi.Data;
-using SplitBackApi.Endpoints.Requests;
-
+using SplitBackApi.Requests;
 using Microsoft.Extensions.Options;
 using SplitBackApi.Configuration;
 using SplitBackApi.Extensions;
-using MongoDB.Driver;
 
 namespace SplitBackApi.Endpoints;
+
 public static partial class InvitationEndpoints {
-  private static async Task<IResult> Accept(HttpContext httpContext, IRepository repo, VerifyInvitationDto dto, IOptions<AppSettings> appSettings) {
 
-    var authedUserId = httpContext.GetAuthorizedUserId();
-    var client = new MongoClient(appSettings.Value.MongoDb.ConnectionString);
-    using var session = await client.StartSessionAsync();
-    session.StartTransaction();
-    try {
-      var invitation = repo.GetInvitationByCode(dto.Code).Result;
-      if(invitation.IsFailure) return Results.BadRequest(invitation.Error);
+  private static async Task<IResult> Accept(
+    HttpContext httpContext,
+    IRepository repo,
+    VerifyInvitationRequest request,
+    IOptions<AppSettings> appSettings
+  ) {
 
-      var groupDoc = repo.CheckAndAddUserInGroupMembers(authedUserId, invitation.Value.GroupId).Result;
-      if(groupDoc.IsFailure) return Results.BadRequest(groupDoc.Error);
+    var authenticatedUserId = httpContext.GetAuthorizedUserId();
 
-      var inviter = repo.GetUserById(invitation.Value.Inviter).Result;
-      if(inviter.IsFailure) return Results.BadRequest(inviter.Error);
-      
-      var userDoc = repo.CheckAndAddGroupInUser(authedUserId, invitation.Value.GroupId).Result;
-      if(userDoc.IsFailure) return Results.BadRequest(userDoc.Error);
+    var getInvitationResult = await repo.GetInvitationByCode(request.Code);
+    if(getInvitationResult.IsFailure) return Results.BadRequest(getInvitationResult.Error);
+    var invitation = getInvitationResult.Value;
 
-      await session.CommitTransactionAsync();
-      return Results.Ok(new {
-        Message = "User joined group",
-        group = groupDoc.Value.Title
-      });
-    } catch(Exception ex) {
-      await session.AbortTransactionAsync();
-      return Results.BadRequest(ex.Message);
-    }
+    var groupDoc = await repo.AddUserInGroupMembersOrFail(authenticatedUserId, invitation.GroupId);
+    if(groupDoc.IsFailure) return Results.BadRequest(groupDoc.Error);
 
+    var getUserResult = await repo.GetUserById(invitation.Inviter);
+    if(getUserResult.IsFailure) return Results.BadRequest(getUserResult.Error);
+
+    var addGroupInUserResult = await repo.AddGroupInUserOrFail(authenticatedUserId, invitation.GroupId);
+    if(addGroupInUserResult.IsFailure) return Results.BadRequest(addGroupInUserResult.Error);
+
+    return Results.Ok(new {
+      Message = "User joined group",
+      group = groupDoc.Value.Title
+    });
   }
 }

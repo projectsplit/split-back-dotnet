@@ -1,24 +1,23 @@
 using SplitBackApi.Data;
 using MongoDB.Bson;
-using SplitBackApi.Helper;
-using SplitBackApi.Endpoints.Requests;
+using SplitBackApi.Requests;
 using SplitBackApi.Extensions;
-using SplitBackApi.Domain;
-using AutoMapper;
 
 namespace SplitBackApi.Endpoints;
+
 public static partial class TransferEndpoints {
+  
   private static async Task<IResult> RemoveTransfer(IRepository repo, RemoveRestoreTransferDto removeRestoreTransferDto) {
 
     var groupId = ObjectId.Parse(removeRestoreTransferDto.GroupId);
 
-    var removeTransferRes = await repo.RemoveTransfer(removeRestoreTransferDto.GroupId, removeRestoreTransferDto.TransferId);
-    if(removeTransferRes.IsFailure) return Results.BadRequest(removeTransferRes.Error);
+    var removeTransferResult = await repo.RemoveTransfer(removeRestoreTransferDto.GroupId, removeRestoreTransferDto.TransferId);
+    if(removeTransferResult.IsFailure) return Results.BadRequest(removeTransferResult.Error);
 
-    var getGroupRes = await repo.GetGroupById(groupId);
-    if(getGroupRes.IsFailure) return Results.BadRequest(getGroupRes.Error);
-
-    return Results.Ok(getGroupRes.Value.PendingTransactions());
-
+    var getGroupResult = await repo.GetGroupById(groupId);
+    if(getGroupResult.IsFailure) return Results.BadRequest(getGroupResult.Error);
+    var group = getGroupResult.Value;
+    
+    return Results.Ok(group.PendingTransactions());
   }
 }
