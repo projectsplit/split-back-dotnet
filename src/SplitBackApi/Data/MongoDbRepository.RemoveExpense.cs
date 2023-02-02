@@ -1,7 +1,6 @@
 using CSharpFunctionalExtensions;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using SplitBackApi.Domain;
 
 namespace SplitBackApi.Data;
 

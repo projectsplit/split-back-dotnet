@@ -17,7 +17,7 @@ public static partial class ExpenseEndpoints {
    IMapper mapper,
    RoleService roleService
   ) {
-
+   
     //var endpointPermissionList = new List<Permissions> { Permissions.CanCommentExpense };
     var authedUserId = httpContext.GetAuthorizedUserId();
 

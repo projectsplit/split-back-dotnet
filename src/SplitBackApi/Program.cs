@@ -54,11 +54,13 @@ public class Program {
     app.MapAuthenticationEndpoints();
     app.MapExpenseEndpoints();
     app.MapTransferEndpoints();
+    app.MapGuestEndpoints();
     app.MapInvitationEndpoints();
     app.MapRolesEndpoints();
     app.MapGroupEndpoints();
     app.UseAuthorization();
     app.UseGroupPermissionMiddleware();
+  
 
     app.Run();
   }

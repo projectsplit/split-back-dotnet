@@ -8,7 +8,7 @@ public static partial class ExpenseEndpoints {
       .WithTags("Expenses")
      .AllowAnonymous();
     expenseGroup.MapPost("/addExpense", AddExpense);
-    expenseGroup.MapPost("/addComment", AddComment).PermissionsRequired(Permissions.CanEditLabels | Permissions.CanCommentExpense);
+    expenseGroup.MapPost("/addComment", AddComment).PermissionsRequired(Permissions.CanCommentExpense);
     expenseGroup.MapPost("/editExpense", EditExpense);
     expenseGroup.MapPost("/removeExpense", RemoveExpense);
     expenseGroup.MapPost("/restoreExpense", RestoreExpense);

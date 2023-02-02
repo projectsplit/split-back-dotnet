@@ -30,7 +30,7 @@ public partial class MongoDbRepository : IRepository {
       
       await session.CommitTransactionAsync();
 
-    } catch(Exception _) {
+    } catch(Exception) {
       
       await session.AbortTransactionAsync();
     }

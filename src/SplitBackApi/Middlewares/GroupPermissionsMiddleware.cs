@@ -5,6 +5,8 @@ using SplitBackApi.Data;
 using SplitBackApi.Requests;
 using SplitBackApi.Extensions;
 using SplitBackApi.Services;
+using Newtonsoft.Json;
+using NMoneys;
 
 public class GroupPermissionsMiddleware : IMiddleware {
 
@@ -17,8 +19,10 @@ public class GroupPermissionsMiddleware : IMiddleware {
     _repo = repo;
 
   }
-
+  //How to get the country code when knowing longitude and latitude in Google Geocoding API
   public async Task InvokeAsync(HttpContext ctx, RequestDelegate next) {
+
+    //var usd = Currency.Cad;
 
     var endpoint = ctx.GetEndpoint();
     var permissionsAttribute = endpoint?.Metadata.GetMetadata<PermissionAttribute>();
@@ -27,9 +31,13 @@ public class GroupPermissionsMiddleware : IMiddleware {
 
       var requiredPermissions = permissionsAttribute.Permissions;
 
-      var userId = ctx.GetAuthorizedUserId(); //ObjectId.Parse("63caa418fc7c10fe492c0c71");
-      var groupIdString = await ctx.Request.ReadFromJsonAsync<GroupOperationRequestBase>();
-      var groupId = ObjectId.Parse(groupIdString.GroupId);
+      var userId = ctx.GetAuthorizedUserId();
+
+      var serializedRequest = ctx.SerializationAsync();
+
+      var deserializedRequest = JsonConvert.DeserializeObject<GroupOperationRequestBase>(serializedRequest.Result);
+
+      var groupId = ObjectId.Parse(deserializedRequest.GroupId);
 
       var groupResult = await _repo.GetGroupById(groupId);
       if(groupResult.IsFailure) { ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden; }

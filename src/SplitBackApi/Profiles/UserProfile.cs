@@ -5,20 +5,18 @@ using MongoDB.Bson;
 
 namespace SplitBackApi.Configuration;
 
-public class StringToObjectIdConverter : ITypeConverter<string, ObjectId>
-{
-  public ObjectId Convert(string source, ObjectId destination, ResolutionContext context)
-  {
+public class StringToObjectIdConverter : ITypeConverter<string, ObjectId> {
+  public ObjectId Convert(string source, ObjectId destination, ResolutionContext context) {
     return ObjectId.Parse(source);
   }
 }
-public class UserProfile : Profile
-{
-  public UserProfile()
-  {
+public class UserProfile : Profile {
+  public UserProfile() {
     //source ->target
     CreateMap<UserCreateDto, User>();
-    CreateMap<LabelDto, Label>();
+    CreateMap<LabelDto, Label>()
+    .ForMember(dest => dest.Id, opt => opt
+    .MapFrom(src => ObjectId.GenerateNewId()));
 
     CreateMap<ParticipantDto, Participant>()
     .ForMember(dest => dest.Id, opt => opt
