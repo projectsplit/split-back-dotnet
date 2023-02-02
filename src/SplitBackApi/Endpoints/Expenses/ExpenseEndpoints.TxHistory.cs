@@ -7,10 +7,14 @@ using MongoDB.Bson;
 namespace SplitBackApi.Endpoints;
 
 public static partial class ExpenseEndpoints {
-  
-  private static async Task<IResult> TxHistory(IRepository repo, TransactionHistoryDto txHistoryDto) {
-    
+
+  private static async Task<IResult> TxHistory(
+    IRepository repo,
+    TransactionHistoryDto txHistoryDto,
+    HttpContext ctx) {
+
     var groupId = ObjectId.Parse(txHistoryDto.GroupId);
+    var authedUserId = ctx.GetAuthorizedUserId();
 
     var result = await repo.GetGroupById(groupId);
 
@@ -20,7 +24,7 @@ public static partial class ExpenseEndpoints {
     if(group.Expenses.Count == 0) {
       return Results.Ok(new List<TransactionTimelineItem>());
     }
-    
-    return Results.Ok(group.GetTransactionHistory());
+
+    return Results.Ok(group.GetTransactionHistory(authedUserId));
   }
 }

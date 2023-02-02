@@ -1,7 +1,6 @@
 using CSharpFunctionalExtensions;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using SplitBackApi.Domain;
 
 namespace SplitBackApi.Data;
 
@@ -9,11 +8,7 @@ public partial class MongoDbRepository : IRepository {
 
   public async Task<Result> RestoreGuestToGroup(ObjectId groupId, ObjectId userId) {
 
-    var client = new MongoClient(_connectionString);
-    using var session = await client.StartSessionAsync();
-    session.StartTransaction();
-
-    try {
+    return await _mongoTransactionService.RunMongoTransaction(async () => {
 
       var group = await _groupCollection.Find(g => g.Id == groupId).SingleOrDefaultAsync();
       if(group is null) return Result.Failure($"Group {groupId} Not Found");
@@ -25,11 +20,8 @@ public partial class MongoDbRepository : IRepository {
       group.Guests.Add(guestToRestore);
 
       await _groupCollection.ReplaceOneAsync(g => g.Id == groupId, group);
-    } catch(Exception) {
 
-      await session.AbortTransactionAsync();
-    }
-
-    return Result.Success();
+      return Result.Success();
+    }, _mongoClient);
   }
 }

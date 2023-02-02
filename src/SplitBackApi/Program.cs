@@ -39,6 +39,7 @@ public class Program {
     builder.Services.AddSwaggerWithAutorization();
     builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
     builder.Services.AddScoped<RoleService>();
+    builder.Services.AddScoped<MongoTransactionService>();
 
     var app = builder.Build();
 

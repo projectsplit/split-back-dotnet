@@ -11,8 +11,7 @@ public partial class MongoDbRepository : IRepository {
     var groupBsonId = ObjectId.Parse(groupId);
     var transferBsonId = ObjectId.Parse(transferId);
 
-    var client = new MongoClient(_connectionString);
-    using var session = await client.StartSessionAsync();
+    using var session = await _mongoClient.StartSessionAsync();
     session.StartTransaction();
 
     try {
