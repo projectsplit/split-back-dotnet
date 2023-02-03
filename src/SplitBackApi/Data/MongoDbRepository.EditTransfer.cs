@@ -6,12 +6,11 @@ using SplitBackApi.Domain;
 namespace SplitBackApi.Data;
 
 public partial class MongoDbRepository : IRepository {
-
   public async Task<Result> EditTransfer(Transfer newTransfer, ObjectId groupId, ObjectId transferId) {
 
     //var transferId = ObjectId.Parse("63aafa3ad36b483e99735bcd");
     var filter = Builders<Group>.Filter.Eq("_id", groupId) & Builders<Group>.Filter.ElemMatch(g => g.Transfers, t => t.Id == transferId);
-    
+
     var updateTransfer = Builders<Group>.Update
        .Set("Transfers.$.Description", newTransfer.Description)
        .Set("Transfers.$.Amount", newTransfer.Amount)
@@ -19,17 +18,17 @@ public partial class MongoDbRepository : IRepository {
        .Set("Transfers.$.ReceiverId", newTransfer.ReceiverId)
        .Set("Transfers.$.IsoCode", newTransfer.IsoCode);
 
-    var client = new MongoClient(_connectionString);
-
-    using var session = await client.StartSessionAsync();
+    using var session = await _mongoClient.StartSessionAsync();
 
     session.StartTransaction();
 
     try {
 
-      var oldGroup = await _groupCollection.FindOneAndUpdateAsync(filter, updateTransfer);
+      var oldGroup = await _groupCollection.FindOneAndUpdateAsync(session, filter, updateTransfer);
       if(oldGroup is null) return Result.Failure("Group not found");
-      await AddTransferToHistory(oldGroup, transferId, filter);
+      
+      await AddTransferToHistory(session, oldGroup, transferId, filter);
+      session.CommitTransaction();
 
     } catch(Exception ex) {
 

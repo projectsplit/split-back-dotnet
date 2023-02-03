@@ -8,8 +8,6 @@ public partial class MongoDbRepository : IRepository {
 
   public async Task<Result> RestoreGuestToGroup(ObjectId groupId, ObjectId userId) {
 
-    return await _mongoTransactionService.RunMongoTransaction(async () => {
-
       var group = await _groupCollection.Find(g => g.Id == groupId).SingleOrDefaultAsync();
       if(group is null) return Result.Failure($"Group {groupId} Not Found");
 
@@ -22,6 +20,5 @@ public partial class MongoDbRepository : IRepository {
       await _groupCollection.ReplaceOneAsync(g => g.Id == groupId, group);
 
       return Result.Success();
-    }, _mongoClient);
+    }
   }
-}

@@ -17,14 +17,13 @@ public partial class MongoDbRepository : IRepository {
     var roleIDs = new List<ObjectId>();
     roleIDs.AddRange(group.Roles.Where(role => role.Title == "Owner").Select(role => role.Id));
 
-    var client = new MongoClient(_connectionString);
-    using var session = await client.StartSessionAsync();
+    using var session = await _mongoClient.StartSessionAsync();
     session.StartTransaction();
 
     try {
 
-      await _groupCollection.InsertOneAsync(group);
-      await AddUserToGroup2(group.Id, group.CreatorId, roleIDs);
+      await _groupCollection.InsertOneAsync(session, group);
+      await AddUserToGroup(session, group.Id, group.CreatorId, roleIDs);
       await session.CommitTransactionAsync();
 
     } catch(Exception ex) {

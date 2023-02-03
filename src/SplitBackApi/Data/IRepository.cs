@@ -27,7 +27,7 @@ public interface IRepository {
   // Group
   Task<Result> CreateGroup(Group group);
   Task<Result<Group>> GetGroupById(ObjectId groupId);
-  Task AddUserToGroup(ObjectId groupId, ObjectId UserId);
+  Task AddUserToGroup(IClientSessionHandle session, ObjectId groupID, ObjectId userID, ICollection<ObjectId> roleIDs);
   Task<Result<Group>> GetGroupIfUserIsNotMember(ObjectId userId, ObjectId groupId);
   Task<Result<Group>> AddUserInGroupMembersOrFail(ObjectId userId, ObjectId groupId);
   Task<Result> CreateRole(ObjectId groupId, string roleName, Role newRole);
@@ -39,7 +39,7 @@ public interface IRepository {
   Task<Result> CreateExpense(Expense newExpense, ObjectId groupId);
   Task<Result> EditExpense(Expense newExpense, ObjectId groupId, ObjectId expenseId);
   Task<Result> RemoveExpense(string groupId, string expenseId);
-  Task AddExpenseToHistory(Group oldGroup, ObjectId Id, FilterDefinition<Group>? filter);
+  Task AddExpenseToHistory(IClientSessionHandle session, Group oldGroup, ObjectId Id, FilterDefinition<Group>? filter);
   Task<Result> RestoreExpense(string groupId, string expenseId);
 
   // Trasfer
@@ -47,7 +47,7 @@ public interface IRepository {
   Task<Result> EditTransfer(Transfer newTransfer, ObjectId groupId, ObjectId transferId);
   Task<Result> RemoveTransfer(string groupId, string transferId);
   Task<Result> RestoreTransfer(string groupId, string transferId);
-  Task AddTransferToHistory(Group oldGroup, ObjectId Id, FilterDefinition<Group>? filter);
+  Task AddTransferToHistory(IClientSessionHandle session,Group oldGroup, ObjectId Id, FilterDefinition<Group>? filter);
 
   // Invitaion
   Task CreateInvitation(ObjectId inviterId, ObjectId groupId);

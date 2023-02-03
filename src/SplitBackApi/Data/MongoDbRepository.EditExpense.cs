@@ -19,16 +19,16 @@ public partial class MongoDbRepository : IRepository {
       //.Set("Expenses.$.Label", newExpense.Labels)
       .Set("Expenses.$.IsoCode", newExpense.IsoCode);
 
-    var client = new MongoClient(_connectionString);
-    using var session = await client.StartSessionAsync();
+    using var session = await _mongoClient.StartSessionAsync();
     session.StartTransaction();
 
     try {
 
-      var oldGroup = await _groupCollection.FindOneAndUpdateAsync(filter, updateExpense);
+      var oldGroup = await _groupCollection.FindOneAndUpdateAsync(session, filter, updateExpense);
       if(oldGroup is null) return Result.Failure("Group not found");
 
-      await AddExpenseToHistory(oldGroup, expenseId, filter);
+      await AddExpenseToHistory(session, oldGroup, expenseId, filter);
+      session.CommitTransaction();
 
     } catch(Exception _) {
       await session.AbortTransactionAsync();
