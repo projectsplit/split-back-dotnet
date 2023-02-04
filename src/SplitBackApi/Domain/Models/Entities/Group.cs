@@ -1,6 +1,5 @@
 using MongoDB.Bson;
 
-
 namespace SplitBackApi.Domain;
 
 public class Group : EntityBase {
@@ -10,6 +9,10 @@ public class Group : EntityBase {
   public ObjectId CreatorId { get; set; }
 
   public ICollection<Member> Members { get; set; } = new List<Member>();
+
+  public ICollection<Guest> Guests { get; set; } = new List<Guest>();
+  
+  public ICollection<Guest> DeletedGuests { get; set; } = new List<Guest>();
 
   public ICollection<Expense> Expenses { get; set; } = new List<Expense>();
 

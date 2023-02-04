@@ -39,6 +39,7 @@ public class Program {
     builder.Services.AddSwaggerWithAutorization();
     builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
     builder.Services.AddScoped<RoleService>();
+    builder.Services.AddScoped<MongoTransactionService>();
 
     var app = builder.Build();
 
@@ -54,11 +55,13 @@ public class Program {
     app.MapAuthenticationEndpoints();
     app.MapExpenseEndpoints();
     app.MapTransferEndpoints();
+    app.MapGuestEndpoints();
     app.MapInvitationEndpoints();
     app.MapRolesEndpoints();
     app.MapGroupEndpoints();
     app.UseAuthorization();
     app.UseGroupPermissionMiddleware();
+  
 
     app.Run();
   }

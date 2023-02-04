@@ -15,19 +15,21 @@ public static partial class InvitationEndpoints {
     IOptions<AppSettings> appSettings
   ) {
 
-    var authenticatedUserId = httpContext.GetAuthorizedUserId();
+    var authenticatedUserIdResult = httpContext.GetAuthorizedUserId();
+    if(authenticatedUserIdResult.IsFailure) return Results.BadRequest(authenticatedUserIdResult.Error);
+    var authenticatedUserId = authenticatedUserIdResult.Value;
 
     var getInvitationResult = await repo.GetInvitationByCode(request.Code);
     if(getInvitationResult.IsFailure) return Results.BadRequest(getInvitationResult.Error);
     var invitation = getInvitationResult.Value;
 
-    var groupDoc = await repo.AddUserInGroupMembersOrFail(authenticatedUserId, invitation.GroupId);
+    var groupDoc = await repo.AddUserInGroupMembers(authenticatedUserId, invitation.GroupId);
     if(groupDoc.IsFailure) return Results.BadRequest(groupDoc.Error);
 
     var getUserResult = await repo.GetUserById(invitation.Inviter);
     if(getUserResult.IsFailure) return Results.BadRequest(getUserResult.Error);
 
-    var addGroupInUserResult = await repo.AddGroupInUserOrFail(authenticatedUserId, invitation.GroupId);
+    var addGroupInUserResult = await repo.AddGroupInUser(authenticatedUserId, invitation.GroupId);
     if(addGroupInUserResult.IsFailure) return Results.BadRequest(addGroupInUserResult.Error);
 
     return Results.Ok(new {

@@ -5,6 +5,8 @@ using SplitBackApi.Data;
 using SplitBackApi.Requests;
 using SplitBackApi.Extensions;
 using SplitBackApi.Services;
+using Newtonsoft.Json;
+using NMoneys;
 
 public class GroupPermissionsMiddleware : IMiddleware {
 
@@ -17,40 +19,46 @@ public class GroupPermissionsMiddleware : IMiddleware {
     _repo = repo;
 
   }
+  //How to get the country code when knowing longitude and latitude in Google Geocoding API
+  public async Task InvokeAsync(HttpContext context, RequestDelegate next) {
 
-  public async Task InvokeAsync(HttpContext ctx, RequestDelegate next) {
+    //var usd = Currency.Cad;
 
-    var endpoint = ctx.GetEndpoint();
+    var endpoint = context.GetEndpoint();
     var permissionsAttribute = endpoint?.Metadata.GetMetadata<PermissionAttribute>();
 
     if(permissionsAttribute is not null) {
 
       var requiredPermissions = permissionsAttribute.Permissions;
 
-      var userId = ctx.GetAuthorizedUserId(); //ObjectId.Parse("63caa418fc7c10fe492c0c71");
-      var groupIdString = await ctx.Request.ReadFromJsonAsync<GroupOperationRequestBase>();
-      var groupId = ObjectId.Parse(groupIdString.GroupId);
+      var userId = context.GetAuthorizedUserId().Value;
+
+      var serializedRequest = context.Request.Body.ToSerializedString();
+
+      var deserializedRequest = JsonConvert.DeserializeObject<GroupOperationRequestBase>(serializedRequest.Result);
+
+      var groupId = ObjectId.Parse(deserializedRequest.GroupId);
 
       var groupResult = await _repo.GetGroupById(groupId);
-      if(groupResult.IsFailure) { ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden; }
+      if(groupResult.IsFailure) { context.Response.StatusCode = (int)HttpStatusCode.Forbidden; }
 
       var group = groupResult.Value;
 
       var permissionCheckResult = _roleService.MemberHasRequiredPermissions(userId, group, requiredPermissions);
-      if(permissionCheckResult.IsFailure) { ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden; }
+      if(permissionCheckResult.IsFailure) { context.Response.StatusCode = (int)HttpStatusCode.Forbidden; }
 
       if(permissionCheckResult.Value) {
 
-        await next(ctx);
+        await next(context);
 
       } else {
 
-        ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+        context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
       }
 
     } else {
 
-      await next(ctx);
+      await next(context);
     }
   }
 }

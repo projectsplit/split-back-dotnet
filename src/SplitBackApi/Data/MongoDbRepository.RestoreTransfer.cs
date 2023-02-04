@@ -7,16 +7,10 @@ namespace SplitBackApi.Data;
 public partial class MongoDbRepository : IRepository {
 
   public async Task<Result> RestoreTransfer(string groupId, string transferId) {
-    
+
     var groupBsonId = ObjectId.Parse(groupId);
     var transferBsonId = ObjectId.Parse(transferId);
 
-    var client = new MongoClient(_connectionString);
-    using var session = await client.StartSessionAsync();
-    session.StartTransaction();
-
-    try {
-      
       var group = await _groupCollection.Find(g => g.Id == groupBsonId).SingleOrDefaultAsync();
       if(group is null) return Result.Failure($"Group {groupId} Not Found");
 
@@ -25,15 +19,9 @@ public partial class MongoDbRepository : IRepository {
 
       group.DeletedTransfers.Remove(transferToRestore);
       group.Transfers.Add(transferToRestore);
-      
-      await _groupCollection.ReplaceOneAsync(g => g.Id == groupBsonId, group);
-      await session.CommitTransactionAsync();
 
-    } catch(Exception _) {
-      
-      await session.AbortTransactionAsync();
-    }
-    
+      await _groupCollection.ReplaceOneAsync(g => g.Id == groupBsonId, group);
+
     return Result.Success();
   }
 }

@@ -7,15 +7,17 @@ public enum Permissions {
   CanEditLabels = 8,
   CanManageRoles = 16,
   CanRemoveMembers = 32,
-  CanEditGroupDetails = 64,
+  CanAddGuests = 64,
+  CanRemoveGuests = 128,
+  CanEditGroupDetails = 256,
 
-  CanAddExpense = 128,
-  CanEditExpense = 256,
-  CanDeleteExpense = 512,
-  CanCommentExpense = 1024,
-  CanAddSpenderOtherThanHimself = 2048,
+  CanAddExpense = 512,
+  CanEditExpense = 1024,
+  CanDeleteExpense = 2048,
+  CanCommentExpense = 4096,
+  CanAddSpenderOtherThanHimself = 8192,
 
-  CanAddTransfer = 4096,
-  CanDeleteTransfer = 8192,
-  CanAddTransferOnBehalfOfOtheruser = 16384
+  CanAddTransfer = 16384,
+  CanDeleteTransfer = 32768,
+  CanAddTransferOnBehalfOfOtheruser = 65536
 }
