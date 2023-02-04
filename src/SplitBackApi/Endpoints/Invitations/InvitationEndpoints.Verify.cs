@@ -14,7 +14,9 @@ public static partial class InvitationEndpoints {
     VerifyInvitationRequest request,
     IOptions<AppSettings> appSettings) {
 
-    var authenticatedUserId = httpContext.GetAuthorizedUserId();
+    var authenticatedUserIdResult = httpContext.GetAuthorizedUserId();
+    if(authenticatedUserIdResult.IsFailure) return Results.BadRequest(authenticatedUserIdResult.Error);
+    var authenticatedUserId = authenticatedUserIdResult.Value;
 
     var invitationResult = await repo.GetInvitationByCode(request.Code);
     if(invitationResult.IsFailure) return Results.BadRequest(invitationResult.Error);

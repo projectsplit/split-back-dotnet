@@ -5,7 +5,9 @@ using MongoDB.Bson;
 namespace SplitBackApi.Extensions;
 
 public static class GroupExtensions {
+  
   public static IEnumerable<string> UniqueCurrencyCodes(this Group group) {
+    
     var expenseListsByIsoCode = group.Expenses.GroupBy(exp => exp.IsoCode);
     var transferListsByIsoCode = group.Transfers.GroupBy(tr => tr.IsoCode);
 
@@ -18,6 +20,7 @@ public static class GroupExtensions {
   }
 
   public static List<PendingTransaction> PendingTransactions(this Group group) {
+    
     var uniqueIsoCodeList = IsoCodeHelper.GetUniqueIsoCodes(group);
 
     var pendingTransactions = new List<PendingTransaction>();
@@ -121,6 +124,7 @@ public static class GroupExtensions {
   }
 
   public static Dictionary<string, List<TransactionTimelineItem>> GetTransactionHistory(this Group group, ObjectId authedUserId) {
+    
     var userId = authedUserId;//ObjectId.Parse("63b7f4db07148f61a575a3bb");//this is going to be the authorized user's Id.
     var uniqueIsoCodeList = group.UniqueCurrencyCodes();
     var transactionTimelineForEachCurrency = new Dictionary<string, List<TransactionTimelineItem>>();
@@ -158,6 +162,7 @@ public static class GroupExtensions {
 
       // Loop sortedTransactionMemberDetails created before
       foreach(var transactionMemberDetail in sortedTransactionMemberDetails) {
+        
         totalLentSoFar += transactionMemberDetail.Lent;
         totalBorrowedSoFar += transactionMemberDetail.Borrowed;
 
@@ -166,17 +171,23 @@ public static class GroupExtensions {
 
       transactionTimelineForEachCurrency.Add(currencyCode, transactionTimelineForCurrency);
     };
+    
     return transactionTimelineForEachCurrency;
   }
 }
 
 public record Participant {
+  
   public Participant(ObjectId id, decimal totalAmountGiven, decimal totalAmountTaken) {
+    
     Id = id;
     TotalAmountGiven = totalAmountGiven;
     TotalAmountTaken = totalAmountTaken;
   }
+  
   public ObjectId Id { get; set; }
+  
   public decimal TotalAmountGiven { get; set; }
+  
   public decimal TotalAmountTaken { get; set; }
 }

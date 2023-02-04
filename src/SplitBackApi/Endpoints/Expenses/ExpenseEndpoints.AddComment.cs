@@ -12,14 +12,16 @@ public static partial class ExpenseEndpoints {
 
   private static async Task<IResult> AddComment(
    IRepository repo,
-   HttpContext httpContext,
+   HttpContext context,
    NewCommentDto newCommentDto,
    IMapper mapper,
    RoleService roleService
   ) {
    
     //var endpointPermissionList = new List<Permissions> { Permissions.CanCommentExpense };
-    var authedUserId = httpContext.GetAuthorizedUserId();
+    var authenticatedUserIdResult = context.GetAuthorizedUserId();
+    if(authenticatedUserIdResult.IsFailure) return Results.BadRequest(authenticatedUserIdResult.Error);
+    var authenticatedUserId = authenticatedUserIdResult.Value;
 
     try {
       var expenseId = ObjectId.Parse(newCommentDto.ExpenseId);
@@ -30,7 +32,7 @@ public static partial class ExpenseEndpoints {
       //if(accessAllowed) {
 
       var newComment = mapper.Map<Comment>(newCommentDto);
-      newComment.CommentorId = authedUserId;
+      newComment.CommentorId = authenticatedUserId;
 
       var addCommentResult = await repo.AddComment(newComment, expenseId, groupId);
       if(addCommentResult.IsFailure) return Results.BadRequest(addCommentResult.Error);

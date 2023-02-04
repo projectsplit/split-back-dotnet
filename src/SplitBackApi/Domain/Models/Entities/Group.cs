@@ -1,6 +1,5 @@
 using MongoDB.Bson;
 
-
 namespace SplitBackApi.Domain;
 
 public class Group : EntityBase {

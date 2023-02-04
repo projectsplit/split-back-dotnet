@@ -12,6 +12,6 @@ public static partial class ExpenseEndpoints {
     expenseGroup.MapPost("/editExpense", EditExpense);
     expenseGroup.MapPost("/removeExpense", RemoveExpense);
     expenseGroup.MapPost("/restoreExpense", RestoreExpense);
-    expenseGroup.MapPost("/txHistory", TxHistory);
+    expenseGroup.MapPost("/transactionHistory", TransactionHistory);
   }
 }

@@ -13,24 +13,21 @@ public static partial class GroupEndpoints {
     HttpContext httpContext,
     IRepository repo,
     IMapper mapper,
-    CreateGroupDto createGroupDto) {
+    CreateGroupDto createGroupDto
+  ) {
 
-    try {
-      var authedUserId = httpContext.GetAuthorizedUserId();
+    var authenticatedUserIdResult = httpContext.GetAuthorizedUserId();
+    if(authenticatedUserIdResult.IsFailure) return Results.BadRequest(authenticatedUserIdResult.Error);
 
-      var labels = mapper.Map<ICollection<Label>>(createGroupDto.GroupLabels);
-      var group = mapper.Map<Group>(createGroupDto);
+    var labels = mapper.Map<ICollection<Label>>(createGroupDto.GroupLabels);
+    var group = mapper.Map<Group>(createGroupDto);
 
-      group.CreatorId = authedUserId;
-      group.Labels = labels;
+    group.CreatorId = authenticatedUserIdResult.Value;
+    group.Labels = labels;
 
-      var createGroupResult = await repo.CreateGroup(group);
-      if(createGroupResult.IsFailure) return Results.BadRequest(createGroupResult.Error);
+    var createGroupResult = await repo.CreateGroup(group);
+    if(createGroupResult.IsFailure) return Results.BadRequest(createGroupResult.Error);
 
-      return Results.Ok();
-      
-    } catch(Exception ex) {
-      return Results.BadRequest(ex.Message);
-    }
+    return Results.Ok();
   }
 }

@@ -6,12 +6,17 @@ using MongoDB.Bson;
 namespace SplitBackApi.Configuration;
 
 public class StringToObjectIdConverter : ITypeConverter<string, ObjectId> {
+  
   public ObjectId Convert(string source, ObjectId destination, ResolutionContext context) {
+    
     return ObjectId.Parse(source);
   }
 }
-public class UserProfile : Profile {
-  public UserProfile() {
+
+public class MapProfile : Profile {
+  
+  public MapProfile() {
+    
     //source ->target
     CreateMap<UserCreateDto, User>();
     CreateMap<LabelDto, Label>()

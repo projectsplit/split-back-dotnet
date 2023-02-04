@@ -23,14 +23,17 @@ public partial class MongoDbRepository : IRepository {
     session.StartTransaction();
 
     try {
-
+      
       var oldGroup = await _groupCollection.FindOneAndUpdateAsync(session, filter, updateExpense);
       if(oldGroup is null) return Result.Failure("Group not found");
 
       await AddExpenseToHistory(session, oldGroup, expenseId, filter);
       session.CommitTransaction();
 
-    } catch(Exception _) {      await session.AbortTransactionAsync();
+    } catch(MongoException e) {
+
+      await session.AbortTransactionAsync();
+      return Result.Failure(e.ToString());
     }
     return Result.Success();
   }
