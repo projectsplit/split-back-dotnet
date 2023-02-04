@@ -14,8 +14,8 @@ public partial class MongoDbRepository : IRepository {
     group.Roles.Add(_roleService.CreateDefaultRole("Everyone"));
     group.Roles.Add(_roleService.CreateDefaultRole("Owner"));
 
-    var roleIDs = new List<ObjectId>();
-    roleIDs.AddRange(group.Roles.Where(role => role.Title == "Owner").Select(role => role.Id));
+    var roleIds = new List<ObjectId>();
+    roleIds.AddRange(group.Roles.Where(role => role.Title == "Owner").Select(role => role.Id));
 
     using var session = await _mongoClient.StartSessionAsync();
     session.StartTransaction();
@@ -23,13 +23,13 @@ public partial class MongoDbRepository : IRepository {
     try {
 
       await _groupCollection.InsertOneAsync(session, group);
-      await AddUserToGroup(session, group.Id, group.CreatorId, roleIDs);
+      await AddUserToGroup(session, group.Id, group.CreatorId, roleIds);
       await session.CommitTransactionAsync();
 
-    } catch(Exception ex) {
+    } catch(MongoException e) {
 
       await session.AbortTransactionAsync();
-      Console.WriteLine(ex.Message);
+      return Result.Failure(e.ToString());
     }
 
     return Result.Success();

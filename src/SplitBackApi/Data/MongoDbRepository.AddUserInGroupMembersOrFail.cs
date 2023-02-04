@@ -7,7 +7,7 @@ namespace SplitBackApi.Data;
 
 public partial class MongoDbRepository : IRepository {
 
-  public async Task<Result<Group>> AddUserInGroupMembersOrFail(ObjectId userId, ObjectId groupId) {
+  public async Task<Result<Group>> AddUserInGroupMembers(ObjectId userId, ObjectId groupId) {
 
     var newMember = new Member {
       UserId = userId,

@@ -13,13 +13,17 @@ public partial class MongoDbRepository : IRepository {
   private readonly IMongoCollection<User> _userCollection;
   private readonly IMongoCollection<Group> _groupCollection;
   private readonly IMongoCollection<Invitation> _invitationCollection;
-  private readonly string _connectionString;
   private readonly IMapper _mapper;
   private readonly RoleService _roleService;
   private readonly MongoTransactionService _mongoTransactionService;
   private readonly MongoClient _mongoClient;
 
-  public MongoDbRepository(IOptions<AppSettings> appSettings, IMapper mapper, RoleService roleService, MongoTransactionService mongoTransactionService) {
+  public MongoDbRepository(
+    IOptions<AppSettings> appSettings,
+    IMapper mapper,
+    RoleService roleService,
+    MongoTransactionService mongoTransactionService
+  ) {
 
     var dbSettings = appSettings.Value.MongoDb;
     _mongoClient = new MongoClient(dbSettings.ConnectionString);
@@ -29,7 +33,7 @@ public partial class MongoDbRepository : IRepository {
     _userCollection = mongoDatabase.GetCollection<User>(dbSettings.Database.Collections.Users);
     _groupCollection = mongoDatabase.GetCollection<Group>(dbSettings.Database.Collections.Groups);
     _invitationCollection = mongoDatabase.GetCollection<Invitation>(dbSettings.Database.Collections.Invitations);
-    _connectionString = dbSettings.ConnectionString;
+
     _mapper = mapper;
     _roleService = roleService;
     _mongoTransactionService = mongoTransactionService;

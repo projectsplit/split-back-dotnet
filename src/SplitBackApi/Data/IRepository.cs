@@ -22,14 +22,24 @@ public interface IRepository {
   Task<Result> RestoreGuestToGroup(ObjectId groupId, ObjectId userId);
   // Task<bool> EmailExists(string Email);
   Task<Result<User>> GetUserIfGroupNotExistsInUserGroups(ObjectId userId, ObjectId groupId);
-  Task<Result<User>> AddGroupInUserOrFail(ObjectId userId, ObjectId groupId);
+  Task<Result<User>> AddGroupInUser(ObjectId userId, ObjectId groupId);
 
   // Group
   Task<Result> CreateGroup(Group group);
   Task<Result<Group>> GetGroupById(ObjectId groupId);
   Task AddUserToGroup(IClientSessionHandle session, ObjectId groupID, ObjectId userID, ICollection<ObjectId> roleIDs);
+  
+  
+  // AddUserToGroup
+  // RemoveUserFromGroup
+  // AddGuestToGroup
+  // RemoveGuestFromGroup
+  
+  // CreateMember
+  
+  
   Task<Result<Group>> GetGroupIfUserIsNotMember(ObjectId userId, ObjectId groupId);
-  Task<Result<Group>> AddUserInGroupMembersOrFail(ObjectId userId, ObjectId groupId);
+  Task<Result<Group>> AddUserInGroupMembers(ObjectId userId, ObjectId groupId);
   Task<Result> CreateRole(ObjectId groupId, string roleName, Role newRole);
   Task<Result> EditRole(ObjectId roleId, ObjectId groupId, string roleName, Role newRole);
   Task<Result> AddRoleToUser(ObjectId groupId, ObjectId userId, ObjectId roleId);

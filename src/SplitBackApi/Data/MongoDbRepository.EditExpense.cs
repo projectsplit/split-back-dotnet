@@ -30,8 +30,7 @@ public partial class MongoDbRepository : IRepository {
       await AddExpenseToHistory(session, oldGroup, expenseId, filter);
       session.CommitTransaction();
 
-    } catch(Exception _) {
-      await session.AbortTransactionAsync();
+    } catch(Exception _) {      await session.AbortTransactionAsync();
     }
     return Result.Success();
   }
