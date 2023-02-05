@@ -21,6 +21,7 @@ public class Program {
     builder.Services.AddScoped<IRepository, MongoDbRepository>();
     builder.Services.AddScoped<AuthService>();
     builder.Services.AddScoped<GroupPermissionsMiddleware>();
+    builder.Services.AddScoped<ExceptionHandlerMiddleware>();
 
     builder.Services.AddJwtBearerAuthentication();
 
@@ -59,9 +60,9 @@ public class Program {
     app.MapInvitationEndpoints();
     app.MapRolesEndpoints();
     app.MapGroupEndpoints();
+    app.UseMiddleware<ExceptionHandlerMiddleware>();
     app.UseAuthorization();
     app.UseGroupPermissionMiddleware();
-  
 
     app.Run();
   }
