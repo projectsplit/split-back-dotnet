@@ -15,7 +15,6 @@ public static partial class TransferEndpoints {
     EditTransferDto editTransferDto,
     IMapper mapper) {
 
-    var groupId = ObjectId.Parse(editTransferDto.GroupId);
     var transferValidator = new TransferValidator();
     var validationResult = transferValidator.Validate(editTransferDto);
 
@@ -27,12 +26,11 @@ public static partial class TransferEndpoints {
     }
 
     var newTransfer = mapper.Map<Transfer>(editTransferDto);
-    var transferId = ObjectId.Parse(editTransferDto.TransferId);
 
-    var editTansferRes = await repo.EditTransfer(newTransfer, groupId, transferId);
+    var editTansferRes = await repo.EditTransfer(newTransfer, editTransferDto.GroupId, editTransferDto.TransferId);
     if(editTansferRes.IsFailure) return Results.BadRequest(editTansferRes.Error);
 
-    var getGroupRes = await repo.GetGroupById(groupId);
+    var getGroupRes = await repo.GetGroupById(editTransferDto.GroupId);
     if(getGroupRes.IsFailure) return Results.BadRequest(getGroupRes.Error);
 
     return Results.Ok(getGroupRes.Value.PendingTransactions());

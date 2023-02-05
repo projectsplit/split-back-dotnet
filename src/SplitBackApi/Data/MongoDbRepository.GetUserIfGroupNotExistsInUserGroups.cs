@@ -7,7 +7,7 @@ namespace SplitBackApi.Data;
 
 public partial class MongoDbRepository : IRepository {
   
-  public async Task<Result<User>> GetUserIfGroupNotExistsInUserGroups(ObjectId userId, ObjectId groupId) {
+  public async Task<Result<User>> GetUserIfGroupNotExistsInUserGroups(string userId, string groupId) {
     
     var filter = 
       Builders<User>.Filter.Eq("_id", userId) & 

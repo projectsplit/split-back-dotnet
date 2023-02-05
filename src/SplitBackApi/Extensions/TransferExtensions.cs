@@ -6,7 +6,7 @@ namespace SplitBackApi.Extensions;
 public static class TransferExtensions
 {
 
-  public static TransactionMemberDetail? ToTransactionMemberDetailFromUserId(this Transfer transfer, ObjectId userId)
+  public static TransactionMemberDetail? ToTransactionMemberDetailFromUserId(this Transfer transfer, string userId)
   {
     var isSender = transfer.SenderId == userId;
     var isReceiver = transfer.ReceiverId == userId;

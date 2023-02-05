@@ -1,13 +1,16 @@
 using MongoDB.Bson;
-namespace SplitBackApi.Domain;
-public class TransactionTimelineItem
-{
+using MongoDB.Bson.Serialization.Attributes;
 
-  public ObjectId Id { get; set; }
+namespace SplitBackApi.Domain;
+
+public class TransactionTimelineItem {
+
+  [BsonRepresentation(BsonType.ObjectId)]
+  public string Id { get; set; }
 
   public DateTime CreatedAt { get; set; }
 
-  public string Description { get; set; } = String.Empty;
+  public string Description { get; set; }
 
   public decimal Lent { get; set; }
 

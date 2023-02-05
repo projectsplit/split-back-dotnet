@@ -15,7 +15,6 @@ public static partial class TransferEndpoints {
     NewTransferDto newTransferDto,
     IMapper mapper) {
 
-    var groupId = ObjectId.Parse(newTransferDto.GroupId);
     var transferValidator = new TransferValidator();
 
     var validationResult = transferValidator.Validate(newTransferDto);
@@ -25,13 +24,14 @@ public static partial class TransferEndpoints {
         Field = x.PropertyName
       }));
     }
+    
     var newTransfer = mapper.Map<Transfer>(newTransferDto);
     newTransfer.CreationTime = DateTime.Now;
 
-    var transferRes = await repo.CreateTransfer(newTransfer, groupId);
+    var transferRes = await repo.CreateTransfer(newTransfer, newTransferDto.GroupId);
     if(transferRes.IsFailure) return Results.BadRequest(transferRes.Error);
 
-    var getGroupRes = await repo.GetGroupById(groupId);
+    var getGroupRes = await repo.GetGroupById(newTransferDto.GroupId);
     if(getGroupRes.IsFailure) return Results.BadRequest(getGroupRes.Error);
 
     return Results.Ok(getGroupRes.Value.PendingTransactions());

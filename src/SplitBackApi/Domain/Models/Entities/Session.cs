@@ -5,9 +5,10 @@ namespace SplitBackApi.Domain;
 
 public class Session : EntityBase {
 
-  public string RefreshToken { get; set; } = String.Empty;
+  public string RefreshToken { get; set; }
 
-  public ObjectId UserId { get; set; } = default!;
+  [BsonRepresentation(BsonType.ObjectId)]
+  public string UserId { get; set; }
 
-  public string Unique { get; set; } = String.Empty;
+  public string Unique { get; set; }
 }

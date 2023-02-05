@@ -1,4 +1,6 @@
 ﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+
 namespace SplitBackApi.Domain;
 
 public class Transfer : EntityBase {
@@ -11,10 +13,11 @@ public class Transfer : EntityBase {
   
   public DateTime TransferTime { get; set; }
   
-  public ObjectId SenderId { get; set; }
+  [BsonRepresentation(BsonType.ObjectId)]
+  public string SenderId { get; set; }
   
-  public ObjectId ReceiverId { get; set; }
+  [BsonRepresentation(BsonType.ObjectId)]
+  public string ReceiverId { get; set; }
   
   public ICollection<TransferSnapshot> History { get; set; } = new List<TransferSnapshot>();
-
 }

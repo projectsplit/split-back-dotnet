@@ -7,7 +7,7 @@ namespace SplitBackApi.Data;
 
 public partial class MongoDbRepository : IRepository {
 
-  public async Task AddExpenseToHistory(IClientSessionHandle session, Group oldGroup, ObjectId OperationId, FilterDefinition<Group>? filter) {
+  public async Task AddExpenseToHistory(IClientSessionHandle session, Group oldGroup, string OperationId, FilterDefinition<Group>? filter) {
 
     var oldExpense = oldGroup.Expenses.First(e => e.Id == OperationId);
 

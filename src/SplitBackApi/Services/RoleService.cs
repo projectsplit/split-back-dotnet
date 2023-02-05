@@ -8,7 +8,7 @@ namespace SplitBackApi.Services;
 
 public class RoleService {
 
-  public Result<bool> MemberHasRequiredPermissions(ObjectId userId, Group group, Permissions requiredPermissions) {
+  public Result<bool> MemberHasRequiredPermissions(string userId, Group group, Permissions requiredPermissions) {
 
     var member = group.Members.Where(member => member.UserId == userId).SingleOrDefault();
     if(member is null) return Result.Failure<bool>($"Member with userId {userId} not found");
@@ -22,12 +22,13 @@ public class RoleService {
     return allMemberPermissions.HasFlag(requiredPermissions);
   }
 
-  public Role CreateDefaultRole(string title) {
+  public Role CreateDefaultRole(string id, string title) {
 
     switch(title) {
 
       case "Everyone":
         return new Role {
+          Id = id,
           Title = title,
           Permissions = 
             Permissions.CanInviteMembers |
@@ -44,8 +45,12 @@ public class RoleService {
 
       case "Owner":
         return new Role {
+          Id = id,
           Title = title,
-          Permissions = Enum.GetValues(typeof(Permissions)).Cast<Permissions>().Aggregate((current, next) => current | next)
+          Permissions = Enum
+            .GetValues(typeof(Permissions))
+            .Cast<Permissions>()
+            .Aggregate((current, next) => current | next)
         };
 
       default:

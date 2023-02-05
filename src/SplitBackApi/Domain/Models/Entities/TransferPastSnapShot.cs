@@ -13,9 +13,11 @@ public class TransferSnapshot : EntityBase {
   
   public DateTime ModifiedAt { get; set; }
   
-  public ObjectId SenderId { get; set; }
+  [BsonRepresentation(BsonType.ObjectId)]
+  public string SenderId { get; set; }
 
-  public ObjectId ReceiverId { get; set; }
+  [BsonRepresentation(BsonType.ObjectId)]
+  public string ReceiverId { get; set; }
 
   public bool IsDeleted { get; set; }
 }

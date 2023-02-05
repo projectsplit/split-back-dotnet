@@ -1,5 +1,4 @@
 using SplitBackApi.Data;
-using MongoDB.Bson;
 using SplitBackApi.Requests;
 using SplitBackApi.Extensions;
 using SplitBackApi.Domain;
@@ -15,7 +14,7 @@ public static partial class ExpenseEndpoints {
     NewExpenseDto newExpenseDto,
     IMapper mapper) {
     
-    var groupId = new ObjectId(newExpenseDto.GroupId);
+    // var groupId = new ObjectId(newExpenseDto.GroupId);
 
     var expenseValidator = new ExpenseValidator();
     var validationResult = expenseValidator.Validate(newExpenseDto);
@@ -33,10 +32,10 @@ public static partial class ExpenseEndpoints {
     var newExpense = mapper.Map<Expense>(newExpenseDto);
     newExpense.CreationTime = DateTime.Now;
 
-    var addNewExpenseResult = await repo.CreateExpense(newExpense, groupId);
+    var addNewExpenseResult = await repo.CreateExpense(newExpense, newExpenseDto.GroupId);
     if(addNewExpenseResult.IsFailure) return Results.BadRequest(addNewExpenseResult.Error);
     
-    var getGroupResult = await repo.GetGroupById(groupId);
+    var getGroupResult = await repo.GetGroupById(newExpenseDto.GroupId);
     if(getGroupResult.IsFailure) return Results.BadRequest(getGroupResult.Error);
     var group = getGroupResult.Value;
 

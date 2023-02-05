@@ -7,7 +7,7 @@ namespace SplitBackApi.Data;
 
 public partial class MongoDbRepository : IRepository {
 
-  public async Task<Result> CreateExpense(Expense newExpense, ObjectId groupId) {
+  public async Task<Result> CreateExpense(Expense newExpense, string groupId) {
 
     var update = Builders<Group>.Update.AddToSet("Expenses", newExpense);
     
