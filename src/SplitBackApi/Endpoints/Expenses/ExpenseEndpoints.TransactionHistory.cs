@@ -2,7 +2,6 @@ using SplitBackApi.Data;
 using SplitBackApi.Requests;
 using SplitBackApi.Extensions;
 using SplitBackApi.Domain;
-using MongoDB.Bson;
 
 namespace SplitBackApi.Endpoints;
 

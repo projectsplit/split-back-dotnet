@@ -22,12 +22,13 @@ public class RoleService {
     return allMemberPermissions.HasFlag(requiredPermissions);
   }
 
-  public Role CreateDefaultRole(string title) {
+  public Role CreateDefaultRole(string id, string title) {
 
     switch(title) {
 
       case "Everyone":
         return new Role {
+          Id = id,
           Title = title,
           Permissions = 
             Permissions.CanInviteMembers |
@@ -44,8 +45,12 @@ public class RoleService {
 
       case "Owner":
         return new Role {
+          Id = id,
           Title = title,
-          Permissions = Enum.GetValues(typeof(Permissions)).Cast<Permissions>().Aggregate((current, next) => current | next)
+          Permissions = Enum
+            .GetValues(typeof(Permissions))
+            .Cast<Permissions>()
+            .Aggregate((current, next) => current | next)
         };
 
       default:

@@ -11,8 +11,8 @@ public partial class MongoDbRepository : IRepository {
 
     if(group is null) return Result.Failure("CreateGroup error: Group is null");
 
-    group.Roles.Add(_roleService.CreateDefaultRole("Everyone"));
-    group.Roles.Add(_roleService.CreateDefaultRole("Owner"));
+    group.Roles.Add(_roleService.CreateDefaultRole(ObjectId.GenerateNewId().ToString(), "Everyone"));
+    group.Roles.Add(_roleService.CreateDefaultRole(ObjectId.GenerateNewId().ToString(), "Owner"));
 
     var roleIds = new List<string>();
     roleIds.AddRange(group.Roles.Where(role => role.Title == "Owner").Select(role => role.Id));

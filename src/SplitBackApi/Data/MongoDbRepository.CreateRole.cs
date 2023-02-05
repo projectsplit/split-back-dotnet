@@ -8,7 +8,13 @@ namespace SplitBackApi.Data;
 
 public partial class MongoDbRepository : IRepository {
 
-  public async Task<Result> CreateRole(string groupId, string roleName, Role newRole) {
+  public async Task<Result> CreateRole(string groupId, string roleTitle, Permissions rolePermissions) {
+    
+    var newRole = new Role {
+      Id = ObjectId.GenerateNewId().ToString(),
+      Title = roleTitle,
+      Permissions = rolePermissions
+    };
     
     var filter = Builders<Group>.Filter.Eq("_id", groupId.ToObjectId());
     var groupUpdate = Builders<Group>.Update.Push("Roles", newRole);

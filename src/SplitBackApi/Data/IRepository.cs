@@ -40,7 +40,7 @@ public interface IRepository {
   
   Task<Result<Group>> GetGroupIfUserIsNotMember(string userId, string groupId);
   Task<Result<Group>> AddUserInGroupMembers(string userId, string groupId);
-  Task<Result> CreateRole(string groupId, string roleName, Role newRole);
+  Task<Result> CreateRole(string groupId, string roleName, Permissions rolePermissions);
   Task<Result> EditRole(string roleId, string groupId, string roleName, Role newRole);
   Task<Result> AddRoleToUser(string groupId, string userId, string roleId);
   Task<Result> RemoveRoleFromUser(string groupId, string userId, string roleId);

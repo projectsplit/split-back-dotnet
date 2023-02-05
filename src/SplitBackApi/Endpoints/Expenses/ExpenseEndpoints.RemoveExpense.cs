@@ -1,7 +1,7 @@
 using SplitBackApi.Data;
 using SplitBackApi.Requests;
 using SplitBackApi.Extensions;
-using MongoDB.Bson;
+
 namespace SplitBackApi.Endpoints;
 
 public static partial class ExpenseEndpoints {
