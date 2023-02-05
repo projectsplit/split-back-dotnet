@@ -7,7 +7,7 @@ namespace SplitBackApi.Data;
 
 public partial class MongoDbRepository : IRepository {
   
-  public async Task<Result> CreateTransfer(Transfer newTransfer, ObjectId groupId) {
+  public async Task<Result> CreateTransfer(Transfer newTransfer, string groupId) {
 
     var update = Builders<Group>.Update.AddToSet("Transfers", newTransfer);
     

@@ -1,6 +1,8 @@
 namespace SplitBackApi.Domain;
+
 [Flags]
 public enum Permissions {
+
   CanInviteMembers = 1,
   CanArchiveGroup = 2,
   CanDeleteGroup = 4,

@@ -1,10 +1,12 @@
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace SplitBackApi.Domain;
 
 public class Role {
   
-  public ObjectId Id { get; set; } = ObjectId.GenerateNewId();
+  [BsonRepresentation(BsonType.ObjectId)]
+  public string Id { get; set; }
   
   public string Title { get; set; } = string.Empty;
   

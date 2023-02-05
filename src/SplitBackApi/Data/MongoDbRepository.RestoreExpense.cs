@@ -8,19 +8,16 @@ public partial class MongoDbRepository : IRepository {
 
   public async Task<Result> RestoreExpense(string groupId, string expenseId) {
 
-    var groupBsonId = ObjectId.Parse(groupId);
-    var expenseBsonId = ObjectId.Parse(expenseId);
-
-    var group = await _groupCollection.Find(g => g.Id == groupBsonId).SingleOrDefaultAsync();
+    var group = await _groupCollection.Find(g => g.Id == groupId).SingleOrDefaultAsync();
     if(group is null) return Result.Failure($"Group {groupId} Not Found");
 
-    var expenseToRestore = group.DeletedExpenses.Where(e => e.Id == expenseBsonId).SingleOrDefault();
+    var expenseToRestore = group.DeletedExpenses.Where(e => e.Id == expenseId).SingleOrDefault();
     if(expenseToRestore is null) return Result.Failure($"Expense with id {expenseId} not found");
 
     group.DeletedExpenses.Remove(expenseToRestore);
     group.Expenses.Add(expenseToRestore);
 
-    await _groupCollection.ReplaceOneAsync(g => g.Id == groupBsonId, group);
+    await _groupCollection.ReplaceOneAsync(g => g.Id == groupId, group);
     
     return Result.Success();
   }

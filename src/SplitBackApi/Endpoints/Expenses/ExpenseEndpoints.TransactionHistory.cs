@@ -12,14 +12,12 @@ public static partial class ExpenseEndpoints {
     IRepository repo,
     TransactionHistoryDto transactionHistoryDto,
     HttpContext context) {
-
-    var groupId = ObjectId.Parse(transactionHistoryDto.GroupId);
     
     var authenticatedUserIdResult = context.GetAuthorizedUserId();
     if(authenticatedUserIdResult.IsFailure) return Results.BadRequest(authenticatedUserIdResult.Error);
     var authenticatedUserId = authenticatedUserIdResult.Value;
 
-    var result = await repo.GetGroupById(groupId);
+    var result = await repo.GetGroupById(transactionHistoryDto.GroupId);
 
     if(result.IsFailure) return Results.BadRequest(result.Error);
 

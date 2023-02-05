@@ -7,7 +7,7 @@ namespace SplitBackApi.Data;
 
 public partial class MongoDbRepository : IRepository {
 
-  public async Task<Invitation> GetInvitationByInviter(ObjectId userId, ObjectId groupId) {
+  public async Task<Invitation> GetInvitationByInviter(string userId, string groupId) {
 
     var filter =
       Builders<Invitation>.Filter.Eq("Inviter", userId) &

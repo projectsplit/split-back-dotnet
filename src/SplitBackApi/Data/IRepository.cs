@@ -15,19 +15,19 @@ public interface IRepository {
   // User
   Task<bool> UserExistsByEmail(string email);
   Task CreateUser(User user);
-  Task<Result<User>> GetUserById(ObjectId userId);
+  Task<Result<User>> GetUserById(string userId);
   Task<User> GetUserByEmail(string email);
-  Task<Result> AddGuestToGroup(ObjectId groupId, string email, string nickname);
-  Task<Result> RemoveGuestFromGroup(ObjectId groupId, ObjectId userId);
-  Task<Result> RestoreGuestToGroup(ObjectId groupId, ObjectId userId);
+  Task<Result> AddGuestToGroup(string groupId, string email, string nickname);
+  Task<Result> RemoveGuestFromGroup(string groupId, string userId);
+  Task<Result> RestoreGuestToGroup(string groupId, string userId);
   // Task<bool> EmailExists(string Email);
-  Task<Result<User>> GetUserIfGroupNotExistsInUserGroups(ObjectId userId, ObjectId groupId);
-  Task<Result<User>> AddGroupInUser(ObjectId userId, ObjectId groupId);
+  Task<Result<User>> GetUserIfGroupNotExistsInUserGroups(string userId, string groupId);
+  Task<Result<User>> AddGroupInUser(string userId, string groupId);
 
   // Group
   Task<Result> CreateGroup(Group group);
-  Task<Result<Group>> GetGroupById(ObjectId groupId);
-  Task AddUserToGroup(IClientSessionHandle session, ObjectId groupID, ObjectId userID, ICollection<ObjectId> roleIDs);
+  Task<Result<Group>> GetGroupById(string groupId);
+  Task AddUserToGroup(IClientSessionHandle session, string groupID, string userID, ICollection<string> roleIDs);
   
   
   // AddUserToGroup
@@ -38,33 +38,33 @@ public interface IRepository {
   // CreateMember
   
   
-  Task<Result<Group>> GetGroupIfUserIsNotMember(ObjectId userId, ObjectId groupId);
-  Task<Result<Group>> AddUserInGroupMembers(ObjectId userId, ObjectId groupId);
-  Task<Result> CreateRole(ObjectId groupId, string roleName, Role newRole);
-  Task<Result> EditRole(ObjectId roleId, ObjectId groupId, string roleName, Role newRole);
-  Task<Result> AddRoleToUser(ObjectId groupId, ObjectId userId, ObjectId roleId);
-  Task<Result> RemoveRoleFromUser(ObjectId groupId, ObjectId userId, ObjectId roleId);
+  Task<Result<Group>> GetGroupIfUserIsNotMember(string userId, string groupId);
+  Task<Result<Group>> AddUserInGroupMembers(string userId, string groupId);
+  Task<Result> CreateRole(string groupId, string roleName, Role newRole);
+  Task<Result> EditRole(string roleId, string groupId, string roleName, Role newRole);
+  Task<Result> AddRoleToUser(string groupId, string userId, string roleId);
+  Task<Result> RemoveRoleFromUser(string groupId, string userId, string roleId);
 
   // Expense
-  Task<Result> CreateExpense(Expense newExpense, ObjectId groupId);
-  Task<Result> EditExpense(Expense newExpense, ObjectId groupId, ObjectId expenseId);
+  Task<Result> CreateExpense(Expense newExpense, string groupId);
+  Task<Result> EditExpense(Expense newExpense, string groupId, string expenseId);
   Task<Result> RemoveExpense(string groupId, string expenseId);
-  Task AddExpenseToHistory(IClientSessionHandle session, Group oldGroup, ObjectId Id, FilterDefinition<Group>? filter);
+  Task AddExpenseToHistory(IClientSessionHandle session, Group oldGroup, string Id, FilterDefinition<Group>? filter);
   Task<Result> RestoreExpense(string groupId, string expenseId);
 
   // Trasfer
-  Task<Result> CreateTransfer(Transfer newTransfer, ObjectId groupId);
-  Task<Result> EditTransfer(Transfer newTransfer, ObjectId groupId, ObjectId transferId);
+  Task<Result> CreateTransfer(Transfer newTransfer, string groupId);
+  Task<Result> EditTransfer(Transfer newTransfer, string groupId, string transferId);
   Task<Result> RemoveTransfer(string groupId, string transferId);
   Task<Result> RestoreTransfer(string groupId, string transferId);
-  Task AddTransferToHistory(IClientSessionHandle session,Group oldGroup, ObjectId Id, FilterDefinition<Group>? filter);
+  Task AddTransferToHistory(IClientSessionHandle session,Group oldGroup, string Id, FilterDefinition<Group>? filter);
 
   // Invitaion
-  Task CreateInvitation(ObjectId inviterId, ObjectId groupId);
-  Task<Invitation> GetInvitationByInviter(ObjectId userId, ObjectId groupId);
+  Task CreateInvitation(string inviterId, string groupId);
+  Task<Invitation> GetInvitationByInviter(string userId, string groupId);
   Task<Result<Invitation>> GetInvitationByCode(string Code);
-  Task<DeleteResult> DeleteInvitation(ObjectId userId, ObjectId groupId);
+  Task<DeleteResult> DeleteInvitation(string userId, string groupId);
 
   // Comment
-  Task<Result> AddComment(Comment newComment, ObjectId expenseId, ObjectId groupId);
+  Task<Result> AddComment(Comment newComment, string expenseId, string groupId);
 }

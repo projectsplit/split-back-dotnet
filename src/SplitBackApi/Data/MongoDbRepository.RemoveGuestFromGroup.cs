@@ -7,7 +7,7 @@ namespace SplitBackApi.Data;
 
 public partial class MongoDbRepository : IRepository {
 
-  public async Task<Result> RemoveGuestFromGroup(ObjectId groupId, ObjectId userId) {
+  public async Task<Result> RemoveGuestFromGroup(string groupId, string userId) {
 
     var group = await _groupCollection.Find(g => g.Id == groupId).SingleOrDefaultAsync();
     if(group is null) return Result.Failure($"Group {groupId} Not Found");

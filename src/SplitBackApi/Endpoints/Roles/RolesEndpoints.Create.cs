@@ -17,7 +17,7 @@ public static partial class RolesEndpoints {
       Permissions = request.Permissions.Cast<Permissions>().Aggregate((current, next) => current | next) //request.Permissions.Select(p => (Permissions)p).ToList()
     };
 
-    var createRoleResult = await repo.CreateRole(ObjectId.Parse(request.GroupId), request.Title, newRole);
+    var createRoleResult = await repo.CreateRole(request.GroupId, request.Title, newRole);
     if(createRoleResult.IsFailure) return Results.BadRequest(createRoleResult.Error);
 
     return Results.Ok();

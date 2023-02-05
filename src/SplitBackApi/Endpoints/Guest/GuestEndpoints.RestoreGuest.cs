@@ -12,10 +12,7 @@ public static partial class GuestEndpoints {
     IMapper mapper,
     RestoreGuestDto restoreGuestDto) {
 
-    var groupId = ObjectId.Parse(restoreGuestDto.GroupId);
-    var userId = ObjectId.Parse(restoreGuestDto.UserId);
-
-    var addGuestResult = await repo.RestoreGuestToGroup(groupId, userId);
+    var addGuestResult = await repo.RestoreGuestToGroup(restoreGuestDto.GroupId, restoreGuestDto.UserId);
 
     return Results.Ok();
   }

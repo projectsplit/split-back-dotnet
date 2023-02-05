@@ -1,4 +1,5 @@
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace SplitBackApi.Domain;
 
@@ -6,7 +7,8 @@ public class Group : EntityBase {
 
   public string Title { get; set; } = String.Empty;
 
-  public ObjectId CreatorId { get; set; }
+  [BsonRepresentation(BsonType.ObjectId)]
+  public string CreatorId { get; set; }
 
   public ICollection<Member> Members { get; set; } = new List<Member>();
 

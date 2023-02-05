@@ -37,9 +37,7 @@ public class GroupPermissionsMiddleware : IMiddleware {
 
       var deserializedRequest = JsonConvert.DeserializeObject<GroupOperationRequestBase>(serializedRequest.Result);
 
-      var groupId = ObjectId.Parse(deserializedRequest.GroupId);
-
-      var groupResult = await _repo.GetGroupById(groupId);
+      var groupResult = await _repo.GetGroupById(deserializedRequest.GroupId);
       if(groupResult.IsFailure) { context.Response.StatusCode = (int)HttpStatusCode.Forbidden; }
 
       var group = groupResult.Value;

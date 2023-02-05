@@ -123,9 +123,9 @@ public static class GroupExtensions {
     // group.CreatorId = user.Id;
   }
 
-  public static Dictionary<string, List<TransactionTimelineItem>> GetTransactionHistory(this Group group, ObjectId authedUserId) {
+  public static Dictionary<string, List<TransactionTimelineItem>> GetTransactionHistory(this Group group, string authedUserId) {
     
-    var userId = authedUserId;//ObjectId.Parse("63b7f4db07148f61a575a3bb");//this is going to be the authorized user's Id.
+    var userId = authedUserId;
     var uniqueIsoCodeList = group.UniqueCurrencyCodes();
     var transactionTimelineForEachCurrency = new Dictionary<string, List<TransactionTimelineItem>>();
 
@@ -178,14 +178,14 @@ public static class GroupExtensions {
 
 public record Participant {
   
-  public Participant(ObjectId id, decimal totalAmountGiven, decimal totalAmountTaken) {
+  public Participant(string id, decimal totalAmountGiven, decimal totalAmountTaken) {
     
     Id = id;
     TotalAmountGiven = totalAmountGiven;
     TotalAmountTaken = totalAmountTaken;
   }
   
-  public ObjectId Id { get; set; }
+  public string Id { get; set; }
   
   public decimal TotalAmountGiven { get; set; }
   

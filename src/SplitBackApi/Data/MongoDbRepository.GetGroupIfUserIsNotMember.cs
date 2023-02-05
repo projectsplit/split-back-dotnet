@@ -1,17 +1,18 @@
 using CSharpFunctionalExtensions;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using SplitBackApi.Data.Extensions;
 using SplitBackApi.Domain;
 
 namespace SplitBackApi.Data;
 
 public partial class MongoDbRepository : IRepository {
 
-  public async Task<Result<Group>> GetGroupIfUserIsNotMember(ObjectId userId, ObjectId groupId) {
+  public async Task<Result<Group>> GetGroupIfUserIsNotMember(string userId, string groupId) {
 
     var filter =
-      Builders<Group>.Filter.Eq("_id", groupId) &
-      Builders<Group>.Filter.Ne("Members", userId);
+      Builders<Group>.Filter.Eq("_id", groupId.ToObjectId()) &
+      Builders<Group>.Filter.Ne("Members", userId.ToObjectId());
 
     var group = await _groupCollection.Find(filter).SingleOrDefaultAsync();
 

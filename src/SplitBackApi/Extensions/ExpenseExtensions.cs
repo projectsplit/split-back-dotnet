@@ -6,7 +6,7 @@ namespace SplitBackApi.Extensions;
 public static class ExpenseExtensions
 {
 
-  public static TransactionMemberDetail? ToTransactionMemberDetailFromUserId(this Expense expense, ObjectId userId) {
+  public static TransactionMemberDetail? ToTransactionMemberDetailFromUserId(this Expense expense, string userId) {
 
     bool isSpender = expense.Spenders.ToList().Any(es => es.Id == userId);
     bool isParticipant = expense.Participants.ToList().Any(ep => ep.Id == userId);

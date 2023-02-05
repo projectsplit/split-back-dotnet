@@ -1,28 +1,29 @@
 using MongoDB.Bson;
 using MongoDB.Driver;
+using SplitBackApi.Data.Extensions;
 using SplitBackApi.Domain;
 
 namespace SplitBackApi.Data;
 
 public partial class MongoDbRepository : IRepository {
 
-  public async Task AddUserToGroup(IClientSessionHandle session, ObjectId groupID, ObjectId userID, ICollection<ObjectId> roleIDs) {
+  public async Task AddUserToGroup(IClientSessionHandle session, string groupId, string userId, ICollection<string> roleIds) {
 
-    var filter = Builders<Group>.Filter.Eq("_id", groupID) & Builders<Group>.Filter.ElemMatch(x => x.Members, member => member.UserId == userID);
+    var filter = Builders<Group>.Filter.Eq("_id", groupId.ToObjectId()) & Builders<Group>.Filter.ElemMatch(x => x.Members, member => member.UserId == userId);
     var userCount = await _groupCollection.CountDocumentsAsync(filter);
 
     var member = new Member {
-      UserId = userID,
-      Roles = roleIDs
+      UserId = userId,
+      Roles = roleIds
     };
 
     if(userCount == 0) {
 
       var updateGroup = Builders<Group>.Update.AddToSet("Members", member);
-      await _groupCollection.FindOneAndUpdateAsync(session, group => group.Id == groupID, updateGroup);
+      await _groupCollection.FindOneAndUpdateAsync(session, group => group.Id == groupId, updateGroup);
 
-      var updateUser = Builders<User>.Update.AddToSet("Groups", groupID);
-      await _userCollection.FindOneAndUpdateAsync(session, user => user.Id == userID, updateUser);
+      var updateUser = Builders<User>.Update.AddToSet("Groups", groupId);
+      await _userCollection.FindOneAndUpdateAsync(session, user => user.Id == userId, updateUser);
 
     } else throw new Exception();
   }

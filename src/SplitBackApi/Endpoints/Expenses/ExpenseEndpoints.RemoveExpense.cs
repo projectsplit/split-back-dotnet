@@ -8,12 +8,10 @@ public static partial class ExpenseEndpoints {
   
   private static async Task<IResult> RemoveExpense(IRepository repo, RemoveRestoreExpenseDto removeRestoreExpenseDto) {
     
-    var groupId = ObjectId.Parse(removeRestoreExpenseDto.GroupId);
-
     var removeExpenseResult = await repo.RemoveExpense(removeRestoreExpenseDto.GroupId, removeRestoreExpenseDto.ExpenseId);
     if(removeExpenseResult.IsFailure) return Results.BadRequest(removeExpenseResult.Error);
     
-    var getGroupResult = await repo.GetGroupById(groupId);
+    var getGroupResult = await repo.GetGroupById(removeRestoreExpenseDto.GroupId);
     if(getGroupResult.IsFailure) return Results.BadRequest(getGroupResult.Error);
     var group = getGroupResult.Value;
     

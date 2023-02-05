@@ -5,9 +5,10 @@ namespace SplitBackApi.Domain;
 
 public class EntityBase {
 
-  public ObjectId Id { get; set; } = default!;
-  
+  [BsonRepresentation(BsonType.ObjectId)]
+  public string Id { get; set; } = default!;
+
   public DateTime CreationTime { get; set; } = DateTime.UtcNow;
-  
+
   public DateTime LastUpdateTime { get; set; } = DateTime.UtcNow;
 }

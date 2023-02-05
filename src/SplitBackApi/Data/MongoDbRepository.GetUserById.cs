@@ -7,7 +7,7 @@ namespace SplitBackApi.Data;
 
 public partial class MongoDbRepository : IRepository {
 
-  public async Task<Result<User>> GetUserById(ObjectId userId) {
+  public async Task<Result<User>> GetUserById(string userId) {
     
     var user = await _userCollection.Find(user => user.Id == userId).SingleOrDefaultAsync();
     if(user is null) return Result.Failure<User>($"user {userId} not found");

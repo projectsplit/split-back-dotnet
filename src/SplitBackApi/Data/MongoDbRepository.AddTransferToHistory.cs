@@ -6,7 +6,7 @@ namespace SplitBackApi.Data;
 
 public partial class MongoDbRepository : IRepository {
 
-  public async Task AddTransferToHistory(IClientSessionHandle session, Group oldGroup, ObjectId OperationId, FilterDefinition<Group>? filter) {
+  public async Task AddTransferToHistory(IClientSessionHandle session, Group oldGroup, string OperationId, FilterDefinition<Group>? filter) {
 
     var oldTransfer = oldGroup.Transfers.First(t => t.Id == OperationId);
 

@@ -1,8 +1,9 @@
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace SplitBackApi.Domain;
 
-public class ExpenseSnapshot:EntityBase {
+public class ExpenseSnapshot : EntityBase {
   
   public string Description { get; set; } = string.Empty;
   
@@ -16,7 +17,8 @@ public class ExpenseSnapshot:EntityBase {
   
   public ICollection<Participant> Participants { get; set; } = new List<Participant>();
   
-  public ICollection<ObjectId> Labels { get; set; } = new List<ObjectId>();
+  [BsonRepresentation(BsonType.ObjectId)]
+  public ICollection<string> Labels { get; set; } = new List<string>();
   
   public ICollection<Comment> Comments { get; set; } = new List<Comment>();
   

@@ -1,15 +1,17 @@
 using CSharpFunctionalExtensions;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using SplitBackApi.Data.Extensions;
 using SplitBackApi.Domain;
 
 namespace SplitBackApi.Data;
 
 public partial class MongoDbRepository : IRepository {
-  public async Task<Result> EditTransfer(Transfer newTransfer, ObjectId groupId, ObjectId transferId) {
+  public async Task<Result> EditTransfer(Transfer newTransfer, string groupId, string transferId) {
 
-    //var transferId = ObjectId.Parse("63aafa3ad36b483e99735bcd");
-    var filter = Builders<Group>.Filter.Eq("_id", groupId) & Builders<Group>.Filter.ElemMatch(g => g.Transfers, t => t.Id == transferId);
+    var filter = 
+      Builders<Group>.Filter.Eq("_id", groupId.ToObjectId()) & 
+      Builders<Group>.Filter.ElemMatch(g => g.Transfers, t => t.Id == transferId);
 
     var updateTransfer = Builders<Group>.Update
        .Set("Transfers.$.Description", newTransfer.Description)

@@ -8,7 +8,7 @@ namespace SplitBackApi.Services;
 
 public class RoleService {
 
-  public Result<bool> MemberHasRequiredPermissions(ObjectId userId, Group group, Permissions requiredPermissions) {
+  public Result<bool> MemberHasRequiredPermissions(string userId, Group group, Permissions requiredPermissions) {
 
     var member = group.Members.Where(member => member.UserId == userId).SingleOrDefault();
     if(member is null) return Result.Failure<bool>($"Member with userId {userId} not found");

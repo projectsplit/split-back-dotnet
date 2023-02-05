@@ -1,16 +1,17 @@
 using CSharpFunctionalExtensions;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using SplitBackApi.Data.Extensions;
 using SplitBackApi.Domain;
 
 namespace SplitBackApi.Data;
 
 public partial class MongoDbRepository : IRepository {
   
-    public async Task<Result> RemoveRoleFromUser(ObjectId groupId, ObjectId userId, ObjectId roleId) {
+    public async Task<Result> RemoveRoleFromUser(string groupId, string userId, string roleId) {
 
     var filter = 
-      Builders<Group>.Filter.Eq("_id", groupId) & 
+      Builders<Group>.Filter.Eq("_id", groupId.ToObjectId()) & 
       Builders<Group>.Filter.ElemMatch(g => g.Members, m => m.UserId == userId);
       
     var groupUpdate = Builders<Group>.Update.Pull("Members.$.Roles", roleId);

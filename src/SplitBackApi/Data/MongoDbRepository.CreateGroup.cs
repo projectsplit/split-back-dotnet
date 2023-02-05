@@ -14,7 +14,7 @@ public partial class MongoDbRepository : IRepository {
     group.Roles.Add(_roleService.CreateDefaultRole("Everyone"));
     group.Roles.Add(_roleService.CreateDefaultRole("Owner"));
 
-    var roleIds = new List<ObjectId>();
+    var roleIds = new List<string>();
     roleIds.AddRange(group.Roles.Where(role => role.Title == "Owner").Select(role => role.Id));
 
     using var session = await _mongoClient.StartSessionAsync();
