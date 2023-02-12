@@ -27,7 +27,7 @@ public static partial class InvitationEndpoints {
     var getUserResult = await repo.GetUserById(invitation.Inviter);
     if(getUserResult.IsFailure) return Results.BadRequest(getUserResult.Error);
 
-    var processInvitationResult = await InvitationHelper.ProcessInvitation(authenticatedUserId, invitation, repo);
+    var processInvitationResult = await repo.ProcessInvitation(authenticatedUserId, invitation);
     if(processInvitationResult.IsFailure) return Results.BadRequest(processInvitationResult.Error);
 
     return Results.Ok(new {
