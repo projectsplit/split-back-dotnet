@@ -29,11 +29,7 @@ public static class GroupExtensions {
       var participants = new List<Participant>();
 
       group.Members.ToList().ForEach(member => {
-        participants.Add(new Participant(member.UserId, 0m, 0m));
-      });
-
-      group.Guests.ToList().ForEach(guest => {
-        participants.Add(new Participant(guest.UserId, 0m, 0m));
+        participants.Add(new Participant(member.Id, 0m, 0m));
       });
 
       group.Expenses.Where(exp => exp.IsoCode == currentIsoCode).ToList().ForEach(expense => {

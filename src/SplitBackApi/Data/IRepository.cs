@@ -28,18 +28,19 @@ public interface IRepository {
   Task<Result> CreateGroup(Group group);
   Task<Result<Group>> GetGroupById(string groupId);
   Task AddUserToGroup(IClientSessionHandle session, string groupID, string userID, ICollection<string> roleIDs);
-  
-  
+
+
   // AddUserToGroup
   // RemoveUserFromGroup
   // AddGuestToGroup
   // RemoveGuestFromGroup
-  
+
   // CreateMember
-  
-  
-  Task<Result<Group>> GetGroupIfUserIsNotMember(string userId, string groupId);
+
+
+  //Task<Result<Group>> GetGroupIfUserIsNotMember(string userId, string groupId);
   Task<Result<Group>> AddUserInGroupMembers(string userId, string groupId);
+  Task<Result<Group>> AddUserInGroupMembersByRetainingGuestId(string userId, string groupId, string guestId);
   Task<Result> CreateRole(string groupId, string roleName, Permissions rolePermissions);
   Task<Result> EditRole(string roleId, string groupId, string roleName, Role newRole);
   Task<Result> AddRoleToUser(string groupId, string userId, string roleId);
@@ -57,13 +58,29 @@ public interface IRepository {
   Task<Result> EditTransfer(Transfer newTransfer, string groupId, string transferId);
   Task<Result> RemoveTransfer(string groupId, string transferId);
   Task<Result> RestoreTransfer(string groupId, string transferId);
-  Task AddTransferToHistory(IClientSessionHandle session,Group oldGroup, string Id, FilterDefinition<Group>? filter);
+  Task AddTransferToHistory(IClientSessionHandle session, Group oldGroup, string Id, FilterDefinition<Group>? filter);
 
   // Invitaion
-  Task CreateInvitation(string inviterId, string groupId);
+  Task CreateUserInvitation(string inviterId, string groupId);
   Task<Invitation> GetInvitationByInviter(string userId, string groupId);
   Task<Result<Invitation>> GetInvitationByCode(string Code);
-  Task<DeleteResult> DeleteInvitation(string userId, string groupId);
+  Task<DeleteResult> DeleteUserInvitation(string userId, string groupId);
+  Task<Result> CheckIfGuestInvitationAndAddUser(Invitation invitation, string userId);
+  Task<Result> CheckIfUserInvitationAndAddUser(Invitation invitation, string userId);
+  Task<Result> RegenerateUserInvitation(string inviterId, string groupId);
+  Task<Result<Group>> GetGroupIfUserAndGuestCriteriaAreSatisified(string userId, Invitation invitation);
+  Task<Result<Group>> GetGroupIfUserIsNotMemberAndGuestIsMember(string userId, Invitation invitation);
+  Task<Result<Group>> GetGroupIfUserIsNotMember(string userId, Invitation invitation);
+
+
+  //Guest Invitation
+  Task<Invitation> GetGuestInvitationByInviterIdAndGuestId(string inviterId, string groupId, string guestId);
+  Task CreateGuestInvitation(string inviterId, string groupId, string guestId);
+  Task<Result<Invitation>> GetGuestInvitationByCode(string Code);
+  Task<Result> ProcessInvitation(string userId, Invitation invitation);
+  Task<DeleteResult> DeleteGuestInvitation(string inviterId, string groupId, string guestId);
+  Task<Result> RegenerateGuestInvitation(string inviterId, string groupId, string guestId);
+
 
   // Comment
   Task<Result> AddComment(Comment newComment, string expenseId, string groupId);

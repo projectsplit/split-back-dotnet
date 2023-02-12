@@ -3,11 +3,10 @@ using SplitBackApi.Requests;
 using Microsoft.Extensions.Options;
 using SplitBackApi.Configuration;
 using SplitBackApi.Extensions;
-using SplitBackApi.Helper;
 
 namespace SplitBackApi.Endpoints;
 
-public static partial class InvitationEndpoints {
+public static partial class GuestInvitationEndpoints {
 
   private static async Task<IResult> Accept(
     HttpContext httpContext,
@@ -20,19 +19,15 @@ public static partial class InvitationEndpoints {
     if(authenticatedUserIdResult.IsFailure) return Results.BadRequest(authenticatedUserIdResult.Error);
     var authenticatedUserId = authenticatedUserIdResult.Value;
 
-    var getInvitationResult = await repo.GetInvitationByCode(request.Code);
-    if(getInvitationResult.IsFailure) return Results.BadRequest(getInvitationResult.Error);
-    var invitation = getInvitationResult.Value;
+    var getGuestInvitationResult = await repo.GetGuestInvitationByCode(request.Code);
+    if(getGuestInvitationResult.IsFailure) return Results.BadRequest(getGuestInvitationResult.Error);
+    var guestInvitation = getGuestInvitationResult.Value;
 
-    var getUserResult = await repo.GetUserById(invitation.Inviter);
+    var getUserResult = await repo.GetUserById(guestInvitation.Inviter);
     if(getUserResult.IsFailure) return Results.BadRequest(getUserResult.Error);
 
-    var processInvitationResult = await InvitationHelper.ProcessInvitation(authenticatedUserId, invitation, repo);
-    if(processInvitationResult.IsFailure) return Results.BadRequest(processInvitationResult.Error);
+    await repo.ProcessInvitation(authenticatedUserId, guestInvitation);
 
-    return Results.Ok(new {
-      Message = $"User {authenticatedUserId} joined group",
-
-    });
+    return Results.Ok( $"Guest was replaced by user {authenticatedUserId} successfully");
   }
 }

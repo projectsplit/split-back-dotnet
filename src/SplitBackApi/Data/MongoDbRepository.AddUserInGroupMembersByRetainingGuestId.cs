@@ -1,5 +1,4 @@
 using CSharpFunctionalExtensions;
-using MongoDB.Bson;
 using MongoDB.Driver;
 using SplitBackApi.Data.Extensions;
 using SplitBackApi.Domain;
@@ -8,10 +7,10 @@ namespace SplitBackApi.Data;
 
 public partial class MongoDbRepository : IRepository {
 
-  public async Task<Result<Group>> AddUserInGroupMembers(string userId, string groupId) {
+  public async Task<Result<Group>> AddUserInGroupMembersByRetainingGuestId(string userId, string groupId, string guestId) {
 
     var newMemberWithAcc = new MemberWithAccount {
-      Id = ObjectId.GenerateNewId().ToString(),
+      Id = guestId,
       UserId = userId
     };
 

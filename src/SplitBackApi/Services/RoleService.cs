@@ -10,7 +10,7 @@ public class RoleService {
 
   public Result<bool> MemberHasRequiredPermissions(string userId, Group group, Permissions requiredPermissions) {
 
-    var member = group.Members.Where(member => member.UserId == userId).SingleOrDefault();
+    var member = group.Members.Where(member => member.Id == userId).SingleOrDefault();
     if(member is null) return Result.Failure<bool>($"Member with userId {userId} not found");
 
     var groupRoles = group.Roles;

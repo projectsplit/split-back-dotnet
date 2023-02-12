@@ -8,9 +8,12 @@ public class IsoCodeHelper
     var transferListsByIsoCode = group.Transfers.GroupBy(tr => tr.IsoCode);
 
     var isoCodeList = new List<string>();
+
     expenseListsByIsoCode.ToList().ForEach(list => isoCodeList.Add(list.Key));
     transferListsByIsoCode.ToList().ForEach(list => isoCodeList.Add(list.Key));
+
     var uniqueIsoCodeList = isoCodeList.Distinct();
+    
     return uniqueIsoCodeList;
   }
 }

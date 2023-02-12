@@ -4,6 +4,7 @@ using SplitBackApi.Configuration;
 using SplitBackApi.Domain;
 using AutoMapper;
 using SplitBackApi.Services;
+using CSharpFunctionalExtensions;
 
 namespace SplitBackApi.Data;
 
@@ -13,6 +14,7 @@ public partial class MongoDbRepository : IRepository {
   private readonly IMongoCollection<User> _userCollection;
   private readonly IMongoCollection<Group> _groupCollection;
   private readonly IMongoCollection<Invitation> _invitationCollection;
+  //private readonly IMongoCollection<GuestInvitation> _guestInvitationCollection;
   private readonly IMapper _mapper;
   private readonly RoleService _roleService;
   private readonly MongoTransactionService _mongoTransactionService;

@@ -11,7 +11,7 @@ public partial class MongoDbRepository : IRepository {
 
     var filter = 
       Builders<Group>.Filter.Eq("_id", groupId) & 
-      Builders<Group>.Filter.ElemMatch(g => g.Members, m => m.UserId == userId);
+      Builders<Group>.Filter.ElemMatch(g => g.Members, m => m.Id == userId);
       
     var groupUpdate = Builders<Group>.Update.AddToSet("Members.$.Roles", roleId);
 

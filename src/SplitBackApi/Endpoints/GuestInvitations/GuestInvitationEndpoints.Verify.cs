@@ -6,7 +6,7 @@ using SplitBackApi.Configuration;
 
 namespace SplitBackApi.Endpoints;
 
-public static partial class InvitationEndpoints {
+public static partial class GuestInvitationEndpoints {
 
   private static async Task<IResult> Verify(
     HttpContext httpContext,
@@ -18,23 +18,23 @@ public static partial class InvitationEndpoints {
     if(authenticatedUserIdResult.IsFailure) return Results.BadRequest(authenticatedUserIdResult.Error);
     var authenticatedUserId = authenticatedUserIdResult.Value;
 
-    var invitationResult = await repo.GetInvitationByCode(request.Code);
-    if(invitationResult.IsFailure) return Results.BadRequest(invitationResult.Error);
-    var invitation = invitationResult.Value;
+    var getGuestInvitationResult = await repo.GetGuestInvitationByCode(request.Code);
+    if(getGuestInvitationResult.IsFailure) return Results.BadRequest(getGuestInvitationResult.Error);
+    var guestInvitation = getGuestInvitationResult.Value;
 
-    var inviterResult = await repo.GetUserById(invitation.Inviter);
+    var inviterResult = await repo.GetUserById(guestInvitation.Inviter);
     if(inviterResult.IsFailure) return Results.BadRequest(inviterResult.Error);
     var inviter = inviterResult.Value;
 
-    var groupResult = await repo.GetGroupIfUserAndGuestCriteriaAreSatisified(authenticatedUserId, invitation);
+    var groupResult = await repo.GetGroupIfUserAndGuestCriteriaAreSatisified(authenticatedUserId, guestInvitation);
     if(groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
     var group = groupResult.Value;
 
-    var userResult = await repo.GetUserIfGroupNotExistsInUserGroups(authenticatedUserId, invitation.GroupId);
+    var userResult = await repo.GetUserIfGroupNotExistsInUserGroups(authenticatedUserId, guestInvitation.GroupId);
     if(userResult.IsFailure) return Results.BadRequest(userResult.Error);
 
     return Results.Ok(new {
-      Message = "Invitation is valid",
+      Message = "Guest Invitation is valid",
       InviterNickName = inviter.Nickname,
       group = group.Title
     });

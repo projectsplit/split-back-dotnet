@@ -14,12 +14,12 @@ public partial class MongoDbRepository : IRepository {
     
     if(group.HasContentWithMember(userId.ToString())) return Result.Failure("Cannot remove guest");
 
-    var guestToRemove = group.Guests.Where(g => g.UserId == userId).SingleOrDefault();
+    var guestToRemove = group.Members.Where(g => g.Id == userId).SingleOrDefault();
     if(guestToRemove is null) return Result.Failure($"Guest with UserId {userId} not found");
 
-    group.Guests.Remove(guestToRemove);
-    group.DeletedGuests.Add(guestToRemove);
-
+    group.Members.Remove(guestToRemove);
+    group.DeletedMembers.Add(guestToRemove);
+    
     await _groupCollection.ReplaceOneAsync(g => g.Id == groupId, group);
 
     return Result.Success();

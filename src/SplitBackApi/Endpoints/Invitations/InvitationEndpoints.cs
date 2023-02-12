@@ -7,8 +7,10 @@ public static partial class InvitationEndpoints {
       .WithTags("Invitations");
       // .AllowAnonymous();
       
-    invitationGroup.MapPost("/create", Create);
-    invitationGroup.MapPost("/regenerate", Regenerate);
+    invitationGroup.MapPost("/createUserInvitation", CreateUserInvitation);
+    invitationGroup.MapPost("/createGuestInvitation", CreateGuestInvitation);
+    invitationGroup.MapPost("/regenerateUserInvitation", RegenerateUserInvitation);
+    invitationGroup.MapPost("/regenerateGuestInvitation", RegenerateGuestInvitation);
     invitationGroup.MapPost("/verify", Verify);
     invitationGroup.MapPost("/accept", Accept);
   }
