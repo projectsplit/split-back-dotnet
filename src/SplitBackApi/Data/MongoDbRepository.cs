@@ -6,6 +6,7 @@ using AutoMapper;
 using SplitBackApi.Services;
 using CSharpFunctionalExtensions;
 using SplitBackApi.Data.Extensions;
+using SplitBackApi.Helper;
 
 namespace SplitBackApi.Data;
 
@@ -57,7 +58,6 @@ public partial class MongoDbRepository : IRepository {
 
   private async Task AddUserToGroup(string groupId, UserMember userMember, IClientSessionHandle session) {
 
-
     var groupFilter =
       Builders<Group>.Filter.Eq("_id", groupId.ToObjectId()) &
       Builders<Group>.Filter.Ne("Members.$.UserId", userMember.UserId);
@@ -84,5 +84,16 @@ public partial class MongoDbRepository : IRepository {
     //   return Result.Failure<User>($"Group {groupId} already exists in user {userId}");
     // }
   }
-}
 
+  private async Task<Result> DeleteUserInvitation(string userId, string groupId) {
+
+    var filter =
+      Builders<Invitation>.Filter.Eq("Inviter", userId.ToObjectId()) &
+      Builders<Invitation>.Filter.Eq("GroupId", groupId.ToObjectId());
+
+    var invitation = await _invitationCollection.DeleteManyAsync(filter);
+    if(invitation is null) return Result.Failure($"User Invitation from inviter {userId}, for group {groupId} not found");
+
+    return Result.Success();
+  }
+}

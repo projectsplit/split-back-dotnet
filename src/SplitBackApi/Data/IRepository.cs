@@ -48,7 +48,6 @@ public interface IRepository {
   Task CreateUserInvitation(string inviterId, string groupId);
   Task<Invitation> GetInvitationByInviter(string userId, string groupId);
   Task<Result<Invitation>> GetInvitationByCode(string Code);
-  Task<Result> DeleteUserInvitation(string userId, string groupId);
   Task<Result> RegenerateUserInvitation(string inviterId, string groupId);
   Task<Result> ReplaceGuestMemberWithUserMember(string groupId, UserMember userMember, string guestId);
 

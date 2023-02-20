@@ -1,6 +1,8 @@
 using CSharpFunctionalExtensions;
 using MongoDB.Driver;
-
+using SplitBackApi.Data.Extensions;
+using SplitBackApi.Domain;
+using SplitBackApi.Helper;
 
 namespace SplitBackApi.Data;
 
@@ -8,25 +10,16 @@ public partial class MongoDbRepository : IRepository {
 
   public async Task<Result> RegenerateGuestInvitation(string inviterId, string groupId, string guestId) {
 
-    using var session = await _mongoClient.StartSessionAsync();
-    session.StartTransaction();
+    var filter =
+      Builders<Invitation>.Filter.Eq("Inviter", inviterId.ToObjectId()) &
+      Builders<Invitation>.Filter.Eq("GroupId", groupId.ToObjectId()) &
+      Builders<Invitation>.Filter.Eq("GuestId", guestId.ToObjectId());
 
-    try {
+    var invitationUpdate =
+      Builders<Invitation>.Update.Set("Code", InvitationCodeGenerator.GenerateInvitationCode());
 
-      await DeleteGuestInvitation(inviterId, groupId, guestId);
-      await CreateGuestInvitation(inviterId, groupId, guestId);
-
-       await session.CommitTransactionAsync();
-      
-    } catch(MongoException e) {
-
-      await session.AbortTransactionAsync();
-      return Result.Failure(e.ToString());
-
-    }
+    var invitation = await _invitationCollection.UpdateOneAsync(filter, invitationUpdate);
 
     return Result.Success();
   }
 }
-
-

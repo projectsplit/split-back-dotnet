@@ -1,12 +1,10 @@
-using CSharpFunctionalExtensions;
-using MongoDB.Bson;
 using SplitBackApi.Domain;
 using SplitBackApi.Helper;
 
 namespace SplitBackApi.Data;
 
 public partial class MongoDbRepository : IRepository {
-
+  
   public async Task CreateUserInvitation(string inviterId, string groupId) {
 
     var invitation = new UserInvitation {
@@ -17,6 +15,5 @@ public partial class MongoDbRepository : IRepository {
     };
 
     await _invitationCollection.InsertOneAsync(invitation);
-
   }
 }
