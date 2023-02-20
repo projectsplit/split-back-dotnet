@@ -3,7 +3,8 @@ using SplitBackApi.Requests;
 using Microsoft.Extensions.Options;
 using SplitBackApi.Configuration;
 using SplitBackApi.Extensions;
-using SplitBackApi.Helper;
+using SplitBackApi.Domain;
+
 
 namespace SplitBackApi.Endpoints;
 
@@ -24,11 +25,43 @@ public static partial class InvitationEndpoints {
     if(getInvitationResult.IsFailure) return Results.BadRequest(getInvitationResult.Error);
     var invitation = getInvitationResult.Value;
 
-    var getUserResult = await repo.GetUserById(invitation.Inviter);
-    if(getUserResult.IsFailure) return Results.BadRequest(getUserResult.Error);
+    var groupResult = await repo.GetGroupById(invitation.GroupId);
+    if(groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
+    var group = groupResult.Value;
 
-    var processInvitationResult = await repo.ProcessInvitation(authenticatedUserId, invitation);
-    if(processInvitationResult.IsFailure) return Results.BadRequest(processInvitationResult.Error);
+    var memberFound = group.GetUserMemberByUserId(authenticatedUserId);
+
+    if(memberFound is not null) return Results.BadRequest($"User {authenticatedUserId} is already a member of the group");
+
+
+    switch(invitation) {
+
+      case GuestInvitation: {
+
+          var guestInvitation = (GuestInvitation)invitation;
+          var guestFound = group.GetGuestMemberByGuestId(guestInvitation.GuestId);
+
+          if(guestFound is null) return Results.BadRequest($"Guest {guestInvitation.GuestId} is not a member of the group");
+
+          var userMember = new UserMember {
+            Id = guestFound.Id,
+            UserId = authenticatedUserId,
+            Roles = guestFound.Roles
+          };
+
+          await repo.ReplaceGuestMemberWithUserMember(group.Id, userMember, guestInvitation.GuestId);
+          break;
+        }
+
+      case UserInvitation: {
+
+          await repo.AddUserMemberToGroup(group.Id, authenticatedUserId, new List<string>());
+          break;
+        }
+        
+      default:
+        return Results.BadRequest("Not a valid invitation");
+    }
 
     return Results.Ok(new {
       Message = $"User {authenticatedUserId} joined group",

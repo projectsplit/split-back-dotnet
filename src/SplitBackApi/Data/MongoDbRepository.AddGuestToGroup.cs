@@ -10,7 +10,7 @@ public partial class MongoDbRepository : IRepository {
 
   public async Task<Result> AddGuestToGroup(string groupId, string email, string nickname) {
 
-    var newGuest = new Guest {
+    var newGuest = new GuestMember {
       Id = ObjectId.GenerateNewId().ToString(),
       Name = nickname
     };

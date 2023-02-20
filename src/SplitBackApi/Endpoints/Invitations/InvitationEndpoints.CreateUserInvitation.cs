@@ -22,10 +22,9 @@ public static partial class InvitationEndpoints {
 
       return Results.Ok();
 
-    } else {
+    } 
 
       return Results.BadRequest($"Invitation for group with id {invitationDto.GroupId} already exists");
-    }
 
   }
 }

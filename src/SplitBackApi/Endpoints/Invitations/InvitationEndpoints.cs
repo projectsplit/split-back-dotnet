@@ -1,3 +1,7 @@
+using CSharpFunctionalExtensions;
+using SplitBackApi.Data;
+using SplitBackApi.Domain;
+
 namespace SplitBackApi.Endpoints;
 
 public static partial class InvitationEndpoints {
@@ -14,4 +18,5 @@ public static partial class InvitationEndpoints {
     invitationGroup.MapPost("/verify", Verify);
     invitationGroup.MapPost("/accept", Accept);
   }
+
 }

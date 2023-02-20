@@ -16,6 +16,6 @@ public partial class MongoDbRepository : IRepository {
       CreationTime = DateTime.UtcNow
     };
 
-    await _invitationCollection.InsertOneAsync(invitation);
+   await _invitationCollection.InsertOneAsync(invitation);
   }
 }
