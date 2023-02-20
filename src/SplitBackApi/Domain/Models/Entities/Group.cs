@@ -11,10 +11,8 @@ public class Group : EntityBase {
   public string CreatorId { get; set; }
 
   public ICollection<Member> Members { get; set; } = new List<Member>();
-
-  public ICollection<Guest> Guests { get; set; } = new List<Guest>();
   
-  public ICollection<Guest> DeletedGuests { get; set; } = new List<Guest>();
+  public ICollection<Member> DeletedMembers { get; set; } = new List<Member>();
 
   public ICollection<Expense> Expenses { get; set; } = new List<Expense>();
 

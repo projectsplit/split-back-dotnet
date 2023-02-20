@@ -1,13 +1,33 @@
 using SplitBackApi.Domain;
 using SplitBackApi.Helper;
-using MongoDB.Bson;
+using CSharpFunctionalExtensions;
 
 namespace SplitBackApi.Extensions;
 
 public static class GroupExtensions {
-  
+
+  public static UserMember? GetUserMemberByUserId(this Group group, string userId) {
+
+    var userMember = group.Members
+        .Where(m => m is UserMember)
+        .Select(m => (UserMember)m)
+        .Where(m => m.UserId == userId).FirstOrDefault();
+
+    // if(userMember is null) return Result.Failure<UserMember>("User not found");
+    return userMember;
+  }
+
+  public static Member? GetGuestMemberByGuestId(this Group group, string guestId) {
+
+    var guestMember = group.Members
+              .Where(m => m.Id == guestId).FirstOrDefault();
+
+    // if(guestMember is null) return Result.Failure<Member>("Guest not found");
+    return guestMember;
+  }
+
   public static IEnumerable<string> UniqueCurrencyCodes(this Group group) {
-    
+
     var expenseListsByIsoCode = group.Expenses.GroupBy(exp => exp.IsoCode);
     var transferListsByIsoCode = group.Transfers.GroupBy(tr => tr.IsoCode);
 
@@ -20,7 +40,7 @@ public static class GroupExtensions {
   }
 
   public static List<PendingTransaction> PendingTransactions(this Group group) {
-    
+
     var uniqueIsoCodeList = IsoCodeHelper.GetUniqueIsoCodes(group);
 
     var pendingTransactions = new List<PendingTransaction>();
@@ -29,11 +49,7 @@ public static class GroupExtensions {
       var participants = new List<Participant>();
 
       group.Members.ToList().ForEach(member => {
-        participants.Add(new Participant(member.UserId, 0m, 0m));
-      });
-
-      group.Guests.ToList().ForEach(guest => {
-        participants.Add(new Participant(guest.UserId, 0m, 0m));
+        participants.Add(new Participant(member.Id, 0m, 0m));
       });
 
       group.Expenses.Where(exp => exp.IsoCode == currentIsoCode).ToList().ForEach(expense => {
@@ -124,7 +140,7 @@ public static class GroupExtensions {
   }
 
   public static Dictionary<string, List<TransactionTimelineItem>> GetTransactionHistory(this Group group, string authedUserId) {
-    
+
     var userId = authedUserId;
     var uniqueIsoCodeList = group.UniqueCurrencyCodes();
     var transactionTimelineForEachCurrency = new Dictionary<string, List<TransactionTimelineItem>>();
@@ -162,7 +178,7 @@ public static class GroupExtensions {
 
       // Loop sortedTransactionMemberDetails created before
       foreach(var transactionMemberDetail in sortedTransactionMemberDetails) {
-        
+
         totalLentSoFar += transactionMemberDetail.Lent;
         totalBorrowedSoFar += transactionMemberDetail.Borrowed;
 
@@ -171,23 +187,23 @@ public static class GroupExtensions {
 
       transactionTimelineForEachCurrency.Add(currencyCode, transactionTimelineForCurrency);
     };
-    
+
     return transactionTimelineForEachCurrency;
   }
 }
 
 public record Participant {
-  
+
   public Participant(string id, decimal totalAmountGiven, decimal totalAmountTaken) {
-    
+
     Id = id;
     TotalAmountGiven = totalAmountGiven;
     TotalAmountTaken = totalAmountTaken;
   }
-  
+
   public string Id { get; set; }
-  
+
   public decimal TotalAmountGiven { get; set; }
-  
+
   public decimal TotalAmountTaken { get; set; }
 }

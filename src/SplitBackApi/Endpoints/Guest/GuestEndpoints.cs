@@ -8,7 +8,6 @@ public static partial class GuestEndpoints {
       // .AllowAnonymous();
       
     guestGroup.MapPost("/addGuest", AddGuest);
-    guestGroup.MapPost("/removeGuest", RemoveGuest);
     guestGroup.MapPost("/restoreGuest", RestoreGuest);
   }
 }

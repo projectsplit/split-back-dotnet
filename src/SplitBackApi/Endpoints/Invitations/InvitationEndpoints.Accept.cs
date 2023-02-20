@@ -3,6 +3,8 @@ using SplitBackApi.Requests;
 using Microsoft.Extensions.Options;
 using SplitBackApi.Configuration;
 using SplitBackApi.Extensions;
+using SplitBackApi.Domain;
+
 
 namespace SplitBackApi.Endpoints;
 
@@ -23,18 +25,47 @@ public static partial class InvitationEndpoints {
     if(getInvitationResult.IsFailure) return Results.BadRequest(getInvitationResult.Error);
     var invitation = getInvitationResult.Value;
 
-    var groupDoc = await repo.AddUserInGroupMembers(authenticatedUserId, invitation.GroupId);
-    if(groupDoc.IsFailure) return Results.BadRequest(groupDoc.Error);
+    var groupResult = await repo.GetGroupById(invitation.GroupId);
+    if(groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
+    var group = groupResult.Value;
 
-    var getUserResult = await repo.GetUserById(invitation.Inviter);
-    if(getUserResult.IsFailure) return Results.BadRequest(getUserResult.Error);
+    var memberFound = group.GetUserMemberByUserId(authenticatedUserId);
 
-    var addGroupInUserResult = await repo.AddGroupInUser(authenticatedUserId, invitation.GroupId);
-    if(addGroupInUserResult.IsFailure) return Results.BadRequest(addGroupInUserResult.Error);
+    if(memberFound is not null) return Results.BadRequest($"User {authenticatedUserId} is already a member of the group");
+
+
+    switch(invitation) {
+
+      case GuestInvitation: {
+
+          var guestInvitation = (GuestInvitation)invitation;
+          var guestFound = group.GetGuestMemberByGuestId(guestInvitation.GuestId);
+
+          if(guestFound is null) return Results.BadRequest($"Guest {guestInvitation.GuestId} is not a member of the group");
+
+          var userMember = new UserMember {
+            Id = guestFound.Id,
+            UserId = authenticatedUserId,
+            Roles = guestFound.Roles
+          };
+
+          await repo.ReplaceGuestMemberWithUserMember(group.Id, userMember, guestInvitation.GuestId);
+          break;
+        }
+
+      case UserInvitation: {
+
+          await repo.AddUserMemberToGroup(group.Id, authenticatedUserId, new List<string>());
+          break;
+        }
+        
+      default:
+        return Results.BadRequest("Not a valid invitation");
+    }
 
     return Results.Ok(new {
-      Message = "User joined group",
-      group = groupDoc.Value.Title
+      Message = $"User {authenticatedUserId} joined group",
+
     });
   }
 }
