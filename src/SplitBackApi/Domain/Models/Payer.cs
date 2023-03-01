@@ -1,8 +1,8 @@
 namespace SplitBackApi.Domain.Models;
 
-public class Participant {
+public class Payer {
 
   public string MemberId { get; set; }
   
-  public string ParticipationAmount { get; set; }
+  public string PaymentAmount { get; set; }
 }

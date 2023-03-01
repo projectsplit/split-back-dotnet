@@ -4,36 +4,39 @@ public class AppSettings {
 
   public const string SectionName = "App";
 
-  public JwtSettings Jwt { get; set; } = null!;
-  public MongoDbSettings MongoDb { get; set; } = null!;
+  public JwtSettings Jwt { get; set; }
+  public MongoDbSettings MongoDb { get; set; }
 }
 
 public class JwtSettings {
 
-  public string Issuer { get; set; } = String.Empty;
-  public string Audience { get; set; } = String.Empty;
-  public string Key { get; set; } = String.Empty;
+  public string Issuer { get; set; }
+  public string Audience { get; set; }
+  public string Key { get; set; }
 }
 
 public class MongoDbSettings {
 
-  public string ConnectionString { get; set; } = null!;
-  public DatabaseSettings Database { get; set; } = null!;
+  public string ConnectionString { get; set; }
+  public DatabaseSettings Database { get; set; }
 }
 
 public class DatabaseSettings {
 
-  public string Name { get; set; } = String.Empty;
-  public CollectionSettings Collections { get; set; } = null!;
+  public string Name { get; set; }
+  public CollectionSettings Collections { get; set; }
 }
 
 public class CollectionSettings {
 
-  public string Groups { get; set; } = String.Empty;
-  public string Expenses { get; set; } = String.Empty;
-  public string Users { get; set; } = String.Empty;
-  public string Invitations { get; set; } = String.Empty;
-  public string Sessions { get; set; } = String.Empty;
-  public string Actions { get; set; } = String.Empty;
-  public string GuestInvitations { get; set; } = String.Empty;
+  public string Groups { get; set; }
+  public string Expenses { get; set; }
+  public string PastExpenses { get; set; }
+  public string Transfers { get; set; }
+  public string PastTransfers { get; set; }
+  public string Comments { get; set; }
+  public string PastComments { get; set; }
+  public string Users { get; set; }
+  public string Invitations { get; set; }
+  public string Sessions { get; set; }
 }
