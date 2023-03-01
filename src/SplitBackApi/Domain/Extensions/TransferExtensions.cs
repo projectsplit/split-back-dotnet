@@ -23,7 +23,7 @@ public static class TransferExtensions {
     };
   }
   
-  public static TransactionMemberDetail? ToTransactionMemberDetailFromUserId(
+  public static TransactionMemberDetail ToTransactionMemberDetailFromUserId(
     this Transfer transfer,
     string memberId
   ) {

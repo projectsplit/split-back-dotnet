@@ -8,11 +8,11 @@ public class Expense : EntityBase {
   [BsonRepresentation(BsonType.ObjectId)]
   public string GroupId { get; set; }
 
-  public string Description { get; set; } = string.Empty;
+  public string Description { get; set; }
   
-  public string Amount { get; set; } = string.Empty;
+  public string Amount { get; set; }
   
-  public string Currency { get; set; } = string.Empty;
+  public string Currency { get; set; }
   
   public ICollection<Payer> Payers { get; set; } = new List<Payer>();
   

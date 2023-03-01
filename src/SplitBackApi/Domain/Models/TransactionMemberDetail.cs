@@ -6,8 +6,8 @@ public class TransactionMemberDetail {
 
   public DateTime TransactionTime { get; set; }
 
-  public string Description { get; set; } = null!;
-
+  public string Description { get; set; }
+  
   public decimal Lent { get; set; }
 
   public decimal Borrowed { get; set; }

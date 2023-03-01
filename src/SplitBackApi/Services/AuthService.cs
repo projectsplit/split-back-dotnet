@@ -60,7 +60,7 @@ public class AuthService {
     return token;
   }
 
-  public JwtSecurityToken? VerifyToken(string token) {
+  public JwtSecurityToken VerifyToken(string token) {
 
     var key = Encoding.UTF8.GetBytes(_jwtSettings.Key);
 

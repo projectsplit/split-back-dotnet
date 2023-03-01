@@ -6,16 +6,16 @@ namespace SplitBackApi.Domain;
 public class PastExpense : EntityBase {
 
   [BsonRepresentation(BsonType.ObjectId)]
-  public string ExpenseId { get; set; } = string.Empty;
-
+  public string ExpenseId { get; set; }
+  
   [BsonRepresentation(BsonType.ObjectId)]
-  public string GroupId { get; set; } = string.Empty;
+  public string GroupId { get; set; }
 
-  public string Description { get; set; } = string.Empty;
+  public string Description { get; set; }
   
-  public string Amount { get; set; } = string.Empty;
+  public string Amount { get; set; }
   
-  public string Currency { get; set; } = string.Empty;
+  public string Currency { get; set; }
   
   public ICollection<Payer> Payers { get; set; } = new List<Payer>();
   

@@ -6,17 +6,17 @@ namespace SplitBackApi.Domain;
 public class Transfer : EntityBase {
 
   [BsonRepresentation(BsonType.ObjectId)]
-  public string GroupId { get; set; } = string.Empty;
+  public string GroupId { get; set; }
   
   public DateTime TransferTime { get; set; }
 
-  public string Description { get; set; } = string.Empty;
+  public string Description { get; set; }
   
-  public string Amount { get; set; } = string.Empty;
+  public string Amount { get; set; }
   
-  public string Currency { get; set; } = string.Empty;
+  public string Currency { get; set; }
   
-  public string SenderId { get; set; } = string.Empty;
+  public string SenderId { get; set; }
   
-  public string ReceiverId { get; set; } = string.Empty;
+  public string ReceiverId { get; set; }
 }

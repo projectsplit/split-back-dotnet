@@ -25,7 +25,7 @@ public static class ExpenseExtensions {
     };
   }
 
-  public static TransactionMemberDetail? ToTransactionMemberDetailFromUserId(this Expense expense, string memberId) {
+  public static TransactionMemberDetail ToTransactionMemberDetailFromUserId(this Expense expense, string memberId) {
 
     bool isPayer = expense.Payers.Any(p => p.MemberId == memberId);
     bool isParticipant = expense.Participants.ToList().Any(p => p.MemberId == memberId);
