@@ -13,7 +13,6 @@ using SplitBackApi.Api.Extensions;
 using SplitBackApi.Api.Middlewares;
 using SplitBackApi.Api.Services;
 using SplitBackApi.Configuration;
-using SplitBackApi.Data;
 using SplitBackApi.Data.Repositories.CommentRepository;
 using SplitBackApi.Data.Repositories.ExpenseRepository;
 using SplitBackApi.Data.Repositories.GroupRepository;
