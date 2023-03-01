@@ -4,8 +4,8 @@ using Microsoft.Extensions.Options;
 using SplitBackApi.Configuration;
 using SplitBackApi.Services;
 using SplitBackApi.Data;
-using SplitBackApi.Endpoints;
 using SplitBackApi.Extensions;
+using SplitBackApi.Endpoints;
 
 namespace SplitBackApi;
 
