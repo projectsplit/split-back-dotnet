@@ -1,7 +1,7 @@
-using SplitBackApi.Services;
-using SplitBackApi.Data;
+using SplitBackApi.Api.Services;
+using SplitBackApi.Data.Repositories.SessionRepository;
 
-namespace SplitBackApi.Endpoints;
+namespace SplitBackApi.Api.Endpoints.Authentication;
 
 public static partial class AuthenticationEndpoints {
 

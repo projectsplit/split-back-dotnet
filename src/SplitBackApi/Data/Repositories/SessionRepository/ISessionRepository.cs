@@ -1,7 +1,7 @@
 using CSharpFunctionalExtensions;
-using SplitBackApi.Domain;
+using SplitBackApi.Domain.Models;
 
-namespace SplitBackApi.Data;
+namespace SplitBackApi.Data.Repositories.SessionRepository;
 
 public interface ISessionRepository {
   

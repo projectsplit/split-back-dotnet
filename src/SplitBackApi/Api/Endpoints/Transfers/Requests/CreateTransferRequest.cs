@@ -1,4 +1,4 @@
-namespace SplitBackApi.Requests;
+namespace SplitBackApi.Api.Endpoints.Transfers.Requests;
 
 public class CreateTransferRequest {
 

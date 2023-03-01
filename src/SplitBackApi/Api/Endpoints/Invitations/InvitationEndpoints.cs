@@ -1,4 +1,4 @@
-namespace SplitBackApi.Endpoints;
+namespace SplitBackApi.Api.Endpoints.Invitations;
 
 public static partial class InvitationEndpoints {
   

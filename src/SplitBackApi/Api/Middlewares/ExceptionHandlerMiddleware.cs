@@ -1,3 +1,5 @@
+namespace SplitBackApi.Api.Middlewares;
+
 public class ExceptionHandlerMiddleware : IMiddleware {
 
   public async Task InvokeAsync(HttpContext context, RequestDelegate next) {

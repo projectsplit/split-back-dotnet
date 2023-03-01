@@ -1,8 +1,7 @@
 using MongoDB.Bson;
-using SplitBackApi.Domain;
-using SplitBackApi.Extensions;
+using SplitBackApi.Domain.Models;
 
-namespace SplitBackApi.Data.Extensions;
+namespace SplitBackApi.Domain.Extensions;
 
 public static class ExpenseExtensions {
   

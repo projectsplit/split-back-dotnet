@@ -1,8 +1,8 @@
-using SplitBackApi.Data;
-using SplitBackApi.Requests;
-using SplitBackApi.Domain;
+using SplitBackApi.Api.Endpoints.Expenses.Requests;
+using SplitBackApi.Data.Repositories.ExpenseRepository;
+using SplitBackApi.Domain.Models;
 
-namespace SplitBackApi.Endpoints;
+namespace SplitBackApi.Api.Endpoints.Expenses;
 
 public static partial class ExpenseEndpoints {
 

@@ -1,11 +1,12 @@
-using SplitBackApi.Data;
-using SplitBackApi.Requests;
-using SplitBackApi.Extensions;
-using SplitBackApi.Domain;
-using SplitBackApi.Domain.Extensions;
 using System.Security.Claims;
+using SplitBackApi.Api.Endpoints.Comments.Requests;
+using SplitBackApi.Api.Extensions;
+using SplitBackApi.Data.Repositories.CommentRepository;
+using SplitBackApi.Data.Repositories.GroupRepository;
+using SplitBackApi.Domain.Extensions;
+using SplitBackApi.Domain.Models;
 
-namespace SplitBackApi.Endpoints;
+namespace SplitBackApi.Api.Endpoints.Comments;
 
 public static partial class CommentEndpoints {
 
@@ -26,7 +27,7 @@ public static partial class CommentEndpoints {
     if(member is null) return Results.BadRequest($"{authenticatedUserId} is not a member of group with id {request.GroupId}");
     
     var permissions = member.Permissions;
-    if(permissions.HasFlag(Permissions.Comment) is false) return Results.Forbid();
+    if(permissions.HasFlag(Domain.Models.Permissions.Comment) is false) return Results.Forbid();
     
     var newComment = new Comment {
       CreationTime = DateTime.UtcNow,

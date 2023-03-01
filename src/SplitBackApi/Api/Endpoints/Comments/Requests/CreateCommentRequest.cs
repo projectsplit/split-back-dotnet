@@ -1,4 +1,4 @@
-namespace SplitBackApi.Requests;
+namespace SplitBackApi.Api.Endpoints.Comments.Requests;
 
 public class CreateCommentRequest {
   

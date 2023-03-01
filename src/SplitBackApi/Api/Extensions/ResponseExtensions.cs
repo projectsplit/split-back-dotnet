@@ -1,4 +1,4 @@
-namespace SplitBackApi.Extensions;
+namespace SplitBackApi.Api.Extensions;
 
 public static class ResponseExtensions {
 

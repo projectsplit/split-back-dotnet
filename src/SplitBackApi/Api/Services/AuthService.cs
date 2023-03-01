@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SplitBackApi.Configuration;
 
-namespace SplitBackApi.Services;
+namespace SplitBackApi.Api.Services;
 
 public class AuthService {
 

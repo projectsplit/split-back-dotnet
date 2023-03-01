@@ -1,10 +1,11 @@
 using CSharpFunctionalExtensions;
-using SplitBackApi.Data;
-using SplitBackApi.Data.Extensions;
-using SplitBackApi.Domain;
-using SplitBackApi.Extensions;
+using SplitBackApi.Data.Repositories.ExpenseRepository;
+using SplitBackApi.Data.Repositories.GroupRepository;
+using SplitBackApi.Data.Repositories.TransferRepository;
+using SplitBackApi.Domain.Extensions;
+using SplitBackApi.Domain.Models;
 
-namespace SplitBackApi.Services;
+namespace SplitBackApi.Domain.Services;
 
 public class TransactionService {
 

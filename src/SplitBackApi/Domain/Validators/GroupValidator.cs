@@ -1,6 +1,8 @@
 using FluentValidation;
 using NMoneys;
-using SplitBackApi.Domain;
+using SplitBackApi.Domain.Models;
+
+namespace SplitBackApi.Domain.Validators;
 
 public class GroupValidator : AbstractValidator<Group> {
 

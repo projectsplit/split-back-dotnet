@@ -1,4 +1,4 @@
-namespace SplitBackApi.Requests;
+namespace SplitBackApi.Api.Endpoints.Groups.Requests;
 
 public class CreateGroupRequestLabel {
 

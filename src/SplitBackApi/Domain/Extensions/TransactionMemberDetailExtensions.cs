@@ -1,6 +1,6 @@
-using SplitBackApi.Domain;
+using SplitBackApi.Domain.Models;
 
-namespace SplitBackApi.Extensions;
+namespace SplitBackApi.Domain.Extensions;
 
 public static class TransactionMemberDetailExtensions {
 

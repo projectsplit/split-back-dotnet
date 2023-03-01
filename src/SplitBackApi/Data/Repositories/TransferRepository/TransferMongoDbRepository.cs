@@ -1,11 +1,11 @@
-using SplitBackApi.Domain;
 using CSharpFunctionalExtensions;
-using MongoDB.Driver;
 using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 using SplitBackApi.Configuration;
-using SplitBackApi.Data.Extensions;
+using SplitBackApi.Domain.Extensions;
+using SplitBackApi.Domain.Models;
 
-namespace SplitBackApi.Data;
+namespace SplitBackApi.Data.Repositories.TransferRepository;
 
 public class TransferMongoDbRepository : ITransferRepository {
   

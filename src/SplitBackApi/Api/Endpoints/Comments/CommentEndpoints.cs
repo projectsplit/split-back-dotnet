@@ -1,4 +1,4 @@
-namespace SplitBackApi.Endpoints;
+namespace SplitBackApi.Api.Endpoints.Comments;
 
 public static partial class CommentEndpoints {
   

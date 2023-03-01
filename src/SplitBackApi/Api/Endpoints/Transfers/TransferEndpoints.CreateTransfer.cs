@@ -1,11 +1,13 @@
-using SplitBackApi.Data;
-using SplitBackApi.Requests;
-using SplitBackApi.Domain;
 using System.Security.Claims;
-using SplitBackApi.Extensions;
+using SplitBackApi.Api.Endpoints.Transfers.Requests;
+using SplitBackApi.Api.Extensions;
+using SplitBackApi.Data.Repositories.GroupRepository;
+using SplitBackApi.Data.Repositories.TransferRepository;
 using SplitBackApi.Domain.Extensions;
+using SplitBackApi.Domain.Models;
+using SplitBackApi.Domain.Validators;
 
-namespace SplitBackApi.Endpoints;
+namespace SplitBackApi.Api.Endpoints.Transfers;
 
 public static partial class TransferEndpoints {
 
@@ -26,7 +28,7 @@ public static partial class TransferEndpoints {
     var member = group.GetMemberByUserId(authenticatedUserId);
     if(member is null) return Results.BadRequest($"{authenticatedUserId} is not a member of group with id {request.GroupId}");
     
-    if(member.Permissions.HasFlag(Permissions.WriteAccess) is false) return Results.Forbid();
+    if(member.Permissions.HasFlag(Domain.Models.Permissions.WriteAccess) is false) return Results.Forbid();
     
     var newTransfer = new Transfer {
       CreationTime = DateTime.UtcNow,

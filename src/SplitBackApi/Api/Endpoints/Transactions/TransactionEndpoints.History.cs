@@ -1,13 +1,11 @@
-using SplitBackApi.Data;
-using SplitBackApi.Requests;
-using SplitBackApi.Extensions;
-using AutoMapper;
-using SplitBackApi.Domain;
-using SplitBackApi.Services;
 using System.Security.Claims;
+using SplitBackApi.Api.Endpoints.Transactions.Requests;
+using SplitBackApi.Api.Extensions;
+using SplitBackApi.Data.Repositories.GroupRepository;
 using SplitBackApi.Domain.Extensions;
+using SplitBackApi.Domain.Services;
 
-namespace SplitBackApi.Endpoints;
+namespace SplitBackApi.Api.Endpoints.Transactions;
 
 public static partial class TransactionEndpoints {
 

@@ -1,8 +1,8 @@
-using SplitBackApi.Data;
-using SplitBackApi.Requests;
-using SplitBackApi.Domain;
+using SplitBackApi.Api.Endpoints.Transfers.Requests;
+using SplitBackApi.Data.Repositories.TransferRepository;
+using SplitBackApi.Domain.Models;
 
-namespace SplitBackApi.Endpoints;
+namespace SplitBackApi.Api.Endpoints.Transfers;
 
 public static partial class TransferEndpoints {
   

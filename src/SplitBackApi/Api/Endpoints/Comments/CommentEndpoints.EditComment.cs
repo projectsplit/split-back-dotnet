@@ -1,10 +1,11 @@
-using SplitBackApi.Data;
-using SplitBackApi.Requests;
-using SplitBackApi.Domain;
 using System.Security.Claims;
-using SplitBackApi.Extensions;
+using SplitBackApi.Api.Endpoints.Comments.Requests;
+using SplitBackApi.Api.Extensions;
+using SplitBackApi.Data.Repositories.CommentRepository;
+using SplitBackApi.Data.Repositories.GroupRepository;
+using SplitBackApi.Domain.Models;
 
-namespace SplitBackApi.Endpoints;
+namespace SplitBackApi.Api.Endpoints.Comments;
 
 public static partial class CommentEndpoints {
 

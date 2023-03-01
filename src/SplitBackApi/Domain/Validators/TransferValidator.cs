@@ -1,15 +1,17 @@
 using FluentValidation;
-using SplitBackApi.Extensions;
 using NMoneys;
-using SplitBackApi.Domain;
+using SplitBackApi.Domain.Extensions;
+using SplitBackApi.Domain.Models;
+
+namespace SplitBackApi.Domain.Validators;
 
 public class TransferValidator : AbstractValidator<Transfer> {
 
   public TransferValidator() {
       
     RuleFor(transfer => transfer)
-    .Must(t => t.ReceiverId != t.SenderId)
-    .WithMessage("Send and receiver cannot be the same");
+      .Must(t => t.ReceiverId != t.SenderId)
+      .WithMessage("Send and receiver cannot be the same");
 
     RuleFor(transfer => transfer.Currency)
       .IsEnumName(typeof(CurrencyIsoCode))

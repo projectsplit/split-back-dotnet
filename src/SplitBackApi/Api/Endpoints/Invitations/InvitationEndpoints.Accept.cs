@@ -1,11 +1,13 @@
-using SplitBackApi.Data;
-using SplitBackApi.Requests;
-using SplitBackApi.Extensions;
-using SplitBackApi.Domain;
-using SplitBackApi.Domain.Extensions;
 using System.Security.Claims;
+using SplitBackApi.Api.Endpoints.Invitations.Requests;
+using SplitBackApi.Api.Extensions;
+using SplitBackApi.Data.Repositories.GroupRepository;
+using SplitBackApi.Data.Repositories.InvitationRepository;
+using SplitBackApi.Data.Repositories.UserRepository;
+using SplitBackApi.Domain.Extensions;
+using SplitBackApi.Domain.Models;
 
-namespace SplitBackApi.Endpoints;
+namespace SplitBackApi.Api.Endpoints.Invitations;
 
 public static partial class InvitationEndpoints {
 
@@ -66,7 +68,7 @@ public static partial class InvitationEndpoints {
       group.Members.Add(new UserMember {
         MemberId = Guid.NewGuid().ToString(),
         UserId = authenticatedUserId,
-        Permissions = Permissions.Comment | Permissions.CreateInvitation | Permissions.WriteAccess
+        Permissions = Domain.Models.Permissions.Comment | Domain.Models.Permissions.CreateInvitation | Domain.Models.Permissions.WriteAccess
       });
     }
 

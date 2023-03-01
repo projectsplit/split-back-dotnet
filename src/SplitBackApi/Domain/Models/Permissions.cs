@@ -1,4 +1,4 @@
-namespace SplitBackApi.Domain;
+namespace SplitBackApi.Domain.Models;
 
 [Flags]
 public enum Permissions {

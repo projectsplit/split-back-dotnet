@@ -1,4 +1,4 @@
-namespace SplitBackApi.Endpoints;
+namespace SplitBackApi.Api.Endpoints.Expenses;
 
 public static partial class ExpenseEndpoints {
   

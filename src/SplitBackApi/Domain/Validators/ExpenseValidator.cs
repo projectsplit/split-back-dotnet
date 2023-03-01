@@ -1,7 +1,9 @@
 using FluentValidation;
-using SplitBackApi.Extensions;
 using NMoneys;
-using SplitBackApi.Domain;
+using SplitBackApi.Domain.Extensions;
+using SplitBackApi.Domain.Models;
+
+namespace SplitBackApi.Domain.Validators;
 
 public class ExpenseValidator : AbstractValidator<Expense> {
 
@@ -16,14 +18,14 @@ public class ExpenseValidator : AbstractValidator<Expense> {
       .WithMessage("Description is required");
 
     RuleFor(expense => expense.Participants.Count)
-    .GreaterThan(0)
-    .WithName("Participants")
-    .WithMessage("At least one member should be selected");
+      .GreaterThan(0)
+      .WithName("Participants")
+      .WithMessage("At least one member should be selected");
 
     RuleFor(expense => expense.Payers.Count)
-    .GreaterThan(0)
-    .WithName("Payers")
-    .WithMessage("At least one payer should be selected");
+      .GreaterThan(0)
+      .WithName("Payers")
+      .WithMessage("At least one payer should be selected");
 
     RuleFor(expense => expense.Amount)
       .Must(x => decimal.TryParse(x, out var val) && x.ToDecimal() > 0)
@@ -31,8 +33,8 @@ public class ExpenseValidator : AbstractValidator<Expense> {
       .DependentRules(() => {
 
         RuleFor(expense => expense.Amount)
-        .Must(x => Decimal.Round(x.ToDecimal(), 2) == x.ToDecimal())
-        .WithMessage("Amount cannot have more than two decimal places");
+          .Must(x => Decimal.Round(x.ToDecimal(), 2) == x.ToDecimal())
+          .WithMessage("Amount cannot have more than two decimal places");
 
         When(expense => expense.Participants.Count > 0, () => {
           RuleForEach(expense => expense.Participants)

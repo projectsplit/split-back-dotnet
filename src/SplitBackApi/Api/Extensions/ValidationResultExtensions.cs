@@ -1,8 +1,6 @@
-using System.Security.Claims;
-using CSharpFunctionalExtensions;
 using FluentValidation.Results;
 
-namespace SplitBackApi.Extensions;
+namespace SplitBackApi.Api.Extensions;
 
 public static class ValidationResultExtensions {
 

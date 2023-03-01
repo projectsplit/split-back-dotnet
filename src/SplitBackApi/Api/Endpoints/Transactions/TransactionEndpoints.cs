@@ -1,7 +1,4 @@
-using SplitBackApi.Domain;
-using SplitBackApi.Extensions;
-
-namespace SplitBackApi.Endpoints;
+namespace SplitBackApi.Api.Endpoints.Transactions;
 
 public static partial class TransactionEndpoints {
   

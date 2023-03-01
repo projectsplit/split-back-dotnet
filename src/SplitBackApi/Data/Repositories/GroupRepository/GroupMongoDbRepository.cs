@@ -1,12 +1,11 @@
-using SplitBackApi.Domain;
 using CSharpFunctionalExtensions;
-using MongoDB.Driver;
 using Microsoft.Extensions.Options;
-using SplitBackApi.Configuration;
-using SplitBackApi.Data.Extensions;
 using MongoDB.Bson;
+using MongoDB.Driver;
+using SplitBackApi.Configuration;
+using SplitBackApi.Domain.Models;
 
-namespace SplitBackApi.Data;
+namespace SplitBackApi.Data.Repositories.GroupRepository;
 
 public class GroupMongoDbRepository : IGroupRepository {
   

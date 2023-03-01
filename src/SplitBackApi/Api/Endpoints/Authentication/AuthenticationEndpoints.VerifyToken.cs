@@ -1,9 +1,10 @@
-using Microsoft.AspNetCore.Mvc;
-using SplitBackApi.Data;
-using SplitBackApi.Domain;
-using SplitBackApi.Services;
+using SplitBackApi.Api.Endpoints.Authentication.Requests;
+using SplitBackApi.Api.Services;
+using SplitBackApi.Data.Repositories.SessionRepository;
+using SplitBackApi.Data.Repositories.UserRepository;
+using SplitBackApi.Domain.Models;
 
-namespace SplitBackApi.Endpoints;
+namespace SplitBackApi.Api.Endpoints.Authentication;
 
 public static partial class AuthenticationEndpoints {
 

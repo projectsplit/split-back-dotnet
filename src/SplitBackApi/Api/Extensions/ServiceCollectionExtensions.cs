@@ -5,7 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SplitBackApi.Configuration;
 
-namespace SplitBackApi.Extensions;
+namespace SplitBackApi.Api.Extensions;
 
 public static class ServiceCollectionExtensions {
 

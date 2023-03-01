@@ -1,3 +1,5 @@
+using SplitBackApi.Domain.Models;
+
 namespace SplitBackApi.Domain.Extensions;
 
 public static class GroupExtensions {

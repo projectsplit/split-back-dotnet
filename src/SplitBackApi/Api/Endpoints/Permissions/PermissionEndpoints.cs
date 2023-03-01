@@ -1,4 +1,4 @@
-namespace SplitBackApi.Endpoints;
+namespace SplitBackApi.Api.Endpoints.Permissions;
 
 public static partial class PermissionEndpoints {
   

@@ -1,10 +1,11 @@
-using SplitBackApi.Data;
-using SplitBackApi.Requests;
-using SplitBackApi.Extensions;
-using SplitBackApi.Domain;
 using System.Security.Claims;
+using SplitBackApi.Api.Endpoints.Groups.Requests;
+using SplitBackApi.Api.Extensions;
+using SplitBackApi.Data.Repositories.GroupRepository;
+using SplitBackApi.Domain.Models;
+using SplitBackApi.Domain.Validators;
 
-namespace SplitBackApi.Endpoints;
+namespace SplitBackApi.Api.Endpoints.Groups;
 
 public static partial class GroupEndpoints {
 
@@ -31,8 +32,8 @@ public static partial class GroupEndpoints {
     };
 
     var allPermissions = Enum
-      .GetValues(typeof(Permissions))
-      .Cast<Permissions>()
+      .GetValues(typeof(Domain.Models.Permissions))
+      .Cast<Domain.Models.Permissions>()
       .Aggregate((current, next) => current | next);
       
     newGroup.Members.Add(new UserMember {

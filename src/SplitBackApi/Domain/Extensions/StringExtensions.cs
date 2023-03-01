@@ -1,4 +1,4 @@
-namespace SplitBackApi.Extensions;
+namespace SplitBackApi.Domain.Extensions;
 
 public static class StringExtensions {
 

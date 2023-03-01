@@ -1,6 +1,6 @@
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace SplitBackApi.Domain;
+namespace SplitBackApi.Domain.Models;
 
 [BsonKnownTypes(typeof(UserMember), typeof(GuestMember))]
 public class Member {

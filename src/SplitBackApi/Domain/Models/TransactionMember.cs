@@ -1,3 +1,5 @@
+namespace SplitBackApi.Domain.Models;
+
 public record TransactionMember {
 
   public TransactionMember(string id, decimal totalAmountGiven, decimal totalAmountTaken) {

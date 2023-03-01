@@ -1,4 +1,4 @@
-namespace SplitBackApi.Endpoints;
+namespace SplitBackApi.Api.Endpoints.Groups;
 
 public static partial class GroupEndpoints {
 

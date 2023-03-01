@@ -1,7 +1,7 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace SplitBackApi.Domain;
+namespace SplitBackApi.Domain.Models;
 
 public class Comment : EntityBase {
 

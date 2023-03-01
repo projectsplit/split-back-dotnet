@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 
-namespace SplitBackApi.Helper;
+namespace SplitBackApi.Domain.Helper;
 
 public static class InvitationCodeGenerator {
   

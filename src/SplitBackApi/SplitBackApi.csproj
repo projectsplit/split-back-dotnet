@@ -6,8 +6,6 @@
     <Version>2302.2</Version>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="12.0.0"/>
-    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.0"/>
     <PackageReference Include="CSharpFunctionalExtensions" Version="2.37.0"/>
     <PackageReference Include="FluentValidation" Version="11.4.0"/>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.1"/>

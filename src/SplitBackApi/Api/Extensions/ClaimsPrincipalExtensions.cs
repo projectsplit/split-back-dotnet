@@ -1,7 +1,6 @@
 using System.Security.Claims;
-using CSharpFunctionalExtensions;
 
-namespace SplitBackApi.Extensions;
+namespace SplitBackApi.Api.Extensions;
 
 public static class ClaimsPrincipalExtensions {
 

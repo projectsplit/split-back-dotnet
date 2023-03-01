@@ -1,7 +1,7 @@
 using MongoDB.Bson;
-using SplitBackApi.Domain;
+using SplitBackApi.Domain.Models;
 
-namespace SplitBackApi.Data.Extensions;
+namespace SplitBackApi.Domain.Extensions;
 
 public static class CommentExtensions {
   

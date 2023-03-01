@@ -1,6 +1,4 @@
-using SplitBackApi.Domain;
-
-namespace SplitBackApi.Requests;
+namespace SplitBackApi.Api.Endpoints.Permissions.Requests;
 
 public class EditPermissionsRequest {
   
@@ -8,5 +6,5 @@ public class EditPermissionsRequest {
   
   public string MemberId { get; set; }
   
-  public Permissions Permissions { get; set; }
+  public Domain.Models.Permissions Permissions { get; set; }
 }
