@@ -8,7 +8,8 @@ public static partial class AuthenticationEndpoints {
 
   private static async Task<IResult> SignIn(
     HttpResponse response,
-    IRepository repo,
+    ISessionRepository sessionRepository,
+    IUserRepository userRepository,
     AuthService authService,
     HttpRequest request
   ) {
@@ -16,16 +17,18 @@ public static partial class AuthenticationEndpoints {
     var unique = request.Cookies["unique"];
     if(unique is null) return Results.Unauthorized();
 
-    var sessionFound = await repo.GetSessionByUnique(unique);
-    if(sessionFound is null) return Results.Unauthorized();
+    var sessionResult = await sessionRepository.GetByUnique(unique);
+    if(sessionResult.IsFailure) return Results.Unauthorized();
+    var session = sessionResult.Value;
 
-    var userFound = await repo.GetUserById(sessionFound.UserId);
-    if(userFound.IsFailure) return Results.Unauthorized();
+    var userResult = await userRepository.GetById(session.UserId);
+    if(userResult.IsFailure) return Results.Unauthorized();
+    var user = userResult.Value;
 
     response.DeleteUniqueCookie();
-    response.AppendRefreshTokenCookie(sessionFound.RefreshToken);
+    response.AppendRefreshTokenCookie(session.RefreshToken);
 
-    var accessToken = authService.GenerateAccessToken(userFound.Value.Id.ToString());
+    var accessToken = authService.GenerateAccessToken(user.Id.ToString());
 
     return Results.Ok(accessToken);
   }

@@ -2,31 +2,51 @@ using SplitBackApi.Data;
 using SplitBackApi.Requests;
 using SplitBackApi.Extensions;
 using SplitBackApi.Domain;
-
-using AutoMapper;
+using System.Security.Claims;
 
 namespace SplitBackApi.Endpoints;
 
 public static partial class GroupEndpoints {
 
   private static async Task<IResult> CreateGroup(
-    HttpContext httpContext,
-    IRepository repo,
-    IMapper mapper,
-    CreateGroupDto createGroupDto
+    GroupValidator groupValidator,
+    ClaimsPrincipal claimsPrincipal,
+    IGroupRepository groupRepository,
+    CreateGroupRequest request
   ) {
 
-    var authenticatedUserIdResult = httpContext.GetAuthorizedUserId();
-    if(authenticatedUserIdResult.IsFailure) return Results.BadRequest(authenticatedUserIdResult.Error);
+    var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
 
-    var labels = mapper.Map<ICollection<Label>>(createGroupDto.GroupLabels);
-    var group = mapper.Map<Group>(createGroupDto);
+    var newGroup = new Group {
+      BaseCurrency = request.BaseCurrencyCode,
+      OwnerId = authenticatedUserId,
+      Title = request.Title,
+      Labels = request.Labels.Select(l => new Label {
+        Id = Guid.NewGuid().ToString(),
+        Color = l.Color,
+        Text = l.Text
+      }).ToList(),
+      CreationTime = DateTime.UtcNow,
+      LastUpdateTime = DateTime.UtcNow
+    };
 
-    group.CreatorId = authenticatedUserIdResult.Value;
-    group.Labels = labels;
+    var allPermissions = Enum
+      .GetValues(typeof(Permissions))
+      .Cast<Permissions>()
+      .Aggregate((current, next) => current | next);
+      
+    newGroup.Members.Add(new UserMember {
+      MemberId = Guid.NewGuid().ToString(),
+      UserId = authenticatedUserId,
+      Permissions = allPermissions
+    });
+    
+    var validationResult = groupValidator.Validate(newGroup);
+    if(validationResult.IsValid is false) return Results.BadRequest(validationResult.ToErrorResponse());
 
-    var createGroupResult = await repo.CreateGroup(group);
-    if(createGroupResult.IsFailure) return Results.BadRequest(createGroupResult.Error);
+    await groupRepository.Create(newGroup);
+    
+    //TODO add group to user in user colletion [???]
 
     return Results.Ok();
   }

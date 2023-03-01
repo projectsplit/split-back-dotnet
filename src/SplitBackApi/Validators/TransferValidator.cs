@@ -1,37 +1,36 @@
 using FluentValidation;
 using SplitBackApi.Extensions;
-using SplitBackApi.Requests;
 using NMoneys;
+using SplitBackApi.Domain;
 
-//Probably need to validate max length of amounts
-public class TransferValidator : AbstractValidator<ITransferDto>
-{
-  public TransferValidator()
-  {
-    RuleFor(newTransfer => newTransfer.IsoCode)
-    .IsEnumName(typeof(CurrencyIsoCode))
-    .WithMessage("Invalid Currency");
+public class TransferValidator : AbstractValidator<Transfer> {
 
-    RuleFor(newTransfer => newTransfer.Amount)
-    .Must(x => decimal.TryParse(x, out var val))
-    .WithMessage("A valid amount is required")
-    .DependentRules(() =>
-    {
-      RuleFor(newTransfer => newTransfer.Amount)
-    .Must(Amount => Amount.ToDecimal() > 0)
-    .WithMessage("Amount cannot be negative or zero");
+  public TransferValidator() {
+      
+    RuleFor(transfer => transfer)
+    .Must(t => t.ReceiverId != t.SenderId)
+    .WithMessage("Send and receiver cannot be the same");
 
-    RuleFor(newTransfer => newTransfer.SenderId)
-    .NotNull().NotEmpty()
-    .WithMessage("A sender should be selected");
+    RuleFor(transfer => transfer.Currency)
+      .IsEnumName(typeof(CurrencyIsoCode))
+      .WithMessage("Invalid Currency");
 
-    RuleFor(newTransfer => newTransfer.ReceiverId)
-    .NotNull().NotEmpty()
-    .WithMessage("A recipient should be selected");
+    RuleFor(transfer => transfer.ReceiverId)
+      .NotEmpty()
+      .WithMessage("A receiver should be selected");
 
-    RuleFor(newTransfer => newTransfer)
-    .Must(nt => nt.ReceiverId != nt.SenderId)
-    .WithMessage("You can\'t transfer to the same account");
-    });
+    RuleFor(transfer => transfer.SenderId)
+      .NotEmpty()
+      .WithMessage("A sender should be selected");
+
+    RuleFor(transfer => transfer.Amount)
+      .Must(x => decimal.TryParse(x, out var val) && x.ToDecimal() > 0)
+      .WithMessage("Amount must be a positive number")
+      .DependentRules(() => {
+        RuleFor(transfer => transfer.Amount)
+          .Must(x => x.ToDecimal().HasNoMoreThanTwoDecimalPlaces())
+          .WithMessage("Amount cannot have more than two decimal places");
+      });
+      
   }
 }

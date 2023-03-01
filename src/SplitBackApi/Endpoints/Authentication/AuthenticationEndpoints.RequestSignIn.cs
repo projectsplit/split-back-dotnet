@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
 using SplitBackApi.Services;
 using SplitBackApi.Data;
 using SplitBackApi.Extensions;
@@ -7,17 +6,15 @@ namespace SplitBackApi.Endpoints;
 
 public static partial class AuthenticationEndpoints {
 
-  private record RequestSignInRequest(string Email);
-
   private static async Task<IResult> RequestSignIn(
     HttpResponse response,
-    IRepository repo,
+    IUserRepository userRepository,
     AuthService authService,
-    [FromBody] RequestSignInRequest request
+    RequestSignInRequest request
   ) {
 
-    var userFound = await repo.GetUserByEmail(request.Email);
-    if(userFound is null) return Results.Unauthorized();
+    var userResult = await userRepository.GetByEmail(request.Email);
+    if(userResult.IsFailure) return Results.Unauthorized();
 
     var newUnique = Guid.NewGuid().ToString();
 

@@ -1,5 +1,3 @@
-using AutoMapper;
-
 public class ExceptionHandlerMiddleware : IMiddleware {
 
   public async Task InvokeAsync(HttpContext context, RequestDelegate next) {
@@ -7,16 +5,6 @@ public class ExceptionHandlerMiddleware : IMiddleware {
     try {
 
       await next(context);
-
-    } catch(AutoMapperMappingException e) {
-
-      context.Response.StatusCode = StatusCodes.Status400BadRequest;
-      context.Response.ContentType = "application/json";
-
-      await context.Response.WriteAsJsonAsync(new {
-        Error = e.GetType().Name,
-        Message = e.ToString()
-      });
 
     } catch(BadHttpRequestException e) {
 

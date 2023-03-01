@@ -1,71 +1,87 @@
 using SplitBackApi.Data;
 using SplitBackApi.Requests;
-using Microsoft.Extensions.Options;
-using SplitBackApi.Configuration;
 using SplitBackApi.Extensions;
 using SplitBackApi.Domain;
-
+using SplitBackApi.Domain.Extensions;
+using System.Security.Claims;
 
 namespace SplitBackApi.Endpoints;
 
 public static partial class InvitationEndpoints {
 
   private static async Task<IResult> Accept(
-    HttpContext httpContext,
-    IRepository repo,
-    VerifyInvitationRequest request,
-    IOptions<AppSettings> appSettings
+    ClaimsPrincipal claimsPrincipal,
+    IUserRepository userRepository,
+    IInvitationRepository invitationRepository,
+    IGroupRepository groupRepository,
+    AcceptInvitationRequest request
   ) {
 
-    var authenticatedUserIdResult = httpContext.GetAuthorizedUserId();
-    if(authenticatedUserIdResult.IsFailure) return Results.BadRequest(authenticatedUserIdResult.Error);
-    var authenticatedUserId = authenticatedUserIdResult.Value;
 
-    var getInvitationResult = await repo.GetInvitationByCode(request.Code);
-    if(getInvitationResult.IsFailure) return Results.BadRequest(getInvitationResult.Error);
-    var invitation = getInvitationResult.Value;
+    var invitationResult = await invitationRepository.GetByCode(request.Code);
+    if(invitationResult.IsFailure) return Results.BadRequest(invitationResult.Error);
+    var invitation = invitationResult.Value;
 
-    var groupResult = await repo.GetGroupById(invitation.GroupId);
+    if(invitation.Uses.Count >= invitation.NumberOfUses) {
+      return Results.BadRequest("This invitation has been already used");
+    }
+
+    if(invitation.ExpirationTime < DateTime.UtcNow) {
+      return Results.BadRequest("This invitation has been expired");
+    }
+
+    var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
+
+    if(invitation.InviterId == authenticatedUserId) {
+      return Results.BadRequest("You can not invite yourself");
+    }
+
+    var inviterUserResult = await userRepository.GetById(invitation.InviterId);
+    if(inviterUserResult.IsFailure) return Results.BadRequest(inviterUserResult.Error);
+    var inviterUser = inviterUserResult.Value;
+
+    var groupResult = await groupRepository.GetById(invitation.GroupId);
     if(groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
     var group = groupResult.Value;
 
-    var memberFound = group.GetUserMemberByUserId(authenticatedUserId);
+    var member = group.GetMemberByUserId(authenticatedUserId);
+    if(member is not null) return Results.BadRequest($"User {authenticatedUserId} is already a member of the group");
 
-    if(memberFound is not null) return Results.BadRequest($"User {authenticatedUserId} is already a member of the group");
+    if(invitation is ReplacementInvitation) {
 
+      var replacementInvitation = (ReplacementInvitation)invitation;
 
-    switch(invitation) {
+      var memberToReplace = group.Members.Where(m => m.MemberId == replacementInvitation.MemberId).FirstOrDefault();
+      if(memberToReplace is null) return Results.BadRequest($"Member {replacementInvitation.MemberId} has not been found");
 
-      case GuestInvitation: {
+      group.Members.Remove(memberToReplace);
+      group.Members.Add(new UserMember {
+        MemberId = Guid.NewGuid().ToString(),
+        UserId = authenticatedUserId,
+        Permissions = memberToReplace.Permissions
+      });
 
-          var guestInvitation = (GuestInvitation)invitation;
-          var guestFound = group.GetGuestMemberByGuestId(guestInvitation.GuestId);
+    } else {
 
-          if(guestFound is null) return Results.BadRequest($"Guest {guestInvitation.GuestId} is not a member of the group");
-
-          var userMember = new UserMember {
-            Id = guestFound.Id,
-            UserId = authenticatedUserId,
-            Roles = guestFound.Roles
-          };
-
-          await repo.ReplaceGuestMemberWithUserMember(group.Id, userMember, guestInvitation.GuestId);
-          break;
-        }
-
-      case UserInvitation: {
-
-          await repo.AddUserMemberToGroup(group.Id, authenticatedUserId, new List<string>());
-          break;
-        }
-        
-      default:
-        return Results.BadRequest("Not a valid invitation");
+      group.Members.Add(new UserMember {
+        MemberId = Guid.NewGuid().ToString(),
+        UserId = authenticatedUserId,
+        Permissions = Permissions.Comment | Permissions.CreateInvitation | Permissions.WriteAccess
+      });
     }
 
-    return Results.Ok(new {
-      Message = $"User {authenticatedUserId} joined group",
-
+    invitation.Uses.Add(new InvitationUse {
+      UserId = authenticatedUserId,
+      UseTime = DateTime.UtcNow
     });
+
+    var invitationUpdateResult = await invitationRepository.Update(invitation);
+    var groupUpdateResult = await groupRepository.Update(group);
+
+    if(CSharpFunctionalExtensions.Result.Combine(invitationUpdateResult, groupUpdateResult).IsFailure) {
+      return Results.BadRequest(groupUpdateResult.Error);
+    }
+
+    return Results.Ok();
   }
 }

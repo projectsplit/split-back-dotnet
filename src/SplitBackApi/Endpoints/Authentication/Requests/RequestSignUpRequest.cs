@@ -1,0 +1,1 @@
+public record RequestSignUpRequest(string Email, string Nickname);

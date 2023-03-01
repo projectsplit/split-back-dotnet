@@ -18,15 +18,26 @@ public class Program {
     var configSection = builder.Configuration.GetSection(AppSettings.SectionName);
     builder.Services.Configure<AppSettings>(configSection);
 
-    builder.Services.AddScoped<IRepository, MongoDbRepository>();
+    builder.Services.AddScoped<IGroupRepository, GroupMongoDbRepository>();
+    builder.Services.AddScoped<IExpenseRepository, ExpenseMongoDbRepository>();
+    builder.Services.AddScoped<ITransferRepository, TransferMongoDbRepository>();
+    builder.Services.AddScoped<ICommentRepository, CommentMongoDbRepository>();
+    builder.Services.AddScoped<IInvitationRepository, InvitationMongoDbRepository>();
+    builder.Services.AddScoped<IUserRepository, UserMongoDbRepository>();
+    builder.Services.AddScoped<ISessionRepository, SessionMongoDbRepository>();
+    
+    
     builder.Services.AddScoped<AuthService>();
-    builder.Services.AddScoped<GroupPermissionsMiddleware>();
+    builder.Services.AddScoped<TransactionService>();
+    
+    builder.Services.AddScoped<GroupValidator>();
+    builder.Services.AddScoped<ExpenseValidator>();
+    builder.Services.AddScoped<TransferValidator>();
+    
     builder.Services.AddScoped<ExceptionHandlerMiddleware>();
 
     builder.Services.AddJwtBearerAuthentication();
-
     builder.Services.AddAuthorization();
-
     builder.Services.AddAuthorization(options => {
       options.FallbackPolicy = new AuthorizationPolicyBuilder()
         .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
@@ -39,8 +50,6 @@ public class Program {
     builder.Services.AddSwaggerGen();
     builder.Services.AddSwaggerWithAutorization();
     builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-    builder.Services.AddScoped<RoleService>();
-    builder.Services.AddScoped<MongoTransactionService>();
 
     var app = builder.Build();
 
@@ -55,14 +64,14 @@ public class Program {
     app.UseHttpsRedirection();
     app.MapAuthenticationEndpoints();
     app.MapExpenseEndpoints();
+    app.MapCommentEndpoints();
     app.MapTransferEndpoints();
-    app.MapGuestEndpoints();
     app.MapInvitationEndpoints();
-    app.MapRolesEndpoints();
     app.MapGroupEndpoints();
+    app.MapTransactionEndpoints();
+    app.MapPermissionEndpoints();
     app.UseMiddleware<ExceptionHandlerMiddleware>();
     app.UseAuthorization();
-    app.UseGroupPermissionMiddleware();
 
     app.Run();
   }

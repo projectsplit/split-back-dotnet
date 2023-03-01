@@ -1,0 +1,1 @@
+public record VerifyTokenRequest(string Token);

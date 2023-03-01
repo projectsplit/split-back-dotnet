@@ -1,12 +1,8 @@
-﻿using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
-
 namespace SplitBackApi.Domain;
 
 public class Participant {
+
+  public string MemberId { get; set; } = string.Empty;
   
-  [BsonRepresentation(BsonType.ObjectId)]
-  public string Id { get; set; }
-  
-  public decimal ContributionAmount { get; set; }
+  public string ParticipationAmount { get; set; } = string.Empty;
 }

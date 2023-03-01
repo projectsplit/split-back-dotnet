@@ -1,21 +1,19 @@
 using SplitBackApi.Data;
 using SplitBackApi.Requests;
-using SplitBackApi.Extensions;
 
 namespace SplitBackApi.Endpoints;
 
 public static partial class ExpenseEndpoints {
   
-  private static async Task<IResult> RemoveExpense(IRepository repo, RemoveRestoreExpenseDto removeRestoreExpenseDto) {
+  private static async Task<IResult> RemoveExpense(
+    IExpenseRepository expenseRepository,
+    RemoveExpenseRequest request
+  ) {    
     
-    var removeExpenseResult = await repo.RemoveExpense(removeRestoreExpenseDto.GroupId, removeRestoreExpenseDto.ExpenseId);
-    if(removeExpenseResult.IsFailure) return Results.BadRequest(removeExpenseResult.Error);
+    // ensure user can do this
     
-    var getGroupResult = await repo.GetGroupById(removeRestoreExpenseDto.GroupId);
-    if(getGroupResult.IsFailure) return Results.BadRequest(getGroupResult.Error);
-    var group = getGroupResult.Value;
+    await expenseRepository.DeleteById(request.ExpenseId);
     
-    return Results.Ok(group.PendingTransactions());
-
+    return Results.Ok();
   }
 }

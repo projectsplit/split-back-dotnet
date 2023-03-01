@@ -1,37 +1,45 @@
 using SplitBackApi.Data;
 using SplitBackApi.Requests;
-using SplitBackApi.Extensions;
 using SplitBackApi.Domain;
-using AutoMapper;
 
 namespace SplitBackApi.Endpoints;
 
 public static partial class ExpenseEndpoints {
-  
+
   private static async Task<IResult> EditExpense(
-    IRepository repo,
-    EditExpenseDto editExpenseDto,
-    IMapper mapper) {
+    IExpenseRepository expenseRepository,
+    EditExpenseRequest request
+  ) {
 
-    var expenseValidator = new ExpenseValidator();
-    var validationResult = expenseValidator.Validate(editExpenseDto);
+    var oldExpenseResult = await expenseRepository.GetById(request.ExpenseId);
+    if(oldExpenseResult.IsFailure) Results.BadRequest(oldExpenseResult.Error);
+    var oldExpense = oldExpenseResult.Value;
 
-    if(validationResult.Errors.Count > 0) {
-      return Results.Ok(validationResult.Errors.Select(x => new {
-        Message = x.ErrorMessage,
-        Field = x.PropertyName
-      }));
-    }
+    var editedExpense = new Expense {
+      Id = oldExpense.Id,
+      Description = request.Description,
+      Amount = request.Amount,
+      CreationTime = oldExpense.CreationTime,
+      LastUpdateTime = DateTime.UtcNow,
+      Currency = request.Currency,
+      ExpenseTime = request.ExpenseTime,
+      GroupId = request.GroupId,
+      Labels = request.Labels,
+      Participants = request.Participants.Select(p => new Participant {
+        MemberId = p.MemberId,
+        ParticipationAmount = p.ParticipationAmount
+      }).ToList(),
+      Payers = request.Payers.Select(p => new Payer {
+        MemberId = p.MemberId,
+        PaymentAmount = p.PaymentAmount
+      }).ToList()
+    };
 
-    var newExpense = mapper.Map<Expense>(editExpenseDto);
+    //TODO validate edited expense
 
-    var editExpenseResult = await repo.EditExpense(newExpense, editExpenseDto.GroupId, editExpenseDto.ExpenseId);
-    if(editExpenseResult.IsFailure) return Results.BadRequest(editExpenseResult.Error);
+    var updateResult = await expenseRepository.Update(editedExpense);
+    if(updateResult.IsFailure) return Results.BadRequest("Failed to update expense");
 
-    var getGroupResult = await repo.GetGroupById(editExpenseDto.GroupId);
-    if(getGroupResult.IsFailure) return Results.BadRequest(getGroupResult.Error);
-    var group = getGroupResult.Value;
-
-    return Results.Ok(group.PendingTransactions());
+    return Results.Ok();
   }
 }

@@ -31,9 +31,12 @@ public class CollectionSettings {
 
   public string Groups { get; set; } = String.Empty;
   public string Expenses { get; set; } = String.Empty;
+  public string PastExpenses { get; set; } = String.Empty;
+  public string Transfers { get; set; } = String.Empty;
+  public string PastTransfers { get; set; } = String.Empty;
+  public string Comments { get; set; } = String.Empty;
+  public string PastComments { get; set; } = String.Empty;
   public string Users { get; set; } = String.Empty;
   public string Invitations { get; set; } = String.Empty;
   public string Sessions { get; set; } = String.Empty;
-  public string Actions { get; set; } = String.Empty;
-  public string GuestInvitations { get; set; } = String.Empty;
 }

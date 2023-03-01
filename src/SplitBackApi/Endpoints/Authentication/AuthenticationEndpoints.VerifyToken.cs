@@ -7,13 +7,12 @@ namespace SplitBackApi.Endpoints;
 
 public static partial class AuthenticationEndpoints {
 
-  public record VerifyTokenRequest(string Token);
-
   public static async Task<IResult> VerifyToken(
     HttpResponse response,
-    IRepository repo,
+    IUserRepository userRepository,
+    ISessionRepository sessionRepository,
     AuthService authService,
-    [FromBody] VerifyTokenRequest request
+    VerifyTokenRequest request
   ) {
 
     var validatedToken = authService.VerifyToken(request.Token);
@@ -28,8 +27,8 @@ public static partial class AuthenticationEndpoints {
     var unique = uniqueClaim.Value;
     if(unique is null) return Results.BadRequest("Unique claim is missing");
 
-    var sessionFound = await repo.GetSessionByUnique(unique);
-    if(sessionFound is not null) return Results.BadRequest("Unique has already been used");
+    var sessionResult = await sessionRepository.GetByUnique(unique);
+    if(sessionResult.IsSuccess) return Results.BadRequest("Unique has already been used");
 
     var emailClaim = validatedToken.Payload.Claims.FirstOrDefault(claim => claim.Type == "email");
     if(emailClaim is null) return Results.BadRequest("Email claim is missing");
@@ -46,29 +45,38 @@ public static partial class AuthenticationEndpoints {
           var newUser = new User {
             Email = emailClaim.Value,
             Nickname = nicknameClaim.Value,
+            CreationTime = DateTime.UtcNow,
+            LastUpdateTime = DateTime.UtcNow,
           };
-          await repo.CreateUser(newUser);
+          await userRepository.Create(newUser);
 
           var newSession = new Session {
             RefreshToken = newRefreshToken,
             UserId = newUser.Id,
-            Unique = unique
+            Unique = unique,
+            CreationTime = DateTime.UtcNow,
+            LastUpdateTime = DateTime.UtcNow
           };
-          await repo.CreateSession(newSession);
+          await sessionRepository.Create(newSession);
 
           return Results.Ok();
         }
 
       case "sign-in": {
 
-          var userFound = await repo.GetUserByEmail(emailClaim.Value);
-          if(userFound is null) return Results.NotFound("User does not exist");
-
-          await repo.CreateSession(new Session {
+          var userResult = await userRepository.GetByEmail(emailClaim.Value);
+          if(userResult.IsFailure) return Results.BadRequest($"User with email {emailClaim.Value} does not exist");
+          var user = userResult.Value;
+          
+          var newSession = new Session {
             RefreshToken = newRefreshToken,
-            UserId = userFound.Id,
-            Unique = unique
-          });
+            UserId = user.Id,
+            Unique = unique,
+            CreationTime = DateTime.UtcNow,
+            LastUpdateTime = DateTime.UtcNow
+          };
+
+          await sessionRepository.Create(newSession);
 
           return Results.Ok();
         }

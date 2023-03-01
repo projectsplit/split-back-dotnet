@@ -6,7 +6,7 @@ namespace SplitBackApi.Endpoints;
 public static partial class AuthenticationEndpoints {
 
   private static async Task<IResult> RefreshToken(
-    IRepository repo,
+    ISessionRepository sessionRepository,
     AuthService authService,
     HttpRequest request
   ) {
@@ -14,10 +14,11 @@ public static partial class AuthenticationEndpoints {
     var refreshToken = request.Cookies["refresh-token"];
     if(refreshToken is null) return Results.BadRequest();
     
-    var sessionFound = await repo.GetSessionByRefreshToken(refreshToken);
-    if(sessionFound is null) return Results.BadRequest();
+    var sessionResult = await sessionRepository.GetByRefreshToken(refreshToken);
+    if(sessionResult.IsFailure) return Results.BadRequest();
+    var session = sessionResult.Value;
     
-    var accessToken = authService.GenerateAccessToken(sessionFound.UserId.ToString());
+    var accessToken = authService.GenerateAccessToken(session.UserId.ToString());
     
     return Results.Ok(accessToken);
   }

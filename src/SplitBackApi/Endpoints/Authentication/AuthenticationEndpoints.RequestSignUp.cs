@@ -7,18 +7,15 @@ namespace SplitBackApi.Endpoints;
 
 public static partial class AuthenticationEndpoints {
 
-  private record RequestSignUpRequest(string Email, string Nickname);
-
   private static async Task<IResult> RequestSignUp(
     HttpResponse response,
-    IRepository repo,
+    IUserRepository userRepository,
     AuthService authService,
-    [FromBody] RequestSignUpRequest request
+    RequestSignUpRequest request
   ) {
-
-    if(await repo.UserExistsByEmail(request.Email)) {
-      return Results.Ok("User already exists!");
-    }
+    
+    var userResult = await userRepository.GetByEmail(request.Email);
+    if(userResult.IsSuccess) return Results.BadRequest("User already exists");
 
     var newUnique = Guid.NewGuid().ToString();
 
