@@ -8,4 +8,5 @@ public class UserMember : Member {
 
   [BsonRepresentation(BsonType.ObjectId)]
   public string UserId { get; set; }
+  
 }

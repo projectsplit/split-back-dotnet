@@ -1,6 +1,9 @@
+using System.Security.Claims;
 using SplitBackApi.Api.Endpoints.Expenses.Requests;
+using SplitBackApi.Api.Extensions;
 using SplitBackApi.Data.Repositories.ExpenseRepository;
 using SplitBackApi.Data.Repositories.GroupRepository;
+using SplitBackApi.Domain.Extensions;
 using SplitBackApi.Domain.Models;
 using SplitBackApi.Domain.Validators;
 
@@ -10,11 +13,33 @@ public static partial class ExpenseEndpoints {
 
   private static async Task<IResult> CreateExpense(
     IGroupRepository groupRepository,
+    ClaimsPrincipal claimsPrincipal,
     IExpenseRepository expenseRepository,
     CreateExpenseRequest request
   ) {
 
     // ensure user has permissions ??
+    var groupResult = await groupRepository.GetById(request.GroupId);
+    if(groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
+    var group = groupResult.Value;
+
+    var groupMemberIds = group.Members.Select(m => m.MemberId).ToList();
+    
+    var requestMemberIds = request.Payers
+    .Select(p => p.MemberId)
+    .Union(request.Participants
+    .Select(p => p.MemberId)).ToList();
+
+    var memberIdsAreValid = requestMemberIds.Intersect(groupMemberIds).Count() == requestMemberIds.Count();
+    if(memberIdsAreValid is false) return Results.BadRequest("Invalid member Id(s)");
+
+    var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
+
+    var member = group.GetMemberByUserId(authenticatedUserId);
+    if(member is null) return Results.BadRequest($"{authenticatedUserId} is not a member of group with id {request.GroupId}");
+
+    var permissions = member.Permissions;
+    if(permissions.HasFlag(Domain.Models.Permissions.WriteAccess) is false) return Results.Forbid();
 
     var newExpensePayers = request.Payers
       .Select(p => new Payer {

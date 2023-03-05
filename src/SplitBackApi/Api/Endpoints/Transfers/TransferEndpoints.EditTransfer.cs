@@ -1,12 +1,18 @@
+using System.Security.Claims;
 using SplitBackApi.Api.Endpoints.Transfers.Requests;
+using SplitBackApi.Api.Extensions;
+using SplitBackApi.Data.Repositories.GroupRepository;
 using SplitBackApi.Data.Repositories.TransferRepository;
+using SplitBackApi.Domain.Extensions;
 using SplitBackApi.Domain.Models;
 
 namespace SplitBackApi.Api.Endpoints.Transfers;
 
 public static partial class TransferEndpoints {
-  
+
   private static async Task<IResult> EditTransfer(
+    IGroupRepository groupRepository,
+    ClaimsPrincipal claimsPrincipal,
     ITransferRepository transferRepository,
     EditTransferRequest request
   ) {
@@ -14,6 +20,25 @@ public static partial class TransferEndpoints {
     var currentTransferResult = await transferRepository.GetById(request.TransferId);
     if(currentTransferResult.IsFailure) Results.BadRequest(currentTransferResult.Error);
     var currentTransfer = currentTransferResult.Value;
+
+    var groupResult = await groupRepository.GetById(currentTransfer.GroupId);
+    if(groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
+    var group = groupResult.Value;
+
+    var groupMemberIds = group.Members.Select(m => m.MemberId).ToList();
+
+    var requestMemberIds = new List<string> { request.ReceiverId, request.SenderId };
+    var memberIdsAreValid = requestMemberIds.Intersect(groupMemberIds).Count() == requestMemberIds.Count();
+    if(memberIdsAreValid is not true) return Results.BadRequest("Sender and/ or Receiver Id(s) are not valid");
+
+
+    var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
+
+    var member = group.GetMemberByUserId(authenticatedUserId);
+    if(member is null) return Results.BadRequest($"{authenticatedUserId} is not a member of group with id {currentTransfer.GroupId}");
+
+    var permissions = member.Permissions;
+    if(permissions.HasFlag(Domain.Models.Permissions.WriteAccess) is false) return Results.Forbid();
 
     var editedTransfer = new Transfer {
       Id = currentTransfer.Id,

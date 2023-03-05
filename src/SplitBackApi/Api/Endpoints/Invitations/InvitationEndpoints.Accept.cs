@@ -60,7 +60,7 @@ public static partial class InvitationEndpoints {
       group.Members.Add(new UserMember {
         MemberId = Guid.NewGuid().ToString(),
         UserId = authenticatedUserId,
-        Permissions = memberToReplace.Permissions
+        Permissions = Domain.Models.Permissions.Comment | Domain.Models.Permissions.CreateInvitation | Domain.Models.Permissions.WriteAccess//memberToReplace.Permissions
       });
 
     } else {
