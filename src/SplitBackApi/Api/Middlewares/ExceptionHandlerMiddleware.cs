@@ -22,7 +22,6 @@ public class ExceptionHandlerMiddleware : IMiddleware {
 
     } catch(System.FormatException e) {
 
-
       context.Response.StatusCode = StatusCodes.Status400BadRequest;
       context.Response.ContentType = "application/json";
 

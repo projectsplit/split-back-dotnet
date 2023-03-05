@@ -3,6 +3,8 @@ using SplitBackApi.Api.Endpoints.Permissions.Requests;
 using SplitBackApi.Api.Extensions;
 using SplitBackApi.Data.Repositories.GroupRepository;
 using SplitBackApi.Domain.Extensions;
+using SplitBackApi.Domain.Models;
+using SplitBackApi.Domain.Validators;
 
 namespace SplitBackApi.Api.Endpoints.Permissions;
 
@@ -11,6 +13,8 @@ public static partial class PermissionEndpoints {
   private static async Task<IResult> Edit(
     IGroupRepository groupRepository,
     ClaimsPrincipal claimsPrincipal,
+    GroupValidator groupValidator,
+    UserMemberValidator userMemberValidator,
     EditPermissionsRequest request
   ) {
 
@@ -41,16 +45,24 @@ public static partial class PermissionEndpoints {
     if(member.Permissions.HasFlag(Domain.Models.Permissions.ManageGroup) && group.OwnerId != authenticatedUserId) {
       return Results.Forbid();
     }
-    
+
     // try to create an admin when you are not a group owner
-    if(member.Permissions.HasFlag(Domain.Models.Permissions.ManageGroup) is false && 
+    if(member.Permissions.HasFlag(Domain.Models.Permissions.ManageGroup) is false &&
       request.Permissions.HasFlag(Domain.Models.Permissions.ManageGroup) &&
       group.OwnerId != authenticatedUserId) return Results.Forbid();
 
-    //need to validate the sum of integers coming from the front-end corresponds to the sum of the integers from the Enum class of permissions in backend
-    //e.g. if ManageGroup was chosen then the sum should be 15 feeding into the endpoint. Assess that 15 is also coming from front.
-    group.Members.Where(m => m.MemberId == request.MemberId).First().Permissions = request.Permissions;
+    var memberToEdit = group.Members.Where(m => m.MemberId == request.MemberId).First();
+    memberToEdit.Permissions = request.Permissions;
+
+    if(memberToEdit is not UserMember) return Results.BadRequest();
+
+    var userMemberValidationResult = userMemberValidator.Validate(memberToEdit as UserMember);
+    if(userMemberValidationResult.IsValid is false) return Results.BadRequest(userMemberValidationResult.ToErrorResponse());
+
     group.LastUpdateTime = DateTime.UtcNow;
+
+    var groupValidationResult = groupValidator.Validate(group);
+    if(groupValidationResult.IsValid is false) return Results.BadRequest(groupValidationResult.ToErrorResponse());
 
     var updateResult = await groupRepository.Update(group);
     if(updateResult.IsFailure) return Results.BadRequest(updateResult.Error);

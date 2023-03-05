@@ -6,6 +6,7 @@ using SplitBackApi.Data.Repositories.InvitationRepository;
 using SplitBackApi.Data.Repositories.UserRepository;
 using SplitBackApi.Domain.Extensions;
 using SplitBackApi.Domain.Models;
+using SplitBackApi.Domain.Validators;
 
 namespace SplitBackApi.Api.Endpoints.Invitations;
 
@@ -16,9 +17,10 @@ public static partial class InvitationEndpoints {
     IUserRepository userRepository,
     IInvitationRepository invitationRepository,
     IGroupRepository groupRepository,
+    UserMemberValidator userMemberValidator,
+    GroupValidator groupValidator,
     AcceptInvitationRequest request
   ) {
-
 
     var invitationResult = await invitationRepository.GetByCode(request.Code);
     if(invitationResult.IsFailure) return Results.BadRequest(invitationResult.Error);
@@ -64,19 +66,28 @@ public static partial class InvitationEndpoints {
       });
 
     } else {
-
-      group.Members.Add(new UserMember {
+      
+      var newUserMember = new UserMember {
         MemberId = Guid.NewGuid().ToString(),
         UserId = authenticatedUserId,
         Permissions = Domain.Models.Permissions.Comment | Domain.Models.Permissions.CreateInvitation | Domain.Models.Permissions.WriteAccess
-      });
+      };
+      
+      var validationResult = userMemberValidator.Validate(newUserMember);
+      if(validationResult.IsValid is false) return Results.BadRequest(validationResult.ToErrorResponse());
+
+      group.Members.Add(newUserMember);
     }
 
     invitation.Uses.Add(new InvitationUse {
       UserId = authenticatedUserId,
       UseTime = DateTime.UtcNow
     });
+    
+    var groupValidationResult = groupValidator.Validate(group);
+    if(groupValidationResult.IsValid is false ) return Results.BadRequest(groupValidationResult.ToErrorResponse());
 
+    // TODO use transaction somehow
     var invitationUpdateResult = await invitationRepository.Update(invitation);
     var groupUpdateResult = await groupRepository.Update(group);
 

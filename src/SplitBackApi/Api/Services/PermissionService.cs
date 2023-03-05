@@ -1,4 +1,3 @@
-
 using System.Security.Claims;
 using SplitBackApi.Api.Extensions;
 using SplitBackApi.Data.Repositories.GroupRepository;
@@ -9,8 +8,7 @@ namespace SplitBackApi.Api.Services;
 
 public class PermissionService {
 
-
-  public async Task<IResult> CheckPermissions(string groupId, ClaimsPrincipal claimsPrincipal, IGroupRepository groupRepository,Permissions permission) {
+  public async Task<IResult> CheckPermissions(string groupId, ClaimsPrincipal claimsPrincipal, IGroupRepository groupRepository, Permissions permission) {
 
     var groupResult = await groupRepository.GetById(groupId);
     if(groupResult.IsFailure) return Results.BadRequest(groupResult.Error);

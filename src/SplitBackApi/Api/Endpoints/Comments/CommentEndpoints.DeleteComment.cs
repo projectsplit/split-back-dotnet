@@ -34,8 +34,6 @@ public static partial class CommentEndpoints {
     if(currentComment.MemberId != member.MemberId && member.Permissions.HasFlag(Domain.Models.Permissions.ManageGroup) is false)
     return Results.Forbid();
 
-    //TODO validate edited comment
-
     var updateResult = await commentRepository.DeleteById(request.CommentId);
     if(updateResult.IsFailure) return Results.BadRequest("Failed to delete comment");
 

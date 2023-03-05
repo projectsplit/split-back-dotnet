@@ -15,6 +15,7 @@ public static partial class ExpenseEndpoints {
     IGroupRepository groupRepository,
     ClaimsPrincipal claimsPrincipal,
     IExpenseRepository expenseRepository,
+    ExpenseValidator expenseValidator,
     CreateExpenseRequest request
   ) {
 
@@ -68,14 +69,8 @@ public static partial class ExpenseEndpoints {
       Participants = newExpenseParticipants
     };
 
-    var expenseValidator = new ExpenseValidator();
     var validationResult = expenseValidator.Validate(newExpense);
-    if(!validationResult.IsValid) return Results.BadRequest(validationResult.Errors.Select(e =>
-      new {
-        Field = e.PropertyName,
-        ErrorMessage = e.ErrorMessage
-      }
-    ));
+    if(validationResult.IsValid is false) return Results.BadRequest(validationResult.ToErrorResponse());
 
     await expenseRepository.Create(newExpense);
 

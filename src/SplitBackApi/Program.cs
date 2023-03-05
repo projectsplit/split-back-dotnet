@@ -20,6 +20,7 @@ using SplitBackApi.Data.Repositories.InvitationRepository;
 using SplitBackApi.Data.Repositories.SessionRepository;
 using SplitBackApi.Data.Repositories.TransferRepository;
 using SplitBackApi.Data.Repositories.UserRepository;
+using SplitBackApi.Domain.Models;
 using SplitBackApi.Domain.Services;
 using SplitBackApi.Domain.Validators;
 
@@ -52,6 +53,9 @@ public class Program {
     builder.Services.AddScoped<GroupValidator>();
     builder.Services.AddScoped<ExpenseValidator>();
     builder.Services.AddScoped<TransferValidator>();
+    builder.Services.AddScoped<CommentValidator>();
+    builder.Services.AddScoped<GuestMemberValidator>();
+    builder.Services.AddScoped<UserMemberValidator>();
     
     // Middlewares
     builder.Services.AddScoped<ExceptionHandlerMiddleware>();
@@ -76,9 +80,9 @@ public class Program {
     if(app.Environment.IsDevelopment()) {
       app.UseSwagger();
       app.UseSwaggerUI();
-      app.MapGet("/appsettings", (IOptions<AppSettings> appSettings) => {
+      app.MapGet("/app-settings", (IOptions<AppSettings> appSettings) => {
         return appSettings.Value;
-      });
+      }).AllowAnonymous();
     }
 
     app.UseHttpsRedirection();

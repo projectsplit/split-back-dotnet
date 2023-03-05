@@ -6,6 +6,7 @@ using SplitBackApi.Data.Repositories.GroupRepository;
 using SplitBackApi.Data.Repositories.UserRepository;
 using SplitBackApi.Domain.Extensions;
 using SplitBackApi.Domain.Models;
+using SplitBackApi.Domain.Validators;
 
 namespace SplitBackApi.Api.Endpoints.Groups;
 
@@ -15,6 +16,7 @@ public static partial class GuestEndpoints {
     ClaimsPrincipal claimsPrincipal,
     IGroupRepository groupRepository,
     IUserRepository userRepository,
+    GuestMemberValidator guestMemberValidator,
     CreateGuestRequest request
   ) {
 
@@ -43,6 +45,9 @@ public static partial class GuestEndpoints {
       MemberId = Guid.NewGuid().ToString(),
       Name = request.Name
     };
+    
+    var valdationResult = guestMemberValidator.Validate(newGuest);
+    if(valdationResult.IsValid is false) return Results.BadRequest(valdationResult.ToErrorResponse());
   
     group.Members.Add(newGuest);
 

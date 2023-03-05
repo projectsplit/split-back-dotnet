@@ -47,8 +47,6 @@ public static partial class GroupEndpoints {
 
     await groupRepository.Create(newGroup);
     
-    //TODO add group to user in user colletion [???]
-
     return Results.Ok();
   }
 }
