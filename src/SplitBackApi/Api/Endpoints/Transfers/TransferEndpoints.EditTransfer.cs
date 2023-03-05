@@ -5,6 +5,7 @@ using SplitBackApi.Data.Repositories.GroupRepository;
 using SplitBackApi.Data.Repositories.TransferRepository;
 using SplitBackApi.Domain.Extensions;
 using SplitBackApi.Domain.Models;
+using SplitBackApi.Domain.Validators;
 
 namespace SplitBackApi.Api.Endpoints.Transfers;
 
@@ -14,6 +15,7 @@ public static partial class TransferEndpoints {
     IGroupRepository groupRepository,
     ClaimsPrincipal claimsPrincipal,
     ITransferRepository transferRepository,
+    TransferValidator transferValidator,
     EditTransferRequest request
   ) {
 
@@ -30,7 +32,6 @@ public static partial class TransferEndpoints {
     var requestMemberIds = new List<string> { request.ReceiverId, request.SenderId };
     var memberIdsAreValid = requestMemberIds.Intersect(groupMemberIds).Count() == requestMemberIds.Count();
     if(memberIdsAreValid is not true) return Results.BadRequest("Sender and/ or Receiver Id(s) are not valid");
-
 
     var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
 
@@ -53,7 +54,8 @@ public static partial class TransferEndpoints {
       TransferTime = request.TransferTime
     };
 
-    //TODO validate edited transfer
+    var validationResult = transferValidator.Validate(editedTransfer);
+    if(validationResult.IsValid is false) return Results.BadRequest(validationResult.ToErrorResponse());
 
     var updateResult = await transferRepository.Update(editedTransfer);
     if(updateResult.IsFailure) return Results.BadRequest("Failed to update transfer");

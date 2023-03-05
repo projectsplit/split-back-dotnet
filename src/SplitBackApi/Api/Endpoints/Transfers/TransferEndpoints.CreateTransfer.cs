@@ -16,6 +16,7 @@ public static partial class TransferEndpoints {
     IGroupRepository groupRepository,
     HttpContext httpContext,
     ClaimsPrincipal claimsPrincipal,
+    TransferValidator transferValidator,
     CreateTransferRequest request
   ) {
 
@@ -48,12 +49,8 @@ public static partial class TransferEndpoints {
       TransferTime = request.TransferTime
     };
 
-    var transferValidator = new TransferValidator();
     var validationResult = transferValidator.Validate(newTransfer);
-    if(validationResult.IsValid is false) return Results.BadRequest(validationResult.Errors.Select(e => new {
-      Field = e.PropertyName,
-      ErrorMessage = e.ErrorMessage
-    }));
+    if(validationResult.IsValid is false) return Results.BadRequest(validationResult.ToErrorResponse());
 
     await transferRepository.Create(newTransfer);
 

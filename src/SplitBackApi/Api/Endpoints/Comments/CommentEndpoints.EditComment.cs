@@ -5,6 +5,7 @@ using SplitBackApi.Data.Repositories.CommentRepository;
 using SplitBackApi.Data.Repositories.GroupRepository;
 using SplitBackApi.Domain.Extensions;
 using SplitBackApi.Domain.Models;
+using SplitBackApi.Domain.Validators;
 
 namespace SplitBackApi.Api.Endpoints.Comments;
 
@@ -14,6 +15,7 @@ public static partial class CommentEndpoints {
    ICommentRepository commentRepository,
    IGroupRepository groupRepository,
    ClaimsPrincipal claimsPrincipal,
+   CommentValidator commentValidator,
    EditCommentRequest request
   ) {
 
@@ -35,8 +37,6 @@ public static partial class CommentEndpoints {
 
     if(currentComment.MemberId != member.MemberId) return Results.Forbid();
 
-    // TODO Forbid if permissions are missing
-
     var editedComment = new Comment {
       Id = currentComment.Id,
       CreationTime = currentComment.CreationTime,
@@ -46,7 +46,8 @@ public static partial class CommentEndpoints {
       Text = request.Text
     };
 
-    //TODO validate edited comment
+    var validationResult = commentValidator.Validate(editedComment);
+    if(validationResult.IsValid is false) return Results.BadRequest(validationResult.ToErrorResponse());
 
     var updateResult = await commentRepository.Update(editedComment);
     if(updateResult.IsFailure) return Results.BadRequest("Failed to update comment");

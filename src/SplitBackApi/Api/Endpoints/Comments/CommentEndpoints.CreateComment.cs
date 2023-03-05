@@ -5,6 +5,7 @@ using SplitBackApi.Data.Repositories.CommentRepository;
 using SplitBackApi.Data.Repositories.GroupRepository;
 using SplitBackApi.Domain.Extensions;
 using SplitBackApi.Domain.Models;
+using SplitBackApi.Domain.Validators;
 
 namespace SplitBackApi.Api.Endpoints.Comments;
 
@@ -14,6 +15,7 @@ public static partial class CommentEndpoints {
     IGroupRepository groupRepository,
     ICommentRepository commentRepository,
     ClaimsPrincipal claimsPrincipal,
+    CommentValidator commentValidator,
     CreateCommentRequest request
   ) {
     
@@ -36,8 +38,9 @@ public static partial class CommentEndpoints {
       ParentId = request.ParentId,
       Text = request.Text
     };
-    
-    //TODO validate comment
+
+    var validationResult = commentValidator.Validate(newComment);
+    if(validationResult.IsValid is false) return Results.BadRequest(validationResult.ToErrorResponse());
     
     await commentRepository.Create(newComment);
 

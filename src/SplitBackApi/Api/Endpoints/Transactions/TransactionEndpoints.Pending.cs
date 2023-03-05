@@ -23,7 +23,7 @@ public static partial class TransactionEndpoints {
     var group = groupResult.Value;
     
     var member = group.GetMemberByUserId(authenticatedUserId);
-    if(member is null) return Results.BadRequest($"User with id {authenticatedUserId} is not a member of group with id {request.GroupId}"); //not required?
+    if(member is null) return Results.BadRequest($"User with id {authenticatedUserId} is not a member of group with id {request.GroupId}"); //not required? idk
     
     var pendingResult = await transactionService.PendingTransactionsAsync(group.Id);
     if(pendingResult.IsFailure) return Results.BadRequest(pendingResult.Error);

@@ -15,6 +15,7 @@ public static partial class ExpenseEndpoints {
     IGroupRepository groupRepository,
     ClaimsPrincipal claimsPrincipal,
     IExpenseRepository expenseRepository,
+    ExpenseValidator expenseValidator,
     EditExpenseRequest request
   ) {
 
@@ -68,15 +69,8 @@ public static partial class ExpenseEndpoints {
       }).ToList()
     };
 
-    //TODO validate edited expense
-    var expenseValidator = new ExpenseValidator();
     var validationResult = expenseValidator.Validate(editedExpense);
-    if(!validationResult.IsValid) return Results.BadRequest(validationResult.Errors.Select(e =>
-      new {
-        Field = e.PropertyName,
-        ErrorMessage = e.ErrorMessage
-      }
-    ));
+    if(validationResult.IsValid is false) return Results.BadRequest(validationResult.ToErrorResponse());
 
     var updateResult = await expenseRepository.Update(editedExpense);
     if(updateResult.IsFailure) return Results.BadRequest("Failed to update expense");
