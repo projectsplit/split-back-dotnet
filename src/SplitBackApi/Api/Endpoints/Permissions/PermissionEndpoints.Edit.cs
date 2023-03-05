@@ -16,6 +16,7 @@ public static partial class PermissionEndpoints {
 
     var groupResult = await groupRepository.GetById(request.GroupId);
     if(groupResult.IsFailure) Results.BadRequest(groupResult.Error);
+
     var group = groupResult.Value;
 
     var member = group.Members.FirstOrDefault(m => m.MemberId == request.MemberId);
@@ -42,10 +43,12 @@ public static partial class PermissionEndpoints {
     }
     
     // try to create an admin when you are not a group owner
-    if(member.Permissions.HasFlag(Domain.Models.Permissions.ManageGroup) is false &&
+    if(member.Permissions.HasFlag(Domain.Models.Permissions.ManageGroup) is false && 
       request.Permissions.HasFlag(Domain.Models.Permissions.ManageGroup) &&
       group.OwnerId != authenticatedUserId) return Results.Forbid();
 
+    //need to validate the sum of integers coming from the front-end corresponds to the sum of the integers from the Enum class of permissions in backend
+    //e.g. if ManageGroup was chosen then the sum should be 15 feeding into the endpoint. Assess that 15 is also coming from front.
     group.Members.Where(m => m.MemberId == request.MemberId).First().Permissions = request.Permissions;
     group.LastUpdateTime = DateTime.UtcNow;
 

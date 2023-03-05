@@ -7,6 +7,7 @@ public interface IUserRepository {
 
   Task Create(User user);
   Task<Result<User>> GetById(string userId);
+  Task<Result<List<User>>> GetByIds(List<string> userIds);
   Task<Result<User>> GetByEmail(string email);
   Task<Result> Update(User editedUser);
   Task<Result> DeleteById(string userId);

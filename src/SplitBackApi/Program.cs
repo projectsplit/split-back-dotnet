@@ -88,6 +88,7 @@ public class Program {
     app.MapTransferEndpoints();
     app.MapInvitationEndpoints();
     app.MapGroupEndpoints();
+    app.MapGuestEndpoints();
     app.MapTransactionEndpoints();
     app.MapPermissionEndpoints();
     app.UseMiddleware<ExceptionHandlerMiddleware>();
