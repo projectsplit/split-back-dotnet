@@ -24,11 +24,11 @@ public static partial class InvitationEndpoints {
     var invitation = invitationResult.Value;
 
     if(invitation.Uses.Count >= invitation.NumberOfUses) {
-      return Results.BadRequest("This invitation has been already used");
+      return Results.BadRequest("This invitation has already been used");
     }
 
     if(invitation.ExpirationTime < DateTime.UtcNow) {
-      return Results.BadRequest("This invitation has been expired");
+      return Results.BadRequest("This invitation has expired");
     }
 
     var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();

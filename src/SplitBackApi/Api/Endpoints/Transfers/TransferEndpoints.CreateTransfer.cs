@@ -18,18 +18,24 @@ public static partial class TransferEndpoints {
     ClaimsPrincipal claimsPrincipal,
     CreateTransferRequest request
   ) {
-    
+
     var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
-    
+
     var groupResult = await groupRepository.GetById(request.GroupId);
     if(groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
     var group = groupResult.Value;
-    
+
+    var groupMemberIds = group.Members.Select(m => m.MemberId).ToList();
+
+    var requestMemberIds = new List<string> { request.ReceiverId, request.SenderId };
+    var memberIdsAreValid = requestMemberIds.Intersect(groupMemberIds).Count() == requestMemberIds.Count();
+    if(memberIdsAreValid is false) return Results.BadRequest("Sender and/or Receiver Id(s) are not valid");
+
     var member = group.GetMemberByUserId(authenticatedUserId);
     if(member is null) return Results.BadRequest($"{authenticatedUserId} is not a member of group with id {request.GroupId}");
-    
+
     if(member.Permissions.HasFlag(Domain.Models.Permissions.WriteAccess) is false) return Results.Forbid();
-    
+
     var newTransfer = new Transfer {
       CreationTime = DateTime.UtcNow,
       LastUpdateTime = DateTime.UtcNow,
