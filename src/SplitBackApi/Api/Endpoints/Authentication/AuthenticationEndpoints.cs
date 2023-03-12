@@ -14,8 +14,7 @@ public static partial class AuthenticationEndpoints {
     authGroup.MapPost("/request-sign-in", RequestSignIn);
     authGroup.MapPost("/refresh-token", RefreshToken);
     
-    authGroup.MapGet("/google/callback", Callback);
+    authGroup.MapGet("/google/callback", ContinueWithGoogle);
     authGroup.MapGet("/google/url", GoogleUrl);
-    authGroup.MapGet("/google/continue", GoogleContinue);
   }
 }

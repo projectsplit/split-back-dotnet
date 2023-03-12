@@ -9,6 +9,7 @@ using SplitBackApi.Api.Endpoints.Invitations;
 using SplitBackApi.Api.Endpoints.Permissions;
 using SplitBackApi.Api.Endpoints.Transactions;
 using SplitBackApi.Api.Endpoints.Transfers;
+using SplitBackApi.Api.Endpoints.OpenAI;
 using SplitBackApi.Api.Extensions;
 using SplitBackApi.Api.Middlewares;
 using SplitBackApi.Api.Services;
@@ -44,11 +45,11 @@ public class Program {
     builder.Services.AddScoped<ITransferRepository, TransferMongoDbRepository>();
     builder.Services.AddScoped<ICommentRepository, CommentMongoDbRepository>();
     builder.Services.AddScoped<IInvitationRepository, InvitationMongoDbRepository>();
-    
+
     // Services
     builder.Services.AddScoped<AuthService>();
     builder.Services.AddScoped<TransactionService>();
-    
+
     // Validators
     builder.Services.AddScoped<GroupValidator>();
     builder.Services.AddScoped<ExpenseValidator>();
@@ -56,7 +57,7 @@ public class Program {
     builder.Services.AddScoped<CommentValidator>();
     builder.Services.AddScoped<GuestMemberValidator>();
     builder.Services.AddScoped<UserMemberValidator>();
-    
+
     // Middlewares
     builder.Services.AddScoped<ExceptionHandlerMiddleware>();
 
@@ -95,6 +96,7 @@ public class Program {
     app.MapGuestEndpoints();
     app.MapTransactionEndpoints();
     app.MapPermissionEndpoints();
+    app.MapOpenAIEndpoints();
     app.UseMiddleware<ExceptionHandlerMiddleware>();
     app.UseAuthorization();
 

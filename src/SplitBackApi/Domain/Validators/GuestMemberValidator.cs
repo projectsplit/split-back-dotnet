@@ -16,8 +16,8 @@ public class GuestMemberValidator : AbstractValidator<GuestMember> {
       .NotEmpty()
       .WithMessage("Member Id is required");
 
-    RuleFor(g => g.Permissions)
-      .IsInEnum()
-      .WithMessage("Invalid permissions");
+    // RuleFor(g => g.Permissions)
+    //   .IsInEnum()
+    //   .WithMessage("Invalid permissions");
   }
 }

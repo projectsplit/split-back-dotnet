@@ -5,7 +5,22 @@ public class AppSettings {
   public const string SectionName = "App";
 
   public JwtSettings Jwt { get; set; }
+  public GoogleSettings Google { get; set; }
   public MongoDbSettings MongoDb { get; set; }
+  public OpenAISettings OpenAI { get; set; }
+}
+
+public class GoogleSettings {
+
+  public string ClientId { get; set; }
+  public string ClientSecret { get; set; }
+
+}
+
+public class OpenAISettings {
+
+  public string SecretKey { get; set; }
+
 }
 
 public class JwtSettings {

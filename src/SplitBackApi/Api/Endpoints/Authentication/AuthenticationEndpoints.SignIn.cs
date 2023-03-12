@@ -14,7 +14,7 @@ public static partial class AuthenticationEndpoints {
     AuthService authService,
     HttpRequest request
   ) {
-
+    var resss = response;
     var unique = request.Cookies["unique"];
     if(unique is null) return Results.Unauthorized();
 
