@@ -7,4 +7,7 @@ public class OpenAIModelRequest {
   public int max_tokens { get; set; }
   public double temperature { get; set; }
   public double top_p { get; set; }
+  public double presence_penalty { get; set; }
+  public double frequency_penalty { get; set; }
+  public int best_of{ get; set; }
 }

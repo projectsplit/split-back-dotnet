@@ -8,7 +8,7 @@ public static partial class OpenAIEndpoints {
       .WithTags("OpenAI")
       .AllowAnonymous();
 
-    openaiGroup.MapPost("/chat", Chat);
+    openaiGroup.MapPost("/explain", Explanator);
   
   }
 }

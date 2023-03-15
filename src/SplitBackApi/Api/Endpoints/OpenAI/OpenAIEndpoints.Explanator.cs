@@ -14,7 +14,7 @@ namespace SplitBackApi.Api.Endpoints.OpenAI;
 
 public static partial class OpenAIEndpoints {
 
-  private static async Task<IResult> Chat(
+  private static async Task<IResult> Explanator(
    TransactionService transactionService,
    OpenAITextRequest request,
    IGroupRepository groupRepository,
@@ -38,10 +38,13 @@ public static partial class OpenAIEndpoints {
 
     var openAIModelrequest = new OpenAIModelRequest {
       model = "text-davinci-003",
-      prompt = $"Explain the following text in an easier to understand manner. Please do not use gender specific words: {concatenatedExplanationText}",
-      max_tokens = 300,
-      temperature = 0.05,
-      top_p = 0.05
+      prompt = $"{concatenatedExplanationText} Rephrase the text above in an easy to understand manner for each currency individually.",
+      max_tokens = 1000,
+      temperature = 0.1,
+      top_p = 0.1,
+      frequency_penalty = 0.2,
+      presence_penalty = 0.2,
+      best_of = 1
     };
 
     var serializedRequest = JsonConvert.SerializeObject(openAIModelrequest);

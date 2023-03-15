@@ -6,6 +6,7 @@ using SplitBackApi.Data.Repositories.TransferRepository;
 using SplitBackApi.Data.Repositories.UserRepository;
 using SplitBackApi.Domain.Extensions;
 using SplitBackApi.Domain.Models;
+using NMoneys;
 
 namespace SplitBackApi.Domain.Services;
 
@@ -216,6 +217,7 @@ public class TransactionService {
 
       var transactionMembers = new List<TransactionMember>();
 
+
       foreach(var member in group.Members) {
         transactionMembers.Add(new TransactionMember(member.MemberId, 0m, 0m));
       }
@@ -305,20 +307,23 @@ public class TransactionService {
 
         var memberInfo = retainedCreditors.FirstOrDefault(c => c.Id == memberId);
 
-        var pendingTransactionsMemberAsCreditor = pendingTransactions.Where(pt => pt.ReceiverId == memberId).ToList();
+        var pendingTransactionsMemberAsCreditor = pendingTransactions.Where(pt => pt.ReceiverId == memberId && pt.Currency == currency).ToList();
 
         var memberNameResult = await IdToName.MemberIdToMemberName(groupId, memberId, _groupRepository, _userRepository);
         if(memberNameResult.IsFailure) return Result.Failure<List<ExplanationText>>(memberNameResult.Error);
         var memberName = memberNameResult.Value;
 
         explanationTexts.Add(new ExplanationText {
-          Txt = $"The total amount {memberName} paid for the group is {memberInfo.TotalAmountGiven}. The total amount paid from the group to {memberName} is {memberInfo.TotalAmountTaken}. " +
-                 $"As a result, {memberName} is a creditor with a credit of {memberInfo.TotalAmountGiven - memberInfo.TotalAmountTaken}."
+          Txt = $"The total amount {memberName} paid for the group is {memberInfo.TotalAmountGiven}{currency}.{(memberInfo.TotalAmountTaken == 0 ? $"{memberName} received nothing from the group in {currency}." : $"The total amount {memberName} received from the group is {memberInfo.TotalAmountTaken}{currency}.")}" +
+                 $"As a result, {memberName} is a creditor with a credit of {memberInfo.TotalAmountGiven - memberInfo.TotalAmountTaken}{currency}."
         });
+
+        var memberCredit = memberInfo.TotalAmountGiven - memberInfo.TotalAmountTaken;
 
         foreach(var p in pendingTransactionsMemberAsCreditor) {
 
           var debtor = retainedDebtors.FirstOrDefault(d => d.Id == p.SenderId);
+          var debtorAmount = debtor.TotalAmountTaken - debtor.TotalAmountGiven;
 
           var senderNameResult = await IdToName.MemberIdToMemberName(groupId, p.SenderId, _groupRepository, _userRepository);
           if(senderNameResult.IsFailure) return Result.Failure<List<ExplanationText>>(senderNameResult.Error);
@@ -326,20 +331,23 @@ public class TransactionService {
 
           if(debtor.Id == p.SenderId) {
             if(debtor.TotalAmountTaken - debtor.TotalAmountGiven == p.Amount) { //debt==amount
-
+              memberCredit = memberCredit - debtorAmount;
               explanationTexts.Add(new ExplanationText {
                 Txt =
-                 $"{senderName}'s total amount paid for the group is {debtor.TotalAmountGiven}. " +
-                 $"The total amount paid from the group to {senderName} is {debtor.TotalAmountTaken}, therefore {senderName} is a debtor, with debt of {debtor.TotalAmountTaken - debtor.TotalAmountGiven}. " +
-                 $"This debt is paid from {senderName} to {memberName}, reducing {memberName}'s credit to {memberInfo.TotalAmountGiven - memberInfo.TotalAmountTaken - debtor.TotalAmountTaken + debtor.TotalAmountGiven}. "
+                 $"{(debtor.TotalAmountGiven == 0 ? $"{senderName} paid nothing for the group in {currency}" : $"{senderName}'s total amount paid for the group is {debtor.TotalAmountGiven} {currency}.")}" +
+                 $"The total amount {senderName} received from the group is {debtor.TotalAmountTaken}, therefore {senderName} is a debtor, with debt of {debtor.TotalAmountTaken - debtor.TotalAmountGiven} {currency}." +
+                //$"This debt of {debtor.TotalAmountTaken - debtor.TotalAmountGiven} {currency} is paid from {senderName} to {memberName}, reducing {memberName}'s credit to {memberCredit} {currency}. "
+                //$"{senderName} pays this debt of {debtor.TotalAmountTaken - debtor.TotalAmountGiven} {currency} to {memberName}, reducing {memberName}'s credit to {memberCredit} {currency}."
+                 $"If {senderName} pays this debt of {debtor.TotalAmountTaken - debtor.TotalAmountGiven} {currency} to {memberName}, {(memberCredit == 0 ? $"{memberName}'s credit will be cleared." : $"{memberName}'s credit will be reduced to {memberCredit} {currency}.")}"
+                //+ $"{memberName}'s credit will be reduced to {memberCredit} {currency}."
               });
             } else if(debtor.TotalAmountTaken - debtor.TotalAmountGiven > p.Amount) {
 
               explanationTexts.Add(new ExplanationText {
                 Txt =
-                 $"{senderName}'s total amount paid for the group is {debtor.TotalAmountGiven}. " +
-                 $"The total amount paid from the group to {senderName} is {debtor.TotalAmountTaken}, therefore {senderName} is a debtor, with debt of {debtor.TotalAmountTaken - debtor.TotalAmountGiven}. " +
-                 $"{memberName} takes {p.Amount} from {senderName}, reducing {memberName}'s credit to 0.{senderName} reduces their debt to {debtor.TotalAmountTaken - debtor.TotalAmountGiven - p.Amount} as a result. "
+                 $"{(debtor.TotalAmountGiven == 0 ? $"{senderName} paid nothing for the group in {currency}" : $"{senderName}'s total amount paid for the group is {debtor.TotalAmountGiven} {currency}.")}" +
+                 $"The total amount {senderName} received from the group is {debtor.TotalAmountTaken} {currency}, therefore {senderName} is a debtor, with debt of {debtor.TotalAmountTaken - debtor.TotalAmountGiven} {currency}." +
+                 $" If {memberName} takes {p.Amount} from {senderName}, {memberName}'s credit will be cleared."//.{senderName} reduces their debt to {debtor.TotalAmountTaken - debtor.TotalAmountGiven - p.Amount}{currency} as a result. "
               });
             }
           }
@@ -351,20 +359,22 @@ public class TransactionService {
 
         var memberInfo = retainedDebtors.FirstOrDefault(d => d.Id == memberId);
 
-        var pendingTransactionsMemberAsDebtor = pendingTransactions.Where(pt => pt.SenderId == memberId).ToList();
+        var pendingTransactionsMemberAsDebtor = pendingTransactions.Where(pt => pt.SenderId == memberId && pt.Currency == currency).ToList();
 
         var memberNameResult = await IdToName.MemberIdToMemberName(groupId, memberId, _groupRepository, _userRepository);
         if(memberNameResult.IsFailure) return Result.Failure<List<ExplanationText>>(memberNameResult.Error);
         var memberName = memberNameResult.Value;
-
+     
         explanationTexts.Add(new ExplanationText {
-          Txt = $"The total amount {memberName} paid for the group is {memberInfo.TotalAmountGiven}. The total amount paid from the group to {memberName} is {memberInfo.TotalAmountTaken}." +
-                 $"As a result {memberName} is a debtor with a debt of {memberInfo.TotalAmountTaken - memberInfo.TotalAmountGiven}."
+          Txt = $"{(memberInfo.TotalAmountGiven == 0 ? $"{memberName} paid nothing for the group in {currency}" : $"The total amount {memberName} paid for the group is {memberInfo.TotalAmountGiven}{currency}.")}The total amount {memberName} received from the group is {memberInfo.TotalAmountTaken} {currency}." +
+                $"As a result {memberName} is a debtor with a debt of {memberInfo.TotalAmountTaken - memberInfo.TotalAmountGiven} {currency}."
         });
+        var memberDebt = memberInfo.TotalAmountTaken - memberInfo.TotalAmountGiven;
 
         foreach(var p in pendingTransactionsMemberAsDebtor) {
 
           var creditor = retainedCreditors.FirstOrDefault(c => c.Id == p.ReceiverId);
+          var creditorAmount = creditor.TotalAmountGiven - creditor.TotalAmountTaken;
 
           var receiverNameResult = await IdToName.MemberIdToMemberName(groupId, p.ReceiverId, _groupRepository, _userRepository);
           if(receiverNameResult.IsFailure) return Result.Failure<List<ExplanationText>>(receiverNameResult.Error);
@@ -372,19 +382,25 @@ public class TransactionService {
 
           if(creditor.Id == p.ReceiverId) {
             if(creditor.TotalAmountGiven - creditor.TotalAmountTaken == p.Amount) { //debt==amount
+              memberDebt = memberDebt - creditorAmount;
+              //need in next loop this to be membersReducedDebt = membersReducedDebt - (creditor.TotalAmountGive - creditor.TotalAmountTaken)
               explanationTexts.Add(new ExplanationText {
                 Txt =
-                 $"{receiverName}'s total amount paid for the group is {creditor.TotalAmountGiven}. " +
-                 $"The total amount paid from the group to {receiverName} is {creditor.TotalAmountTaken}. As a result {receiverName} is a creditor, with a credit of {creditor.TotalAmountGiven - creditor.TotalAmountTaken}. " +
-                 $"This credit is paid from {memberName} to {receiverName}, reducing {memberName}'s debt to {memberInfo.TotalAmountTaken - memberInfo.TotalAmountGiven - creditor.TotalAmountGiven + creditor.TotalAmountTaken}. "
+                 $"{receiverName}'s total amount paid for the group is {creditor.TotalAmountGiven} {currency}. " +
+                 $"{(creditor.TotalAmountTaken == 0 ? $"{receiverName} did not receive anything from the group in {currency}" : $"The total amount {receiverName} received from the group is {creditor.TotalAmountTaken} {currency}.")}" +
+                 $"As a result {receiverName} is a creditor, with a credit of {creditor.TotalAmountGiven - creditor.TotalAmountTaken} {currency}." +
+                //$"This credit of {creditor.TotalAmountGiven - creditor.TotalAmountTaken} {currency} is paid from {memberName} to {receiverName}, reducing {memberName}'s debt to {memberDebt} {currency}."
+                //$"{memberName} pays this credit of {creditor.TotalAmountGiven - creditor.TotalAmountTaken} {currency} to {receiverName}, reducing {memberName}'s debt to {memberDebt} {currency}."
+                 $"If {memberName} pays this credit of {creditor.TotalAmountGiven - creditor.TotalAmountTaken} {currency} to {receiverName}, {(memberDebt == 0 ? $"{memberName}'s debt will be cleared." : $"{memberName}'s debt will be reduced to {memberDebt} {currency}.")}"
               });
             } else if(creditor.TotalAmountGiven - creditor.TotalAmountTaken > p.Amount) {
 
               explanationTexts.Add(new ExplanationText {
                 Txt =
-                 $"{receiverName}'s total amount paid for the group is {creditor.TotalAmountGiven}. " +
-                 $"The total amount paid from the group to {receiverName} is {creditor.TotalAmountTaken}. As a result {receiverName} is a creditor, with a credit of {creditor.TotalAmountGiven - creditor.TotalAmountTaken}. " +
-                 $"{memberName} pays {p.Amount} to {receiverName}, reducing {memberName}'s debt to 0 and reducing {receiverName}'s credit to {creditor.TotalAmountGiven - creditor.TotalAmountTaken - p.Amount}."
+                 $"{receiverName}'s total amount paid for the group is {creditor.TotalAmountGiven} {currency}. " +
+                 $"{(creditor.TotalAmountTaken == 0 ? $"{receiverName} did not receive anything from the group in {currency}" : $"The total amount {receiverName} received from the group is {creditor.TotalAmountTaken} {currency}.")}"+
+                 $"As a result {receiverName} is a creditor, with a credit of {creditor.TotalAmountGiven - creditor.TotalAmountTaken} {currency}." +
+                 $"If {memberName} pays {p.Amount}{currency} to {receiverName}, {memberName}'s debt will be cleared." //and reducing {receiverName}'s credit to {creditor.TotalAmountGiven - creditor.TotalAmountTaken - p.Amount}{currency}."
               });
             }
           }
@@ -396,7 +412,6 @@ public class TransactionService {
           Txt = ""
         });
       }
-
     }
 
     return explanationTexts;
