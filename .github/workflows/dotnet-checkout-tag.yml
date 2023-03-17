@@ -1,4 +1,4 @@
-name: Manual deploy
+name: manual-deploy
 
 on:
   workflow_dispatch:
@@ -13,5 +13,5 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      with:
-        ref: ${{ github.event.inputs.tag }}
+        with:
+          ref: ${{ github.event.inputs.tag }}
