@@ -22,3 +22,12 @@ jobs:
       run: |
         chmod +x ${{ env.VERSION_SCRIPT }}
         ${{ env.VERSION_SCRIPT }} ${{ env.CSPROJ_LOCATION }}
+    - name: Get version from .csproj
+      id: version
+      run: echo "::set-output name=version::$(xmlstarlet sel -t -v '//Project/PropertyGroup/Version' SplitBackApi.csproj)"
+    - name: Create Git tag
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git tag ${{ steps.version.outputs.version }}
+        git push origin ${{ steps.version.outputs.version }}
