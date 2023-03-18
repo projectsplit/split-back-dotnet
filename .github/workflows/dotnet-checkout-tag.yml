@@ -30,7 +30,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
           
       # Build and publish the .NET app
-      - name: Build and publish
+      - name: Publish
         run: dotnet publish -c Release -o publish
         
       # Build Docker image
@@ -38,8 +38,8 @@ jobs:
         run: docker build -t ${{ env.DOCKER_IMAGE_NAME }}:latest .
         
       # Save Docker image as tar file
-      - name: Save Docker image as tar file
-        run: docker save ${{ env.DOCKER_IMAGE_NAME }}:latest | gzip > my-awesome-app.tar.gz
+      # - name: Save Docker image as tar file
+      #   run: docker save ${{ env.DOCKER_IMAGE_NAME }}:latest | gzip > my-awesome-app.tar.gz
 
       # Copy Docker image to remote machine
       - name: Copy Docker image to remote machine
