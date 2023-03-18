@@ -4,12 +4,11 @@ FROM mcr.microsoft.com/dotnet/sdk:7.0
 # Set the working directory in the container to /app
 WORKDIR /app
 
-ENV DOTNET_ENVIRONMENT=Development
 # Copy the published output of your ASP.NET Core app to the container's /app folder
 COPY ./publish .
 
 # Expose port 80 443 for the container
-EXPOSE 80 443
+EXPOSE 80 443 8001 8002
 
 # Start the app using the dotnet command
 ENTRYPOINT ["dotnet", "SplitBackApi.dll"]
