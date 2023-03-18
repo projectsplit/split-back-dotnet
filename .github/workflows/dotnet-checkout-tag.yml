@@ -33,6 +33,10 @@ jobs:
       - name: Build and publish
         run: dotnet publish -c Release -o publish
         
+      # Build Docker image
+      - name: Build Docker image
+        run: docker build -t ${{ env.DOCKER_IMAGE_NAME }}:latest .
+        
       # Save Docker image as tar file
       - name: Save Docker image as tar file
         run: docker save ${{ env.DOCKER_IMAGE_NAME }}:latest | gzip > my-awesome-app.tar.gz
