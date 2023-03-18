@@ -46,7 +46,7 @@ jobs:
           password: ${{ secrets.MACHINE_PASSWORD }}
           port: ${{ secrets.MACHINE_PORT }}
           source: my-awesome-app.tar.gz
-          target: /tmp/my-awesome-app.tar.gz
+          target: ~/tmp/my-awesome-app.tar.gz
 
       # Load Docker image on remote machine (for Production)
       - name: Load Docker image on remote machine
@@ -57,7 +57,7 @@ jobs:
           password: ${{ secrets.MACHINE_PASSWORD }}
           port: ${{ secrets.MACHINE_PORT }}
           script: |
-            docker load < /tmp/my-awesome-app.tar.gz
+            docker load < ~/tmp/my-awesome-app.tar.gz
             docker stop my-awesome-app-production || true
             docker rm my-awesome-app-production || true
             docker run -d --restart=always --name=my-awesome-app-production -p 8001:80 ${{ env.DOCKER_IMAGE_NAME }}:latest
