@@ -37,9 +37,9 @@ jobs:
       - name: Build Docker image
         run: docker build -t ${{ env.DOCKER_IMAGE_NAME }}:latest .
         
-      # Save Docker image as tar file
-      # - name: Save Docker image as tar file
-      #   run: docker save ${{ env.DOCKER_IMAGE_NAME }}:latest | gzip > my-awesome-app.tar.gz
+      Save Docker image as tar file
+      - name: Save Docker image as tar file
+        run: docker save ${{ env.DOCKER_IMAGE_NAME }}:latest | gzip > my-awesome-app.tar.gz
 
       # Copy Docker image to remote machine
       - name: Copy Docker image to remote machine
@@ -61,7 +61,7 @@ jobs:
           password: ${{ secrets.MACHINE_PASSWORD }}
           port: ${{ secrets.MACHINE_PORT }}
           script: |
-            docker load < ~/tmp/my-awesome-app.tar.gz
+            docker load < ~/tmp/my-awesome-app.tar.gz/my-awesome-app.tar.gz
             docker stop my-awesome-app-production || true
             docker rm my-awesome-app-production || true
             docker run -d --restart=always --name=my-awesome-app-production -p 8001:80 ${{ env.DOCKER_IMAGE_NAME }}:latest
