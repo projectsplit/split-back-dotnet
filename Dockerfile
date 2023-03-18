@@ -8,7 +8,7 @@ WORKDIR /app
 COPY ./publish .
 
 # Expose port 80 443 for the container
-EXPOSE 80 443
+EXPOSE 80 443 8001 8002
 
 # Start the app using the dotnet command
 ENTRYPOINT ["dotnet", "SplitBackApi.dll"]
