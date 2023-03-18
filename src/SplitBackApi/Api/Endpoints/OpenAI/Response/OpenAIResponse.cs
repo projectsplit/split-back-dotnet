@@ -1,3 +1,5 @@
+using SplitBackApi.Api.Endpoints.OpenAI.Requests;
+
 public class TextCompletionResponse {
   public string id { get; set; }
   public string Object { get; set; }
@@ -8,6 +10,7 @@ public class TextCompletionResponse {
 }
 
 public class Choice {
+  public Message Message { get; set; }
   public string text { get; set; }
   public int index { get; set; }
   public object logprobs { get; set; }

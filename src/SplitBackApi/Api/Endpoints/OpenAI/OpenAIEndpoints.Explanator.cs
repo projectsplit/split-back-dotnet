@@ -5,7 +5,6 @@ using System.Web;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using SplitBackApi.Api.Endpoints.OpenAI.Requests;
-using SplitBackApi.Api.Extensions;
 using SplitBackApi.Configuration;
 using SplitBackApi.Data.Repositories.GroupRepository;
 using SplitBackApi.Domain.Services;
@@ -15,7 +14,7 @@ namespace SplitBackApi.Api.Endpoints.OpenAI;
 public static partial class OpenAIEndpoints {
 
   private static async Task<IResult> Explanator(
-   TransactionService transactionService,
+   OpenAIService openAIService,
    OpenAITextRequest request,
    IGroupRepository groupRepository,
    IOptions<AppSettings> appSettings
@@ -25,7 +24,8 @@ public static partial class OpenAIEndpoints {
     if(groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
     var group = groupResult.Value;
 
-    var textResult = await transactionService.GenerateTransactionsExplanationTextAsync(group.Id, request.MemberId);
+    var textResult = await openAIService.GenerateTransactionsExplanationTextAsync(group.Id);
+
     if(textResult.IsFailure) return Results.BadRequest(textResult.Error);
     var explanationText = textResult.Value;
     string concatenatedExplanationText = string.Join("  ", explanationText.Select(e => e.Txt));
@@ -36,7 +36,7 @@ public static partial class OpenAIEndpoints {
 
     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", secretKey);
 
-    var openAIModelrequest = new OpenAIModelRequest {
+    var openAIDavincirequest = new OpenAIDavinciRequest {
       model = "text-davinci-003",
       prompt = $"{concatenatedExplanationText} Rephrase the text above in an easy to understand manner for each currency individually.",
       max_tokens = 1000,
@@ -46,8 +46,8 @@ public static partial class OpenAIEndpoints {
       presence_penalty = 0.2,
       best_of = 1
     };
-
-    var serializedRequest = JsonConvert.SerializeObject(openAIModelrequest);
+    
+    var serializedRequest = JsonConvert.SerializeObject(openAIDavincirequest);
     var content = new StringContent(serializedRequest, Encoding.UTF8, "application/json");
 
     var response = await client.PostAsync("https://api.openai.com/v1/completions", content);

@@ -1,6 +1,6 @@
 namespace SplitBackApi.Api.Endpoints.OpenAI.Requests;
 
-public class OpenAIModelRequest {
+public class OpenAIDavinciRequest {
 
   public string model { get; set; }
   public string prompt { get; set; }

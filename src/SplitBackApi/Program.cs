@@ -49,6 +49,7 @@ public class Program {
     // Services
     builder.Services.AddScoped<AuthService>();
     builder.Services.AddScoped<TransactionService>();
+    builder.Services.AddScoped<OpenAIService>();
 
     // Validators
     builder.Services.AddScoped<GroupValidator>();
