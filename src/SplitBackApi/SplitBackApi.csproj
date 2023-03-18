@@ -3,7 +3,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>2303.13</Version>
+    <Version>2303.14</Version>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="CSharpFunctionalExtensions" Version="2.37.0"/>
