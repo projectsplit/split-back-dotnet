@@ -7,7 +7,7 @@ WORKDIR /app
 # Copy the published output of your ASP.NET Core app to the container's /app folder
 COPY ./publish .
 
-# Expose port 80 443 for the container
+# Expose port 5000 5001 for the container
 EXPOSE 5000 5001
 
 # Start the app using the dotnet command

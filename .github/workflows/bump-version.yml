@@ -1,4 +1,4 @@
-name: dotnet-bump-version
+name: bump-version
 
 on:
   push:
