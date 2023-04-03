@@ -42,6 +42,6 @@ public static partial class InvitationEndpoints {
 
     await invitationRepository.Create(newBasicInvitation);
 
-    return Results.Ok();
+    return Results.Ok(newBasicInvitation.Code);
   }
 }

@@ -36,7 +36,7 @@ public static partial class OpenAIEndpoints {
 
     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", secretKey);
 
-    var openAIDavincirequest = new OpenAIDavinciRequest {
+    var openAIDavinciRequest = new OpenAIDavinciRequest {
       model = "text-davinci-003",
       prompt = $"{concatenatedExplanationText} Rephrase the text above in an easy to understand manner for each currency individually.",
       max_tokens = 1000,
@@ -47,13 +47,13 @@ public static partial class OpenAIEndpoints {
       best_of = 1
     };
     
-    var serializedRequest = JsonConvert.SerializeObject(openAIDavincirequest);
+    var serializedRequest = JsonConvert.SerializeObject(openAIDavinciRequest);
     var content = new StringContent(serializedRequest, Encoding.UTF8, "application/json");
 
     var response = await client.PostAsync("https://api.openai.com/v1/completions", content);
     var responseString = await response.Content.ReadAsStringAsync();
 
-    TextCompletionResponse deserializedResponse = JsonConvert.DeserializeObject<TextCompletionResponse>(responseString);
+    var deserializedResponse = JsonConvert.DeserializeObject<ExplanatorResponse>(responseString);
 
     return Results.Ok(deserializedResponse);
   }

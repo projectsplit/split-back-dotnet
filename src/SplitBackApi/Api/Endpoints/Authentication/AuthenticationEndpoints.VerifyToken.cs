@@ -60,7 +60,7 @@ public static partial class AuthenticationEndpoints {
           };
           await sessionRepository.Create(newSession);
 
-          return Results.Ok();
+          return Results.Ok(new { type = "sign-up" });
         }
 
       case "sign-in": {
@@ -79,7 +79,7 @@ public static partial class AuthenticationEndpoints {
 
           await sessionRepository.Create(newSession);
 
-          return Results.Ok();
+          return Results.Ok(new { type = "sign-in" });
         }
 
       default:

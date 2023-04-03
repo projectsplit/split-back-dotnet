@@ -1,6 +1,8 @@
 using System.Security.Claims;
+using MongoDB.Bson.Serialization.Attributes;
 using SplitBackApi.Api.Endpoints.Groups.Requests;
 using SplitBackApi.Api.Extensions;
+using SplitBackApi.Api.Helper;
 using SplitBackApi.Api.Services;
 using SplitBackApi.Data.Repositories.GroupRepository;
 using SplitBackApi.Data.Repositories.UserRepository;
@@ -54,6 +56,34 @@ public static partial class GuestEndpoints {
     var groupUpdateResult = await groupRepository.Update(group);
     if(groupUpdateResult.IsFailure) return Results.BadRequest(groupUpdateResult.Error);
 
-    return Results.Ok("Guest created succesfully");
+    //response
+    var membersWithNamesResult = await MemberIdToNameHelper.MembersWithNames(group, userRepository);
+    if(membersWithNamesResult.IsFailure) return Results.BadRequest(membersWithNamesResult.Error);
+    var membersWithNames = membersWithNamesResult.Value;
+
+    var members = group.Members.Select(m => new GroupMemberWithNameAndType {
+      MemberId = m.MemberId,
+      UserId = (m is UserMember) ? ((UserMember)m).UserId : "",
+      Permissions = m.Permissions,
+      Name = membersWithNames.Single(mn => mn.Id == m.MemberId).Name,
+      MemberType = m.GetType()
+        .GetCustomAttributes(typeof(BsonDiscriminatorAttribute), true)
+        .Cast<BsonDiscriminatorAttribute>()
+        .FirstOrDefault().Discriminator ?? ""
+
+    }).ToList();
+
+    var response = new GroupResponse {
+      Members = members,
+      BaseCurrency = group.BaseCurrency,
+      CreationTime = group.CreationTime,
+      Id = group.Id,
+      Labels = group.Labels,
+      LastUpdateTime = group.LastUpdateTime,
+      OwnerId = group.OwnerId,
+      Title = group.Title
+    };
+
+    return Results.Ok(response);
   }
 }

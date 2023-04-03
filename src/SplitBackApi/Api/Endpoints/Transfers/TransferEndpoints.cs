@@ -10,5 +10,6 @@ public static partial class TransferEndpoints {
     transferGroup.MapPost("/create", CreateTransfer);
     transferGroup.MapPost("/edit", EditTransfer);
     transferGroup.MapPost("/delete", DeleteTransfer);
+    transferGroup.MapPost("/getgrouptransfers", GetTransfersByGroup);
   }
 }

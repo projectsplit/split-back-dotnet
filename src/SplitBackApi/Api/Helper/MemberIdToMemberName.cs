@@ -1,30 +1,28 @@
 using CSharpFunctionalExtensions;
-using SplitBackApi.Data.Repositories.GroupRepository;
 using SplitBackApi.Data.Repositories.UserRepository;
 using SplitBackApi.Domain.Models;
 
 namespace SplitBackApi.Api.Helper;
-public static class IdToName {
+public static class MemberIdToNameHelper {
 
-  public static async Task<Result<string>> MemberIdToMemberName(string groupId, string memberId, IGroupRepository groupRepository, IUserRepository userRepository) {
+  public static async Task<Result<IEnumerable<MemberWithName>>> MembersWithNames(Group group, IUserRepository userRepository) {
 
-    var groupResult = await groupRepository.GetById(groupId);
-    if(groupResult.IsFailure) return Result.Failure<string>(groupResult.Error);
-    var group = groupResult.Value;
+    var userMembers = group.Members.Where(m => m is UserMember).Cast<UserMember>();
+    var guestMembers = group.Members.Where(m => m is GuestMember).Cast<GuestMember>();
 
-    var members = group.Members.ToList();
-    var member = members.First(m => m.MemberId == memberId);
+    var usersResult = await userRepository.GetByIds(userMembers.Select(um => um.UserId).ToList());
+    if(usersResult.IsFailure) return Result.Failure<IEnumerable<MemberWithName>>(usersResult.Error);
 
-    if(member is GuestMember) {
-      var guestMember = (GuestMember)member;
-      return guestMember.Name;
-    }
+    var users = usersResult.Value;
 
-    var userMember = (UserMember)member;
-    var userMemberResult = await userRepository.GetById(userMember.UserId);
-    if(userMemberResult.IsFailure) return Result.Failure<string>(userMemberResult.Error);
-    var userFound = userMemberResult.Value;
+    var membersWithNames = userMembers.Select(m => new MemberWithName {
+      Id = m.MemberId,
+      Name = users.Single(u => u.Id == m.UserId).Nickname
+    }).Concat(guestMembers.Select(m => new MemberWithName {
+      Id = m.MemberId,
+      Name = m.Name
+    }));
 
-    return userFound.Nickname;
+    return Result.Success(membersWithNames);
   }
 }

@@ -74,6 +74,7 @@ public static partial class ExpenseEndpoints {
 
     await expenseRepository.Create(newExpense);
 
-    return Results.Ok();
+    var expenses = await expenseRepository.GetByGroupIdPerPage(request.GroupId, 1, 20);
+    return Results.Ok(expenses);
   }
 }

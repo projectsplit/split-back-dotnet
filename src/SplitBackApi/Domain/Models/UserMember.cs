@@ -7,6 +7,7 @@ namespace SplitBackApi.Domain.Models;
 public class UserMember : Member {
 
   [BsonRepresentation(BsonType.ObjectId)]
+  [BsonElement("UserId")]
   public string UserId { get; set; }
-  
+
 }

@@ -8,6 +8,7 @@ public interface IExpenseRepository {
   Task Create(Expense expense);
   Task<Result<Expense>> GetById(string expenseId);
   Task<List<Expense>> GetByGroupId(string groupId);
+  Task<List<Expense>> GetByGroupIdPerPage(string groupId, int pageNumber, int pageSize);
   Task<Result> Update(Expense editedExpense);
   Task<Result> DeleteById(string expenseId);
 }

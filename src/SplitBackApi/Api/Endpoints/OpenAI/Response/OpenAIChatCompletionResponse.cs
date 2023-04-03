@@ -1,6 +1,4 @@
-using SplitBackApi.Api.Endpoints.OpenAI.Requests;
-
-public class ChatCompletion {
+public class ChatCompletionResponse {
   public string Id { get; set; }
   public string Object { get; set; }
   public long Created { get; set; }

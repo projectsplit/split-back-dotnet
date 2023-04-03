@@ -14,7 +14,7 @@ public static partial class AuthenticationEndpoints {
     AuthService authService,
     HttpRequest request
   ) {
-    var resss = response;
+
     var unique = request.Cookies["unique"];
     if(unique is null) return Results.Unauthorized();
 
@@ -30,7 +30,16 @@ public static partial class AuthenticationEndpoints {
     response.AppendRefreshTokenCookie(session.RefreshToken);
 
     var accessToken = authService.GenerateAccessToken(user.Id.ToString());
+    var sessionData = new SessionData {
+      Id = session.Id,
+      UserId = session.UserId,
+      UserEmail = user.Email,
+      UserNickname = user.Nickname
+    };
 
-    return Results.Ok(accessToken);
+    return Results.Ok(new {
+      accessToken = accessToken,
+      sessionData = sessionData
+    });
   }
 }

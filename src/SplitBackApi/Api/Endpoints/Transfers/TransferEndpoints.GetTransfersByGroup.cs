@@ -1,47 +1,27 @@
-using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
 using SplitBackApi.Api.Endpoints.Transfers.Requests;
 using SplitBackApi.Api.Endpoints.Transfers.Responses;
-using SplitBackApi.Api.Extensions;
 using SplitBackApi.Api.Helper;
 using SplitBackApi.Data.Repositories.GroupRepository;
 using SplitBackApi.Data.Repositories.TransferRepository;
 using SplitBackApi.Data.Repositories.UserRepository;
-using SplitBackApi.Domain.Extensions;
 
 namespace SplitBackApi.Api.Endpoints.Transfers;
 
 public static partial class TransferEndpoints {
 
-  private static async Task<IResult> DeleteTransfer(
+  private static async Task<IResult> GetTransfersByGroup(
     ITransferRepository transferRepository,
-    IGroupRepository groupRepository,
     IUserRepository userRepository,
-    ClaimsPrincipal claimsPrincipal,
-    DeleteTransferRequest request
+    IGroupRepository groupRepository,
+    GetTransfersByGroupRequest request
   ) {
 
-    var currentTransferResult = await transferRepository.GetById(request.TransferId);
-    if(currentTransferResult.IsFailure) Results.BadRequest(currentTransferResult.Error);
-    var currentTransfer = currentTransferResult.Value;
+    var transfers = await transferRepository.GetByGroupIdPerPage(request.GroupId, request.PageNumber, request.PageSize);
 
-    var groupResult = await groupRepository.GetById(currentTransfer.GroupId);
+    var groupResult = await groupRepository.GetById(request.GroupId);
     if(groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
     var group = groupResult.Value;
-
-    var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
-
-    var member = group.GetMemberByUserId(authenticatedUserId);
-    if(member is null) return Results.BadRequest($"{authenticatedUserId} is not a member of group with id {currentTransfer.GroupId}");
-
-    var permissions = member.Permissions;
-    if(permissions.HasFlag(Domain.Models.Permissions.WriteAccess) is false) return Results.Forbid();
-
-    //TODO validate edited transfer
-
-    var updateResult = await transferRepository.DeleteById(request.TransferId);
-    if(updateResult.IsFailure) return Results.BadRequest("Failed to delete transfer");
-
-    var transfers = await transferRepository.GetByGroupIdPerPage(request.GroupId, 1, 20);
 
     var membersWithNamesResult = await MemberIdToNameHelper.MembersWithNames(group, userRepository);
     if(membersWithNamesResult.IsFailure) return Results.BadRequest(membersWithNamesResult.Error);

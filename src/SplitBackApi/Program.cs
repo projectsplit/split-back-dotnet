@@ -37,6 +37,16 @@ public class Program {
     var configSection = builder.Configuration.GetSection(AppSettings.SectionName);
     builder.Services.Configure<AppSettings>(configSection);
 
+    // Cors
+    builder.Services.AddCors(options => {
+      options.AddDefaultPolicy(builder => {
+        builder.WithOrigins("http://192.168.0.5:3000")
+            .AllowCredentials()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+      });
+    });
+
     // Repositories
     builder.Services.AddScoped<IUserRepository, UserMongoDbRepository>();
     builder.Services.AddScoped<ISessionRepository, SessionMongoDbRepository>();
@@ -86,7 +96,7 @@ public class Program {
         return appSettings.Value;
       }).AllowAnonymous();
     }
-
+    app.UseCors();
     app.UseHttpsRedirection();
     app.MapAuthenticationEndpoints();
     app.MapExpenseEndpoints();

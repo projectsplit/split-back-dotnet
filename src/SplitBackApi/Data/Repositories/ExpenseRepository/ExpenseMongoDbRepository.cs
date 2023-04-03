@@ -33,11 +33,11 @@ public class ExpenseMongoDbRepository : IExpenseRepository {
   }
 
   public async Task<Result> DeleteById(string expenseId) {
-    
+
     var findExpenseFilter = Builders<Expense>.Filter.Eq(e => e.Id, expenseId);
-    
+
     var expenseFound = await _expenseCollection.Find<Expense>(findExpenseFilter).FirstOrDefaultAsync();
-    if (expenseFound is null) return Result.Failure($"Expense with id {expenseId} has not been found to be deleted");
+    if(expenseFound is null) return Result.Failure($"Expense with id {expenseId} has not been found to be deleted");
 
     using var session = await _mongoClient.StartSessionAsync();
     session.StartTransaction();
@@ -45,13 +45,13 @@ public class ExpenseMongoDbRepository : IExpenseRepository {
     try {
 
       await _expenseCollection.DeleteOneAsync(session, findExpenseFilter);
-      
+
       await _pastExpenseCollection.InsertOneAsync(session, expenseFound.ToPastExpense());
-      
+
       await session.CommitTransactionAsync();
-      
+
     } catch(MongoException e) {
-      
+
       await session.AbortTransactionAsync();
       return Result.Failure(e.ToString());
     }
@@ -88,10 +88,22 @@ public class ExpenseMongoDbRepository : IExpenseRepository {
     return expenses;
   }
 
+  public async Task<List<Expense>> GetByGroupIdPerPage(string groupId, int pageNumber, int pageSize) {
+
+    var filter = Builders<Expense>.Filter.Eq(e => e.GroupId, groupId);
+    var query = _expenseCollection.Find(filter);
+
+    int skipCount = (pageNumber - 1) * pageSize;
+    query = query.Limit(pageSize);
+    query = query.Skip(skipCount);
+    
+    return await query.ToListAsync();
+  }
+
   public async Task<Result> Update(Expense editedExpense) {
-    
+
     var findExpenseFilter = Builders<Expense>.Filter.Eq(e => e.Id, editedExpense.Id);
-    
+
     var currentExpense = await _expenseCollection.Find(findExpenseFilter).FirstOrDefaultAsync();
     if(currentExpense is null) return Result.Failure($"Expense with id {editedExpense.Id} has not been found");
 

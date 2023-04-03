@@ -38,6 +38,10 @@ public class OpenAIService {
     var expenses = await _expenseRepository.GetByGroupId(groupId);
     var transfers = await _transferRepository.GetByGroupId(groupId);
 
+    var membersWithNamesResult = await MemberIdToNameHelper.MembersWithNames(group, _userRepository);
+    if(membersWithNamesResult.IsFailure) return Result.Failure<List<ExplanationText>>(membersWithNamesResult.Error);
+    var membersWithNames = membersWithNamesResult.Value;
+
     var allCurrencies =
       expenses.Select(e => e.Currency)
       .Concat(transfers.Select(t => t.Currency))
@@ -150,9 +154,9 @@ public class OpenAIService {
           var memberInfo = retainedCreditors.FirstOrDefault(c => c.Member.Id == memberId);
           var member = memberInfo.Member;
 
-          var memberNameResult = await IdToName.MemberIdToMemberName(groupId, memberId, _groupRepository, _userRepository);
-          if(memberNameResult.IsFailure) return Result.Failure<List<ExplanationText>>(memberNameResult.Error);
-          var memberName = memberNameResult.Value;
+          // var memberNameResult = await IdToName.MemberIdToMemberName(groupId, memberId, _groupRepository, _userRepository);
+          // if(memberNameResult.IsFailure) return Result.Failure<List<ExplanationText>>(memberNameResult.Error);
+          var memberName = membersWithNames.Single(m => m.Id == memberId).Name;
 
           explanationTexts.Add(new ExplanationText {
             Txt = $" The total amount {memberName} paid for the group is {member.TotalAmountGiven} {currency}.{(member.TotalAmountTaken == 0 ? $"{memberName} received nothing from the group in {currency}." : $"The total amount {memberName} received from the group is {member.TotalAmountTaken} {currency}.")}" +
@@ -167,9 +171,9 @@ public class OpenAIService {
           var memberInfo = retainedDebtors.FirstOrDefault(d => d.Member.Id == memberId);
           var member = memberInfo.Member;
 
-          var memberNameResult = await IdToName.MemberIdToMemberName(groupId, memberId, _groupRepository, _userRepository);
-          if(memberNameResult.IsFailure) return Result.Failure<List<ExplanationText>>(memberNameResult.Error);
-          var memberName = memberNameResult.Value;
+          // var memberNameResult = await IdToName.MemberIdToMemberName(groupId, memberId, _groupRepository, _userRepository);
+          //if(memberNameResult.IsFailure) return Result.Failure<List<ExplanationText>>(memberNameResult.Error);
+          var memberName = membersWithNames.Single(m => m.Id == memberId).Name;
 
           explanationTexts.Add(new ExplanationText {
             Txt = $"{(member.TotalAmountGiven == 0 ? $"{memberName} paid nothing for the group in {currency}." : $"The total amount {memberName} paid for the group is {member.TotalAmountGiven}{currency}.")} The total amount {memberName} received from the group is {member.TotalAmountTaken} {currency}." +
@@ -186,13 +190,13 @@ public class OpenAIService {
 
       foreach(var p in pendingTransactions.Where(pt => pt.Currency == currency)) {
 
-        var debtorNameResult = await IdToName.MemberIdToMemberName(groupId, p.SenderId, _groupRepository, _userRepository);
-        if(debtorNameResult.IsFailure) return Result.Failure<List<ExplanationText>>(debtorNameResult.Error);
-        var debtorName = debtorNameResult.Value;
+        //var debtorNameResult = await IdToName.MemberIdToMemberName(groupId, p.SenderId, _groupRepository, _userRepository);
+        //if(debtorNameResult.IsFailure) return Result.Failure<List<ExplanationText>>(debtorNameResult.Error);
+        var debtorName = membersWithNames.Single(m => m.Id == p.SenderId).Name;
 
-        var creditorNameResult = await IdToName.MemberIdToMemberName(groupId, p.ReceiverId, _groupRepository, _userRepository);
-        if(creditorNameResult.IsFailure) return Result.Failure<List<ExplanationText>>(creditorNameResult.Error);
-        var creditorName = creditorNameResult.Value;
+        //var creditorNameResult = await IdToName.MemberIdToMemberName(groupId, p.ReceiverId, _groupRepository, _userRepository);
+        //if(creditorNameResult.IsFailure) return Result.Failure<List<ExplanationText>>(creditorNameResult.Error);
+        var creditorName = membersWithNames.Single(m => m.Id == p.ReceiverId).Name;
 
         var debtor = retainedDebtors.FirstOrDefault(d => d.Member.Id == p.SenderId);
         var creditor = retainedCreditors.FirstOrDefault(d => d.Member.Id == p.ReceiverId);
@@ -251,8 +255,13 @@ public class OpenAIService {
 
     var group = groupResult.Value;
     var memberIds = group.Members.Select(m => m.MemberId).ToList();
+
     var expenses = await _expenseRepository.GetByGroupId(groupId);
     var transfers = await _transferRepository.GetByGroupId(groupId);
+
+    var membersWithNamesResult = await MemberIdToNameHelper.MembersWithNames(group, _userRepository);
+    if(membersWithNamesResult.IsFailure) return Result.Failure<List<ExplanationText>>(membersWithNamesResult.Error);
+    var membersWithNames = membersWithNamesResult.Value;
 
     var allCurrencies =
       expenses.Select(e => e.Currency)
@@ -360,9 +369,9 @@ public class OpenAIService {
 
           var pendingTransactionsMemberAsCreditor = pendingTransactions.Where(pt => pt.ReceiverId == memberId && pt.Currency == currency).ToList();
 
-          var memberNameResult = await IdToName.MemberIdToMemberName(groupId, memberId, _groupRepository, _userRepository);
-          if(memberNameResult.IsFailure) return Result.Failure<List<ExplanationText>>(memberNameResult.Error);
-          var memberName = memberNameResult.Value;
+          // var memberNameResult = await IdToName.MemberIdToMemberName(groupId, memberId, _groupRepository, _userRepository);
+          //if(memberNameResult.IsFailure) return Result.Failure<List<ExplanationText>>(memberNameResult.Error);
+          var memberName = membersWithNames.Single(m => m.Id == memberId).Name;
 
           explanationTexts.Add(new ExplanationText {
             Txt = $" The total amount {memberName} paid for the group is {memberInfo.TotalAmountGiven} {currency}.{(memberInfo.TotalAmountTaken == 0 ? $"{memberName} received nothing from the group in {currency}." : $"The total amount {memberName} received from the group is {memberInfo.TotalAmountTaken} {currency}.")}" +
@@ -376,9 +385,9 @@ public class OpenAIService {
             var debtor = retainedDebtors.FirstOrDefault(d => d.Id == p.SenderId);
             var debtorAmount = debtor.TotalAmountTaken - debtor.TotalAmountGiven;
 
-            var senderNameResult = await IdToName.MemberIdToMemberName(groupId, p.SenderId, _groupRepository, _userRepository);
-            if(senderNameResult.IsFailure) return Result.Failure<List<ExplanationText>>(senderNameResult.Error);
-            var senderName = senderNameResult.Value;
+            //var senderNameResult = await IdToName.MemberIdToMemberName(groupId, p.SenderId, _groupRepository, _userRepository);
+            //if(senderNameResult.IsFailure) return Result.Failure<List<ExplanationText>>(senderNameResult.Error);
+            var senderName = membersWithNames.Single(m => m.Id == p.SenderId).Name;
 
             if(debtor.Id == p.SenderId) {
               if(debtor.TotalAmountTaken - debtor.TotalAmountGiven == p.Amount) { //debt==amount
@@ -412,9 +421,9 @@ public class OpenAIService {
 
           var pendingTransactionsMemberAsDebtor = pendingTransactions.Where(pt => pt.SenderId == memberId && pt.Currency == currency).ToList();
 
-          var memberNameResult = await IdToName.MemberIdToMemberName(groupId, memberId, _groupRepository, _userRepository);
-          if(memberNameResult.IsFailure) return Result.Failure<List<ExplanationText>>(memberNameResult.Error);
-          var memberName = memberNameResult.Value;
+          //var memberNameResult = await IdToName.MemberIdToMemberName(groupId, memberId, _groupRepository, _userRepository);
+          //if(memberNameResult.IsFailure) return Result.Failure<List<ExplanationText>>(memberNameResult.Error);
+          var memberName = membersWithNames.Single(m => m.Id == memberId).Name;
 
           explanationTexts.Add(new ExplanationText {
             Txt = $"{(memberInfo.TotalAmountGiven == 0 ? $"{memberName} paid nothing for the group in {currency}." : $"The total amount {memberName} paid for the group is {memberInfo.TotalAmountGiven}{currency}.")} The total amount {memberName} received from the group is {memberInfo.TotalAmountTaken} {currency}." +
@@ -427,9 +436,9 @@ public class OpenAIService {
             var creditor = retainedCreditors.FirstOrDefault(c => c.Id == p.ReceiverId);
             var creditorAmount = creditor.TotalAmountGiven - creditor.TotalAmountTaken;
 
-            var receiverNameResult = await IdToName.MemberIdToMemberName(groupId, p.ReceiverId, _groupRepository, _userRepository);
-            if(receiverNameResult.IsFailure) return Result.Failure<List<ExplanationText>>(receiverNameResult.Error);
-            var receiverName = receiverNameResult.Value;
+            // var receiverNameResult = await IdToName.MemberIdToMemberName(groupId, p.ReceiverId, _groupRepository, _userRepository);
+            //if(receiverNameResult.IsFailure) return Result.Failure<List<ExplanationText>>(receiverNameResult.Error);
+            var receiverName = membersWithNames.Single(m => m.Id == p.ReceiverId).Name;
 
             if(creditor.Id == p.ReceiverId) {
               if(creditor.TotalAmountGiven - creditor.TotalAmountTaken == p.Amount) { //debt==amount

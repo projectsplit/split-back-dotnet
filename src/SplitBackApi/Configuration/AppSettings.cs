@@ -8,6 +8,7 @@ public class AppSettings {
   public GoogleSettings Google { get; set; }
   public MongoDbSettings MongoDb { get; set; }
   public OpenAISettings OpenAI { get; set; }
+  public string FrontendUrl { get; set; }
 }
 
 public class GoogleSettings {

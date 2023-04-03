@@ -1,6 +1,8 @@
+using Microsoft.Extensions.Options;
 using SplitBackApi.Api.Endpoints.Authentication.Requests;
 using SplitBackApi.Api.Extensions;
 using SplitBackApi.Api.Services;
+using SplitBackApi.Configuration;
 using SplitBackApi.Data.Repositories.UserRepository;
 
 namespace SplitBackApi.Api.Endpoints.Authentication;
@@ -11,7 +13,8 @@ public static partial class AuthenticationEndpoints {
     HttpResponse response,
     IUserRepository userRepository,
     AuthService authService,
-    RequestSignInRequest request
+    RequestSignInRequest request,
+    IOptions<AppSettings> appSettings
   ) {
 
     var userResult = await userRepository.GetByEmail(request.Email);
@@ -25,7 +28,8 @@ public static partial class AuthenticationEndpoints {
     );
 
     response.AppendUniqueCookie(newUnique);
-
+    
+    Console.WriteLine($"{appSettings.Value.FrontendUrl}/s/{token}");
     return Results.Ok(token);
   }
 }

@@ -1,8 +1,11 @@
 using System.Security.Claims;
 using SplitBackApi.Api.Endpoints.Transfers.Requests;
+using SplitBackApi.Api.Endpoints.Transfers.Responses;
 using SplitBackApi.Api.Extensions;
+using SplitBackApi.Api.Helper;
 using SplitBackApi.Data.Repositories.GroupRepository;
 using SplitBackApi.Data.Repositories.TransferRepository;
+using SplitBackApi.Data.Repositories.UserRepository;
 using SplitBackApi.Domain.Extensions;
 using SplitBackApi.Domain.Models;
 using SplitBackApi.Domain.Validators;
@@ -14,6 +17,7 @@ public static partial class TransferEndpoints {
   private static async Task<IResult> CreateTransfer(
     ITransferRepository transferRepository,
     IGroupRepository groupRepository,
+    IUserRepository userRepository,
     HttpContext httpContext,
     ClaimsPrincipal claimsPrincipal,
     TransferValidator transferValidator,
