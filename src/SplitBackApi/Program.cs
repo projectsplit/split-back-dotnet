@@ -20,7 +20,6 @@ using SplitBackApi.Data.Repositories.InvitationRepository;
 using SplitBackApi.Data.Repositories.SessionRepository;
 using SplitBackApi.Data.Repositories.TransferRepository;
 using SplitBackApi.Data.Repositories.UserRepository;
-using SplitBackApi.Domain.Models;
 using SplitBackApi.Domain.Services;
 using SplitBackApi.Domain.Validators;
 
@@ -44,11 +43,11 @@ public class Program {
     builder.Services.AddScoped<ITransferRepository, TransferMongoDbRepository>();
     builder.Services.AddScoped<ICommentRepository, CommentMongoDbRepository>();
     builder.Services.AddScoped<IInvitationRepository, InvitationMongoDbRepository>();
-    
+
     // Services
     builder.Services.AddScoped<AuthService>();
     builder.Services.AddScoped<TransactionService>();
-    
+
     // Validators
     builder.Services.AddScoped<GroupValidator>();
     builder.Services.AddScoped<ExpenseValidator>();
@@ -56,7 +55,7 @@ public class Program {
     builder.Services.AddScoped<CommentValidator>();
     builder.Services.AddScoped<GuestMemberValidator>();
     builder.Services.AddScoped<UserMemberValidator>();
-    
+
     // Middlewares
     builder.Services.AddScoped<ExceptionHandlerMiddleware>();
 
@@ -74,17 +73,19 @@ public class Program {
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
     builder.Services.AddSwaggerWithAutorization();
-
+    
     var app = builder.Build();
 
     if(app.Environment.IsDevelopment()) {
+      app.UseDeveloperExceptionPage();
       app.UseSwagger();
       app.UseSwaggerUI();
       app.MapGet("/app-settings", (IOptions<AppSettings> appSettings) => {
         return appSettings.Value;
       }).AllowAnonymous();
     }
-
+    
+    app.MapHealthChecks("/health").AllowAnonymous();
     app.UseHttpsRedirection();
     app.MapAuthenticationEndpoints();
     app.MapExpenseEndpoints();
