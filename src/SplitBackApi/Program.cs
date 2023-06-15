@@ -40,7 +40,7 @@ public class Program {
     // Cors
     builder.Services.AddCors(options => {
       options.AddDefaultPolicy(builder => {
-        builder.WithOrigins("http://192.168.0.5:3000")
+        builder.WithOrigins("http://localhost:3000")
             .AllowCredentials()
             .AllowAnyHeader()
             .AllowAnyMethod();
