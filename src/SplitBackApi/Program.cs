@@ -62,6 +62,8 @@ public class Program {
     builder.Services.AddScoped<OpenAIService>();
 
     // Validators
+    builder.Services.AddScoped<SignInValidator>();
+    builder.Services.AddScoped<SignUpValidator>();
     builder.Services.AddScoped<GroupValidator>();
     builder.Services.AddScoped<ExpenseValidator>();
     builder.Services.AddScoped<TransferValidator>();
