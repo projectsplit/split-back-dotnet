@@ -8,5 +8,6 @@ public static partial class GroupEndpoints {
       .WithTags("Groups");
 
     groupGroup.MapPost("/creategroup", CreateGroup);
+    groupGroup.MapPost("/get", GetGroup);
   }
 }

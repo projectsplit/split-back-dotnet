@@ -19,13 +19,17 @@ public static partial class AuthenticationEndpoints {
 
     var newUnique = Guid.NewGuid().ToString();
 
-    string token = authService.GenerateSignInRequestToken(
+    string emailLinkToken = authService.GenerateSignInRequestToken(
       newUnique,
       request.Email
     );
+    
+    //TODO send email with emailLinkToken
+    
+    Console.WriteLine($"http://localhost:3000/s/{emailLinkToken}");
 
     response.AppendUniqueCookie(newUnique);
 
-    return Results.Ok(token);
+    return Results.Ok(authService.GenerateAccessToken(userResult.Value.Id));
   }
 }

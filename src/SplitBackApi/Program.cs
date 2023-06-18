@@ -25,9 +25,11 @@ using SplitBackApi.Domain.Validators;
 
 namespace SplitBackApi;
 
-public class Program {
+public class Program
+{
 
-  public static void Main(string[] args) {
+  public static void Main(string[] args)
+  {
 
     var builder = WebApplication.CreateBuilder(args);
 
@@ -62,7 +64,8 @@ public class Program {
     // Auth
     builder.Services.AddJwtBearerAuthentication();
     builder.Services.AddAuthorization();
-    builder.Services.AddAuthorization(options => {
+    builder.Services.AddAuthorization(options =>
+    {
       options.FallbackPolicy = new AuthorizationPolicyBuilder()
         .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
         .RequireAuthenticatedUser()
@@ -73,19 +76,33 @@ public class Program {
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
     builder.Services.AddSwaggerWithAutorization();
-    
+
+    builder.Services.AddCors(options =>
+    {
+      options.AddDefaultPolicy(builder =>
+      {
+        builder
+        .WithOrigins("http://localhost:3000")
+        .AllowCredentials()
+        .AllowAnyHeader()
+        .AllowAnyMethod();
+      });
+    });
+
     var app = builder.Build();
 
-    if(app.Environment.IsDevelopment()) {
+    if (app.Environment.IsDevelopment())
+    {
       app.UseDeveloperExceptionPage();
       app.UseSwagger();
       app.UseSwaggerUI();
-      app.MapGet("/app-settings", (IOptions<AppSettings> appSettings) => {
+      app.MapGet("/app-settings", (IOptions<AppSettings> appSettings) =>
+      {
         return appSettings.Value;
       }).AllowAnonymous();
     }
-    
-    app.MapHealthChecks("/health").AllowAnonymous();
+
+    app.UseCors();
     app.UseHttpsRedirection();
     app.MapAuthenticationEndpoints();
     app.MapExpenseEndpoints();
@@ -100,6 +117,6 @@ public class Program {
     app.UseAuthorization();
 
     app.Run();
-    
+
   }
 }
