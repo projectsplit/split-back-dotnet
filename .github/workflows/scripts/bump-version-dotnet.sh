@@ -25,4 +25,5 @@ git config user.name github-actions
 git config user.email github-actions@github.com
 git add .
 git commit -m "$COMMIT_MESSAGE [skip ci]"
-git push --force
+git tag -a $NEW_VERSION -m "Version $NEW_VERSION"
+git push --force origin master --tags
