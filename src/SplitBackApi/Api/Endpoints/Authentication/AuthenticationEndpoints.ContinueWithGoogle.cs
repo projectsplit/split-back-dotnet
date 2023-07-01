@@ -10,243 +10,160 @@ using SplitBackApi.Data.Repositories.GoogleUserRepository;
 using SplitBackApi.Data.Repositories.SessionRepository;
 using SplitBackApi.Data.Repositories.UserRepository;
 using SplitBackApi.Domain.Models;
+using CSharpFunctionalExtensions;
+using MongoDB.Bson;
+using SplitBackApi.Api.Services.GoogleAuthService;
+using SplitBackApi.Api.Services.GoogleAuthService.Models;
 
 namespace SplitBackApi.Api.Endpoints.Authentication;
 
-public static partial class AuthenticationEndpoints {
-
-  public static async Task<IResult> ContinueWithGoogle(
-    HttpResponse response,
+public static partial class AuthenticationEndpoints
+{
+  public static async Task<Microsoft.AspNetCore.Http.IResult> ContinueWithGoogle(
     ContinueWithGoogleRequest request,
+    HttpResponse response,
     IOptions<AppSettings> appSettings,
     IUserRepository userRepository,
     IGoogleUserRepository googleUserRepository,
     ISessionRepository sessionRepository,
-    AuthService authService
-  ) {
-
-    var clientId = appSettings.Value.Google.ClientId;
-    var clientSecret = appSettings.Value.Google.ClientSecret;
-
-    var queryString = request.RedirectUrl;
+    AuthService authService,
+    GoogleAuthService googleAuthService)
+  {
+    var queryString = request.RedirectUrlSearchParameters;
     var code = HttpUtility.ParseQueryString(queryString).Get("code");
-    var scopee = HttpUtility.ParseQueryString(queryString).Get("scope");
-    var authuser = HttpUtility.ParseQueryString(queryString).Get("authUser");
-    var prompt = HttpUtility.ParseQueryString(queryString).Get("prompt");
-    var state = HttpUtility.ParseQueryString(queryString).Get("state");
 
-    var parameters = new Dictionary<string, string>
-      {
-        { "client_id", clientId },
-        { "client_secret", clientSecret },
-        { "redirect_uri", "http://localhost:3000/redirect" },
-        { "code", code },
-        { "grant_type", "authorization_code" }
-      };
+    var googleUserInfoResult = await googleAuthService.GetGoogleUserInfo(code);
+    if (googleUserInfoResult.IsFailure) return Results.BadRequest(googleUserInfoResult.Error);
+    var googleUserInfo = googleUserInfoResult.Value;
 
-    var encodedContent = new FormUrlEncodedContent(parameters);
+    var userDocumentsResult = await UpdateOrCreateUserDocuments(userRepository, googleUserRepository, googleUserInfo);
+    if (userDocumentsResult.IsFailure) Results.BadRequest(userDocumentsResult.Error);
+    var user = userDocumentsResult.Value;
 
-    using var client = new HttpClient();
+    var newExternalSession = CreateNewExternalSession(user.Id);
+    await sessionRepository.Create(newExternalSession);
 
-    var res = await client.PostAsync("https://oauth2.googleapis.com/token", encodedContent);
+    response.AppendRefreshTokenCookie(newExternalSession.RefreshToken);
+    var accessToken = authService.GenerateAccessToken(user.Id.ToString());
+    var sessionData = CreateSessionData(user, newExternalSession);
 
-    var responseContent = await res.Content.ReadAsStringAsync();
+    return Results.Ok(new SignInResponse(accessToken, sessionData));
+  }
 
-    var googleAccessTokenDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(responseContent);
+  private static async Task<Result<User>> UpdateOrCreateUserDocuments(
+    IUserRepository userRepository,
+    IGoogleUserRepository googleUserRepository,
+    GoogleUserInfo googleUserInfo)
+  {
+    var (googleUserExists, googleUser) = await googleUserRepository.GetBySub(googleUserInfo.Sub);
 
-    googleAccessTokenDictionary.TryGetValue("access_token", out var googleAccessToken);
-    googleAccessTokenDictionary.TryGetValue("expires_in", out var expiresIn);
-    googleAccessTokenDictionary.TryGetValue("scope", out var scope);
-    googleAccessTokenDictionary.TryGetValue("token_type", out var tokenType);
-    googleAccessTokenDictionary.TryGetValue("id_token", out var idToken);
+    if (googleUserExists)
+    {
+      var userResult = await userRepository.GetById(googleUser.Id);
+      if (userResult.IsFailure) return Result.Failure<User>($"User with id {googleUser.Id} has not been found ");
+      var existingUser = userResult.Value;
 
-    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", googleAccessToken);
-
-    var usertInfo = await client.GetAsync("https://www.googleapis.com/oauth2/v3/userinfo");
-    var usertInfoContent = await usertInfo.Content.ReadAsStringAsync();
-
-    var userInfoDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(usertInfoContent);
-
-    userInfoDictionary.TryGetValue("sub", out var sub);
-    userInfoDictionary.TryGetValue("name", out var name);
-    userInfoDictionary.TryGetValue("given_name", out var givenName);
-    userInfoDictionary.TryGetValue("family_name", out var familyName);
-    userInfoDictionary.TryGetValue("picture", out var picture);
-    userInfoDictionary.TryGetValue("email", out var email);
-    userInfoDictionary.TryGetValue("email_verified", out var emailVerified);
-    userInfoDictionary.TryGetValue("locale", out var locale);
-
-    var googleUserResult = await googleUserRepository.GetBySub(sub);
-
-    if(googleUserResult.IsFailure) {
-
-      var userResult = await userRepository.GetByEmail(email);
-      if(userResult.IsSuccess) {
-
-        var user = userResult.Value;
-        var newRefreshToken = Guid.NewGuid().ToString();
-
-        var newGoogleUser = new GoogleUser {
-          Id = user.Id,
-          Email = email,
-          GivenName = givenName,
-          FamilyName = familyName,
-          Sub = sub,
-          Locale = locale,
-          Name = name,
-          Picture = picture,
-          EmailVerified = bool.TryParse(emailVerified, out var isVerified) ? isVerified : false,
-          CreationTime = DateTime.UtcNow,
-          LastUpdateTime = DateTime.UtcNow,
-        };
-
-        await googleUserRepository.Create(newGoogleUser);
-
-        var newSession = new ExternalAuthSession {
-          RefreshToken = newRefreshToken,
-          UserId = user.Id,
-          CreationTime = DateTime.UtcNow,
-          LastUpdateTime = DateTime.UtcNow
-        };
-
-        await sessionRepository.Create(newSession);
-
-        var sessionResult = await sessionRepository.GetByRefreshToken(newRefreshToken);
-        if(sessionResult.IsFailure) return Results.BadRequest("No session was found");
-        var session = sessionResult.Value;
-
-        response.AppendRefreshTokenCookie(newRefreshToken);
-
-        var accessToken = authService.GenerateAccessToken(user.Id.ToString());
-
-        var sessionData = new SessionData {
-          Id = session.Id,
-          UserId = session.UserId,
-          UserEmail = user.Email,
-          UserNickname = user.Nickname
-        };
-
-        return Results.Ok(new {
-          accessToken = accessToken,
-          sessionData = sessionData
-        });
-
-      } else {
-
-        var newUser = new User {
-          Email = email,
-          Nickname = givenName,
-          CreationTime = DateTime.UtcNow,
-          LastUpdateTime = DateTime.UtcNow,
-        };
-
-        await userRepository.Create(newUser);
-
-        var newUserResult = await userRepository.GetByEmail(newUser.Email);
-        if(newUserResult.IsFailure) return Results.BadRequest("No user was found");
-        var newUserFetched = newUserResult.Value;
-
-        var newGoogleUser = new GoogleUser {
-          Id = newUserFetched.Id,
-          Email = email,
-          GivenName = givenName,
-          FamilyName = familyName,
-          Sub = sub,
-          Locale = locale,
-          Name = name,
-          Picture = picture,
-          EmailVerified = bool.TryParse(emailVerified, out var isVerified) ? isVerified : false,
-          CreationTime = DateTime.UtcNow,
-          LastUpdateTime = DateTime.UtcNow,
-        };
-
-        await googleUserRepository.Create(newGoogleUser);
-
-        var newRefreshToken = Guid.NewGuid().ToString();
-
-        var newSession = new ExternalAuthSession {
-          RefreshToken = newRefreshToken,
-          UserId = newUser.Id,
-          CreationTime = DateTime.UtcNow,
-          LastUpdateTime = DateTime.UtcNow
-        };
-
-        await sessionRepository.Create(newSession);
-
-        var sessionResult = await sessionRepository.GetByRefreshToken(newRefreshToken);
-        if(sessionResult.IsFailure) return Results.BadRequest("No session was found");
-        var session = sessionResult.Value;
-
-        response.AppendRefreshTokenCookie(newRefreshToken);
-
-        var accessToken = authService.GenerateAccessToken(newUser.Id.ToString());
-
-        var sessionData = new SessionData {
-          Id = session.Id,
-          UserId = session.UserId,
-          UserEmail = newUser.Email,
-          UserNickname = newUser.Nickname
-        };
-
-        return Results.Ok(new {
-          accessToken = accessToken,
-          sessionData = sessionData
-        });
-      }
-    } else {
-
-      var googleUser = googleUserResult.Value;
-      var updatedGoogleUser = new GoogleUser {
-        Id = googleUser.Id,
-        CreationTime = googleUser.CreationTime,
-        LastUpdateTime = DateTime.UtcNow,
-        Email = email,
-        EmailVerified = bool.TryParse(emailVerified, out var isVerified) ? isVerified : false,
-        FamilyName = familyName,
-        GivenName = givenName,
-        Locale = locale,
-        Name = name,
-        Picture = picture,
-        Sub = sub
-      };
-
+      var updatedGoogleUser = CreateUpdatedGoogleUser(googleUserInfo, googleUser);
       await googleUserRepository.Update(updatedGoogleUser);
 
-      var userResult = await userRepository.GetById(updatedGoogleUser.Id);
-      if(userResult.IsFailure) return Results.BadRequest($"User with id {updatedGoogleUser.Id} has not been found ");
-
-
-      var newRefreshToken = Guid.NewGuid().ToString();
-
-      var newSession = new ExternalAuthSession {
-        RefreshToken = newRefreshToken,
-        UserId = updatedGoogleUser.Id,
-        CreationTime = DateTime.UtcNow,
-        LastUpdateTime = DateTime.UtcNow
-      };
-
-      await sessionRepository.Create(newSession);
-
-      var sessionResult = await sessionRepository.GetByRefreshToken(newRefreshToken);
-      if(sessionResult.IsFailure) return Results.BadRequest("No session was found");
-      var session = sessionResult.Value;
-
-      response.AppendRefreshTokenCookie(newRefreshToken);
-
-      var accessToken = authService.GenerateAccessToken(googleUser.Id.ToString());
-
-      var sessionData = new SessionData {
-        Id = session.Id,
-        UserId = session.UserId,
-        UserEmail = userResult.Value.Email,
-        UserNickname = userResult.Value.Nickname
-      };
-
-      return Results.Ok(new {
-        accessToken = accessToken,
-        sessionData = sessionData
-      });
-
+      return existingUser;
     }
+
+    var user = await GetOrCreateUser(userRepository, googleUserInfo);
+
+    var newGoogleUser = CreateNewGoogleUser(googleUserInfo, user);
+    await googleUserRepository.Create(newGoogleUser);
+
+    return user;
+  }
+
+  private static async Task<User> GetOrCreateUser(
+    IUserRepository userRepository,
+    GoogleUserInfo googleUserInfo)
+  {
+    var userResult = await userRepository.GetByEmail(googleUserInfo.Email);
+
+    if (userResult.IsSuccess)
+    {
+      return userResult.Value;
+    }
+
+    var newUser = CreateNewUser(googleUserInfo);
+    await userRepository.Create(newUser);
+
+    return newUser;
+  }
+
+  private static SessionData CreateSessionData(User newUser, ExternalAuthSession externalSession)
+  {
+    return new SessionData
+    {
+      Id = externalSession.Id,
+      UserId = externalSession.UserId,
+      UserEmail = newUser.Email,
+      UserNickname = newUser.Nickname
+    };
+  }
+
+  private static User CreateNewUser(GoogleUserInfo googleUserInfo)
+  {
+    return new User
+    {
+      Id = ObjectId.GenerateNewId().ToString(),
+      Email = googleUserInfo.Email,
+      Nickname = googleUserInfo.GivenName,
+      CreationTime = DateTime.UtcNow,
+      LastUpdateTime = DateTime.UtcNow,
+    };
+  }
+
+  private static GoogleUser CreateNewGoogleUser(GoogleUserInfo googleUserInfo, User user)
+  {
+    return new GoogleUser
+    {
+      Id = user.Id,
+      Email = googleUserInfo.Email,
+      GivenName = googleUserInfo.GivenName,
+      FamilyName = googleUserInfo.FamilyName,
+      Sub = googleUserInfo.Sub,
+      Locale = googleUserInfo.Locale,
+      Name = googleUserInfo.Name,
+      Picture = googleUserInfo.Picture,
+      EmailVerified = googleUserInfo.EmailVerified,
+      CreationTime = DateTime.UtcNow,
+      LastUpdateTime = DateTime.UtcNow,
+    };
+  }
+
+  private static GoogleUser CreateUpdatedGoogleUser(GoogleUserInfo googleUserInfo, GoogleUser googleUser)
+  {
+    return new GoogleUser
+    {
+      Id = googleUser.Id,
+      CreationTime = googleUser.CreationTime,
+      LastUpdateTime = DateTime.UtcNow,
+      Email = googleUserInfo.Email,
+      EmailVerified = googleUserInfo.EmailVerified,
+      FamilyName = googleUserInfo.FamilyName,
+      GivenName = googleUserInfo.GivenName,
+      Locale = googleUserInfo.Locale,
+      Name = googleUserInfo.Name,
+      Picture = googleUserInfo.Picture,
+      Sub = googleUserInfo.Sub
+    };
+  }
+
+  private static ExternalAuthSession CreateNewExternalSession(string userId)
+  {
+    var newRefreshToken = Guid.NewGuid().ToString();
+
+    return new ExternalAuthSession
+    {
+      Id = ObjectId.GenerateNewId().ToString(),
+      RefreshToken = newRefreshToken,
+      UserId = userId,
+      CreationTime = DateTime.UtcNow,
+      LastUpdateTime = DateTime.UtcNow
+    };
   }
 }
