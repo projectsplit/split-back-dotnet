@@ -51,7 +51,7 @@ public static partial class AuthenticationEndpoints {
           };
           await userRepository.Create(newUser);
 
-          var newSession = new Session {
+          var newSession = new JwtAuthSession {
             RefreshToken = newRefreshToken,
             UserId = newUser.Id,
             Unique = unique,
@@ -68,8 +68,8 @@ public static partial class AuthenticationEndpoints {
           var userResult = await userRepository.GetByEmail(emailClaim.Value);
           if(userResult.IsFailure) return Results.BadRequest($"User with email {emailClaim.Value} does not exist");
           var user = userResult.Value;
-          
-          var newSession = new Session {
+
+          var newSession = new JwtAuthSession {
             RefreshToken = newRefreshToken,
             UserId = user.Id,
             Unique = unique,

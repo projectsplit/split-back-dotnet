@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Web;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using SplitBackApi.Api.Endpoints.Authentication.Requests;
 using SplitBackApi.Api.Extensions;
 using SplitBackApi.Api.Services;
 using SplitBackApi.Configuration;
@@ -15,7 +16,7 @@ public static partial class AuthenticationEndpoints {
 
   public static async Task<IResult> ContinueWithGoogle(
     HttpResponse response,
-    HttpRequest request,
+    ContinueWithGoogleRequest request,
     IOptions<AppSettings> appSettings,
     IUserRepository userRepository,
     ISessionRepository sessionRepository,
@@ -25,18 +26,18 @@ public static partial class AuthenticationEndpoints {
     var clientId = appSettings.Value.Google.ClientId;
     var clientSecret = appSettings.Value.Google.ClientSecret;
 
-    var queryString = request.QueryString;
-    var code = HttpUtility.ParseQueryString(request.QueryString.Value).Get("code");
-    var scopee = HttpUtility.ParseQueryString(request.QueryString.Value).Get("scope");
-    var authuser = HttpUtility.ParseQueryString(request.QueryString.Value).Get("authUser");
-    var prompt = HttpUtility.ParseQueryString(request.QueryString.Value).Get("prompt");
-    var state = HttpUtility.ParseQueryString(request.QueryString.Value).Get("state");
+    var queryString = request.RedirectUrl;
+    var code = HttpUtility.ParseQueryString(queryString).Get("code");
+    var scopee = HttpUtility.ParseQueryString(queryString).Get("scope");
+    var authuser = HttpUtility.ParseQueryString(queryString).Get("authUser");
+    var prompt = HttpUtility.ParseQueryString(queryString).Get("prompt");
+    var state = HttpUtility.ParseQueryString(queryString).Get("state");
 
     var parameters = new Dictionary<string, string>
       {
         { "client_id", clientId },
         { "client_secret", clientSecret },
-        { "redirect_uri", "https://localhost:7014/auth/google/callback" },
+        { "redirect_uri", "http://localhost:3000/redirect" },
         { "code", code },
         { "grant_type", "authorization_code" }
       };
@@ -80,20 +81,35 @@ public static partial class AuthenticationEndpoints {
       var user = userResult.Value;
       var newRefreshToken = Guid.NewGuid().ToString();
 
-      var newSession = new Session {
+      var newSession = new ExternalAuthSession {
         RefreshToken = newRefreshToken,
         UserId = user.Id,
-        Unique = "google",
         CreationTime = DateTime.UtcNow,
         LastUpdateTime = DateTime.UtcNow
       };
 
+
       await sessionRepository.Create(newSession);
+
+      var sessionResult = await sessionRepository.GetByRefreshToken(newRefreshToken);
+      if(sessionResult.IsFailure) return Results.BadRequest("No session was found");
+      var session = sessionResult.Value;
+
       response.AppendRefreshTokenCookie(newRefreshToken);
 
       var accessToken = authService.GenerateAccessToken(user.Id.ToString());
 
-      return Results.Ok(accessToken);
+      var sessionData = new SessionData {
+        Id = session.Id,
+        UserId = session.UserId,
+        UserEmail = user.Email,
+        UserNickname = user.Nickname
+      };
+
+      return Results.Ok(new {
+        accessToken = accessToken,
+        sessionData = sessionData
+      });
 
     } else {
 
@@ -107,40 +123,54 @@ public static partial class AuthenticationEndpoints {
       await userRepository.Create(newUser);
       var newRefreshToken = Guid.NewGuid().ToString();
 
-      var newSession = new Session {
+      var newSession = new ExternalAuthSession {
         RefreshToken = newRefreshToken,
         UserId = newUser.Id,
-        Unique = "google",
         CreationTime = DateTime.UtcNow,
         LastUpdateTime = DateTime.UtcNow
       };
 
       await sessionRepository.Create(newSession);
+
+      var sessionResult = await sessionRepository.GetByRefreshToken(newRefreshToken);
+      if(sessionResult.IsFailure) return Results.BadRequest("No session was found");
+      var session = sessionResult.Value;
+
       response.AppendRefreshTokenCookie(newRefreshToken);
 
       var accessToken = authService.GenerateAccessToken(newUser.Id.ToString());
 
-      return Results.Ok(accessToken);
+      var sessionData = new SessionData {
+        Id = session.Id,
+        UserId = session.UserId,
+        UserEmail = newUser.Email,
+        UserNickname = newUser.Nickname
+      };
+
+      return Results.Ok(new {
+        accessToken = accessToken,
+        sessionData = sessionData
+      });
     }
   }
 }
 
 
-    // Get authorization_code from request
-    
-    // With this request access token from google
-    
-    // Get user info with access token
-    
-    // Get email from info
-    
-    // if user with email not exists
-    
-        // Create User with email
-        // Create a Session for new User
-        // Return refresh & access token
-        
-    // if user already exists
-    
-        // Create a Session for new User
-        // Return refresh & access token
+// Get authorization_code from request
+
+// With this request access token from google
+
+// Get user info with access token
+
+// Get email from info
+
+// if user with email not exists
+
+// Create User with email
+// Create a Session for new User
+// Return refresh & access token
+
+// if user already exists
+
+// Create a Session for new User
+// Return refresh & access token

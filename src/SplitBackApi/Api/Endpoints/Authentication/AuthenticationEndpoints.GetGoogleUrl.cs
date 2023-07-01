@@ -7,7 +7,7 @@ namespace SplitBackApi.Api.Endpoints.Authentication;
 
 public static partial class AuthenticationEndpoints {
 
-  public static IResult GoogleUrl(
+  public static IResult GetGoogleUrl(
    IOptions<AppSettings> appSettings
   ) {
 
@@ -19,7 +19,7 @@ public static partial class AuthenticationEndpoints {
     urlBuilder.Append("include_granted_scopes=true&");
     urlBuilder.Append("response_type=code&");
     urlBuilder.Append("state=state_parameter_passthrough_value&");
-    urlBuilder.Append($"redirect_uri={HttpUtility.UrlEncode("https://localhost:7014/auth/google/callback")}&");
+    urlBuilder.Append($"redirect_uri={HttpUtility.UrlEncode("http://localhost:3000/redirect")}&");
     urlBuilder.Append($"client_id={HttpUtility.UrlEncode(clientId)}");
 
     var redirectUrl = urlBuilder.ToString();
