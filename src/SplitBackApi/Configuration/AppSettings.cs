@@ -53,6 +53,7 @@ public class CollectionSettings {
   public string Comments { get; set; }
   public string PastComments { get; set; }
   public string Users { get; set; }
+  public string GoogleUsers { get; set; }
   public string Invitations { get; set; }
   public string Sessions { get; set; }
 }

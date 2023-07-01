@@ -10,5 +10,4 @@ public class Session : EntityBase {
   [BsonRepresentation(BsonType.ObjectId)]
   public string UserId { get; set; }
 
-  
 }

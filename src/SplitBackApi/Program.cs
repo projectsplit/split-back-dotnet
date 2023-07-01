@@ -24,6 +24,7 @@ using SplitBackApi.Data.Repositories.UserRepository;
 using SplitBackApi.Domain.Models;
 using SplitBackApi.Domain.Services;
 using SplitBackApi.Domain.Validators;
+using SplitBackApi.Data.Repositories.GoogleUserRepository;
 
 namespace SplitBackApi;
 
@@ -49,12 +50,14 @@ public class Program {
 
     // Repositories
     builder.Services.AddScoped<IUserRepository, UserMongoDbRepository>();
+    builder.Services.AddScoped<IGoogleUserRepository, GoogleUserMongoDbRepository>();
     builder.Services.AddScoped<ISessionRepository, SessionMongoDbRepository>();
     builder.Services.AddScoped<IGroupRepository, GroupMongoDbRepository>();
     builder.Services.AddScoped<IExpenseRepository, ExpenseMongoDbRepository>();
     builder.Services.AddScoped<ITransferRepository, TransferMongoDbRepository>();
     builder.Services.AddScoped<ICommentRepository, CommentMongoDbRepository>();
     builder.Services.AddScoped<IInvitationRepository, InvitationMongoDbRepository>();
+    
 
     // Services
     builder.Services.AddScoped<AuthService>();
