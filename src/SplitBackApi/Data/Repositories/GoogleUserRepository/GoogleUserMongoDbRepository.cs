@@ -38,43 +38,32 @@ public class GoogleUserMongoDbRepository : IGoogleUserRepository {
     return Result.Success();
   }
 
-  public async Task<Result<GoogleUser>> GetByEmail(string email) {
+  public async Task<Maybe<GoogleUser>> GetByEmail(string email) {
 
     var filter = Builders<GoogleUser>.Filter.Eq(u => u.Email, email);
 
-    var user = await _googleUserCollection.Find(filter).FirstOrDefaultAsync();
-    if(user is null) return Result.Failure<GoogleUser>($"User with email {email} has not been found");
-
-    return user;
+    return await _googleUserCollection.Find(filter).FirstOrDefaultAsync();
   }
 
-  public async Task<Result<GoogleUser>> GetById(string userId) {
+  public async Task<Maybe<GoogleUser>> GetById(string userId) {
 
     var filter = Builders<GoogleUser>.Filter.Eq(u => u.Id, userId);
 
-    var user = await _googleUserCollection.Find(filter).FirstOrDefaultAsync();
-    if(user is null) return Result.Failure<GoogleUser>($"User with id {userId} has not been found");
-
-    return user;
+    return await _googleUserCollection.Find(filter).FirstOrDefaultAsync();
   }
 
-  public async Task<Result<List<GoogleUser>>> GetByIds(List<string> userIds) {
+  public async Task<List<GoogleUser>> GetByIds(List<string> userIds) {
 
     var filter = Builders<GoogleUser>.Filter.In(u => u.Id, userIds);
-    var users = await _googleUserCollection.Find(filter).ToListAsync();
-
-    if(users is null) return Result.Failure<List<GoogleUser>>("None of the provided user ids were found.");
-
-    return users;
+    
+    return await _googleUserCollection.Find(filter).ToListAsync();
   }
 
-  public async Task<Result<GoogleUser>> GetBySub(string sub) {
+  public async Task<Maybe<GoogleUser>> GetBySub(string sub) {
+    
     var filter = Builders<GoogleUser>.Filter.Eq(u => u.Sub, sub);
 
-    var user = await _googleUserCollection.Find(filter).FirstOrDefaultAsync();
-    if(user is null) return Result.Failure<GoogleUser>($"User with sub {sub} has not been found");
-
-    return user;
+    return await _googleUserCollection.Find(filter).FirstOrDefaultAsync();
   }
 
   public async Task<Result> Update(GoogleUser editedUser) {
