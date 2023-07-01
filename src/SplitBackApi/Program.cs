@@ -25,6 +25,7 @@ using SplitBackApi.Domain.Models;
 using SplitBackApi.Domain.Services;
 using SplitBackApi.Domain.Validators;
 using SplitBackApi.Data.Repositories.GoogleUserRepository;
+using SplitBackApi.Api.Services.GoogleAuthService;
 
 namespace SplitBackApi;
 
@@ -61,8 +62,11 @@ public class Program {
 
     // Services
     builder.Services.AddScoped<AuthService>();
+    builder.Services.AddScoped<GoogleAuthService>();
     builder.Services.AddScoped<TransactionService>();
     builder.Services.AddScoped<OpenAIService>();
+    
+    builder.Services.AddHttpClient();
 
     // Validators
     builder.Services.AddScoped<SignInValidator>();
