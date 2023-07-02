@@ -9,7 +9,7 @@ public static class ResponseExtensions {
   
   public static void AppendUniqueCookie(this HttpResponse response, string unique) {
 
-    response.Cookies.Append("unique", unique, AuthCookieOptions("/auth/sign-in"));
+    response.Cookies.Append("unique", unique, AuthCookieOptions("/auth/email/connect"));
     response.Headers.Add("Access-Control-Allow-Origin", "http://localhost:3000");
     response.Headers.Add("Access-Control-Allow-Credentials", "true");
   }

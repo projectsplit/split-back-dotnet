@@ -15,7 +15,6 @@ public static partial class GroupEndpoints {
     IGroupRepository groupRepository,
     CreateGroupRequest request
   ) {
-
     var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
 
     var newGroup = new Group {

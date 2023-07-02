@@ -7,7 +7,6 @@ using SplitBackApi.Data.Repositories.GroupRepository;
 using SplitBackApi.Data.Repositories.UserRepository;
 using SplitBackApi.Domain.Models;
 
-
 // https://stackoverflow.com/questions/50530363/aggregate-lookup-with-c-sharp
 
 namespace SplitBackApi.Api.Endpoints.Groups;
@@ -18,11 +17,12 @@ public static partial class GroupEndpoints {
     ClaimsPrincipal claimsPrincipal,
     IGroupRepository groupRepository,
     IUserRepository userRepository,
-    GetGroupByIdRequest request
-
+    HttpRequest request
   ) {
+    var groupId = request.Query["id"].ToString();
+    if (string.IsNullOrEmpty(groupId)) return Results.BadRequest("Group id is missing");
 
-    var groupResult = await groupRepository.GetById(request.GroupId);
+    var groupResult = await groupRepository.GetById(groupId);
     if(groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
     var group = groupResult.Value;
 

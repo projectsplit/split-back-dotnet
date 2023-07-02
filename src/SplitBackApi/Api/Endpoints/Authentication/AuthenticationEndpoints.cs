@@ -8,13 +8,17 @@ public static partial class AuthenticationEndpoints {
       .WithTags("Authentication")
       .AllowAnonymous();
 
-    authGroup.MapPost("/verify-token", VerifyToken);
-    authGroup.MapPost("/sign-in", SignIn);
-    authGroup.MapPost("/request-sign-up", RequestSignUp);
-    authGroup.MapPost("/request-sign-in", RequestSignIn);
+    // authGroup.MapPost("/verify-token", VerifyToken);
+    // authGroup.MapPost("/sign-in", SignIn);
+    // authGroup.MapPost("/request-sign-up", RequestSignUp);
+    // authGroup.MapPost("/request-sign-in", RequestSignIn);
     authGroup.MapPost("/refresh-token", RefreshToken);
     
-    authGroup.MapPost("/google/callback", ContinueWithGoogle);
-    authGroup.MapGet("/google/url", GetGoogleUrl);
+    authGroup.MapPost("/email/send-link", EmailSendLink);
+    authGroup.MapGet("/email/verify-link-token", EmailVerifyLinkToken);
+    authGroup.MapGet("/email/connect", EmailConnect);
+    
+    authGroup.MapPost("/google/connect", GoogleConnect);
+    authGroup.MapGet("/google/url", GoogleUrl);
   }
 }

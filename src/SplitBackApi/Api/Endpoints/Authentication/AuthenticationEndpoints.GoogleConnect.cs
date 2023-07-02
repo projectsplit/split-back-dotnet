@@ -19,7 +19,7 @@ namespace SplitBackApi.Api.Endpoints.Authentication;
 
 public static partial class AuthenticationEndpoints
 {
-  public static async Task<Microsoft.AspNetCore.Http.IResult> ContinueWithGoogle(
+  public static async Task<Microsoft.AspNetCore.Http.IResult> GoogleConnect(
     ContinueWithGoogleRequest request,
     HttpResponse response,
     IOptions<AppSettings> appSettings,

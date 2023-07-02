@@ -3,7 +3,20 @@ using SplitBackApi.Api.Endpoints.Authentication.Requests;
 
 namespace SplitBackApi.Domain.Validators;
 
+public class EmailInitiateValidator : AbstractValidator<EmailInitiateRequest> {
+  
+  public EmailInitiateValidator() {
+    RuleFor(r => r.Email)
+      .Cascade(CascadeMode.Stop) // Stop the validation process after the first failure
+      .NotEmpty()
+      .WithMessage("Email address is required")
+      .EmailAddress()
+      .WithMessage("Invalid email address format");
+  }
+};
+
 public class SignInValidator : AbstractValidator<RequestSignInRequest> {
+  
   public SignInValidator() {
     RuleFor(r => r.Email)
       .Cascade(CascadeMode.Stop) // Stop the validation process after the first failure

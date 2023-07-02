@@ -20,6 +20,6 @@ public static partial class AuthenticationEndpoints {
 
     var accessToken = authService.GenerateAccessToken(session.UserId.ToString());
 
-    return Results.Ok(new { newAccessToken = accessToken });
+    return Results.Ok(new { accessToken });
   }
 }

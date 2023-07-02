@@ -77,6 +77,7 @@ public class Program {
     builder.Services.AddScoped<CommentValidator>();
     builder.Services.AddScoped<GuestMemberValidator>();
     builder.Services.AddScoped<UserMemberValidator>();
+    builder.Services.AddScoped<EmailInitiateValidator>();
 
     // Middlewares
     builder.Services.AddScoped<ExceptionHandlerMiddleware>();

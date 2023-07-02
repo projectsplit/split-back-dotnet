@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SplitBackApi.Configuration;
@@ -10,10 +11,12 @@ namespace SplitBackApi.Api.Services;
 public class AuthService {
 
   private readonly JwtSettings _jwtSettings;
+  private readonly string _frontEndUrl;
 
   public AuthService(IOptions<AppSettings> appSettings) {
 
     _jwtSettings = appSettings.Value.Jwt;
+    _frontEndUrl = appSettings.Value.FrontendUrl;
   }
 
   public string GenerateAccessToken(string userId) {
@@ -27,6 +30,21 @@ public class AuthService {
     var token = CreateJwtToken(subject, expires);
 
     return token;
+  }
+  
+  public string GenerateEmailLink(string unique, string email, bool isNewUser){
+
+    var expires = DateTime.Now.AddMinutes(2);
+
+    var subject = new ClaimsIdentity(new[] {
+      new Claim("new-user", isNewUser.ToString()),
+      new Claim("email", email),
+      new Claim("unique", unique),
+    });
+
+    var token = CreateJwtToken(subject, expires);
+
+    return $"{_frontEndUrl}/v/{token}";
   }
 
   public string GenerateSignInRequestToken(string unique, string email) {
@@ -60,7 +78,7 @@ public class AuthService {
     return token;
   }
 
-  public JwtSecurityToken VerifyToken(string token) {
+  public Result<JwtSecurityToken> VerifyToken(string token) {
 
     var key = Encoding.UTF8.GetBytes(_jwtSettings.Key);
 
@@ -78,9 +96,9 @@ public class AuthService {
       return (JwtSecurityToken)validatedToken;
 
     } catch(Exception ex) {
-      Console.WriteLine(ex);
+      
+      return Result.Failure<JwtSecurityToken>(ex.Message);
     }
-    return default;
   }
 
   private string CreateJwtToken(ClaimsIdentity subject, DateTime expires) {
