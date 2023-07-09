@@ -41,11 +41,20 @@ public class Program {
 
     // Cors
     builder.Services.AddCors(options => {
+      // options.AddPolicy("AllowAllOrigins",
+      //   builder =>
+      //   {
+      //     builder.AllowAnyOrigin()
+      //       .AllowAnyMethod()
+      //       .AllowAnyHeader();
+      //   });
       options.AddDefaultPolicy(builder => {
-        builder.WithOrigins("http://localhost:3000")
-            .AllowCredentials()
-            .AllowAnyHeader()
-            .AllowAnyMethod();
+        builder
+        .WithOrigins("http://localhost:3000", "http://192.168.88.200:3000", "http://192.168.88.210:3000", "http://192.168.88.200:4000")
+          // .AllowAnyOrigin()
+          .AllowCredentials()
+          .AllowAnyHeader()
+          .AllowAnyMethod();
       });
     });
 
