@@ -54,6 +54,19 @@ public class GroupMongoDbRepository : IGroupRepository {
     return Result.Failure("Failed to update group");
   }
 
+  public async Task<Result<List<Group>>> GetPaginatedGroupsByUserId(string userId, int limit, DateTime lastDateTime) {
+
+    var filterCreationTime = Builders<Group>.Filter.Lt(u => u.CreationTime, lastDateTime);
+    var filteruserId = Builders<Group>.Filter.ElemMatch(g => g.Members, m => m is UserMember && ((UserMember)m).UserId == userId);
+    var filter = filterCreationTime & filteruserId;
+
+    var sort = Builders<Group>.Sort.Descending(u => u.CreationTime);
+
+    var groups = await _groupCollection.Find(filter).Sort(sort).Limit(limit).ToListAsync();
+
+    return groups;
+  }
+
   public async Task<Result<List<Group>>> GetGroupsByUserId(string userId) {
 
     var filter = Builders<Group>.Filter.ElemMatch(g => g.Members, m => m is UserMember && ((UserMember)m).UserId == userId);

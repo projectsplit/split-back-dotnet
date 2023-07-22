@@ -11,4 +11,5 @@ public interface IExpenseRepository {
   Task<List<Expense>> GetByGroupIdPerPage(string groupId, int pageNumber, int pageSize);
   Task<Result> Update(Expense editedExpense);
   Task<Result> DeleteById(string expenseId);
+  Task<List<Expense>> GetLatest(string groupId,int limit, DateTime last);
 }

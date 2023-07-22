@@ -96,7 +96,7 @@ public class ExpenseMongoDbRepository : IExpenseRepository {
     int skipCount = (pageNumber - 1) * pageSize;
     query = query.Limit(pageSize);
     query = query.Skip(skipCount);
-    
+
     return await query.ToListAsync();
   }
 
@@ -125,5 +125,16 @@ public class ExpenseMongoDbRepository : IExpenseRepository {
     }
 
     return Result.Success();
+  }
+
+  public async Task<List<Expense>> GetLatest(string groupId, int limit, DateTime lastDateTime) {
+    var filterCreationTime = Builders<Expense>.Filter.Lt(u => u.CreationTime, lastDateTime);
+    var filterGroupId = Builders<Expense>.Filter.Eq(e => e.GroupId, groupId);
+
+    var combinedFilter = filterCreationTime & filterGroupId;
+
+    var sort = Builders<Expense>.Sort.Descending(u => u.CreationTime);
+
+    return await _expenseCollection.Find(combinedFilter).Sort(sort).Limit(limit).ToListAsync();
   }
 }

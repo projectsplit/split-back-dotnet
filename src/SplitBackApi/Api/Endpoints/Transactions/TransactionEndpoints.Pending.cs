@@ -45,9 +45,7 @@ public static partial class TransactionEndpoints {
       ReceiverName = membersWithNames.Single(m => m.Id == p.ReceiverId).Name,
       SenderName = membersWithNames.Single(m => m.Id == p.SenderId).Name
     });
-
-
-
+    
     return Results.Ok(response);
   }
 }

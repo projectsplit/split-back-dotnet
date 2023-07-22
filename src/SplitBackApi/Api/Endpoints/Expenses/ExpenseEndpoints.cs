@@ -11,5 +11,6 @@ public static partial class ExpenseEndpoints {
     expenseGroup.MapPost("/edit", EditExpense);
     expenseGroup.MapPost("/remove", RemoveExpense);
     expenseGroup.MapPost("/getgroupexpenses", GetExpensesByGroup);
+    expenseGroup.MapGet("/latest-expenses", GetLatestExpenses);
   }
 }
