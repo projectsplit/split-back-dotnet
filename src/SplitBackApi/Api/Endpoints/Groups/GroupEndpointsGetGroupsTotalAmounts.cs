@@ -108,7 +108,8 @@ public static partial class GroupEndpoints {
 
     var aggregatedSummaryResponse = new GroupsAggregatedSummaryResponse {
       UserIsOwedAmounts = aggregatedSummary.userIsReceiverTotal,
-      UserOwesAmounts = aggregatedSummary.userIsSenderTotal
+      UserOwesAmounts = aggregatedSummary.userIsSenderTotal,
+      numberOfGroups = groups.Count()
     };
 
     return Results.Ok(aggregatedSummaryResponse);
