@@ -4,11 +4,11 @@ public static partial class CommentEndpoints {
   
   public static void MapCommentEndpoints(this IEndpointRouteBuilder app) {
     
-    var expenseGroup = app.MapGroup("/comment")
+    var commentGroup = app.MapGroup("/comment")
       .WithTags("Comments");
      
-    expenseGroup.MapPost("/create", CreateComment);
-    expenseGroup.MapPost("/edit", EditComment);
-    expenseGroup.MapPost("/delete", DeleteComment);
+    commentGroup.MapPost("/create", CreateComment);
+    commentGroup.MapPost("/edit", EditComment);
+    commentGroup.MapPost("/delete", DeleteComment);
   }
 }

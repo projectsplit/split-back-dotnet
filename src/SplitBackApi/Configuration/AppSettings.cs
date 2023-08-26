@@ -56,4 +56,5 @@ public class CollectionSettings {
   public string GoogleUsers { get; set; }
   public string Invitations { get; set; }
   public string Sessions { get; set; }
+  public string Budgets { get; set; }
 }

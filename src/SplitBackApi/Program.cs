@@ -10,6 +10,7 @@ using SplitBackApi.Api.Endpoints.Permissions;
 using SplitBackApi.Api.Endpoints.Transactions;
 using SplitBackApi.Api.Endpoints.Transfers;
 using SplitBackApi.Api.Endpoints.OpenAI;
+using SplitBackApi.Api.Endpoints.Budgets;
 using SplitBackApi.Api.Extensions;
 using SplitBackApi.Api.Middlewares;
 using SplitBackApi.Api.Services;
@@ -26,6 +27,7 @@ using SplitBackApi.Domain.Services;
 using SplitBackApi.Domain.Validators;
 using SplitBackApi.Data.Repositories.GoogleUserRepository;
 using SplitBackApi.Api.Services.GoogleAuthService;
+using SplitBackApi.Data.Repositories.BudgetRepository;
 
 namespace SplitBackApi;
 
@@ -58,6 +60,7 @@ public class Program {
     builder.Services.AddScoped<ITransferRepository, TransferMongoDbRepository>();
     builder.Services.AddScoped<ICommentRepository, CommentMongoDbRepository>();
     builder.Services.AddScoped<IInvitationRepository, InvitationMongoDbRepository>();
+    builder.Services.AddScoped<IBudgetRepository,BudgetMongoDbRepository>();
     
 
     // Services
@@ -109,6 +112,7 @@ public class Program {
     app.UseCors();
     app.UseHttpsRedirection();
     app.MapAuthenticationEndpoints();
+    app.MapBudgetEndpoints();
     app.MapExpenseEndpoints();
     app.MapCommentEndpoints();
     app.MapTransferEndpoints();

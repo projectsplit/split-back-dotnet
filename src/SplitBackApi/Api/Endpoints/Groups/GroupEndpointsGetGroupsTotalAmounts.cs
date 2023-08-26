@@ -62,8 +62,8 @@ public static partial class GroupEndpoints {
     }
 
     var aggregatedSummary = new {
-      userIsReceiverTotal = userIsReceiverTotal,
-      userIsSenderTotal = userIsSenderTotal
+        userIsReceiverTotal,
+        userIsSenderTotal
     };
 
     var currenciesToRemoveUserIsSender = new List<string>();
