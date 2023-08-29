@@ -13,5 +13,5 @@ public interface IExpenseRepository
   Task<Result> Update(Expense editedExpense);
   Task<Result> DeleteById(string expenseId);
   Task<List<Expense>> GetLatest(string groupId, int limit, DateTime last);
-  Task<Result<List<Expense>>> GetWhereMemberIsParticipant(BudgetType budgetType, string groupId, string memberId, string day);
+  Task<Result<List<Expense>>> GetWhereMemberIsParticipant(BudgetType budgetType, string groupId, string memberId, DateTime startDate);
 }

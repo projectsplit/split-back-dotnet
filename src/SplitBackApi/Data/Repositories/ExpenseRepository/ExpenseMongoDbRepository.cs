@@ -5,6 +5,7 @@ using MongoDB.Driver;
 using SplitBackApi.Configuration;
 using SplitBackApi.Domain.Extensions;
 using SplitBackApi.Domain.Models;
+using SplitBackApi.Api.Helper;
 
 namespace SplitBackApi.Data.Repositories.ExpenseRepository;
 
@@ -111,52 +112,12 @@ public class ExpenseMongoDbRepository : IExpenseRepository
     return await query.ToListAsync();
   }
 
-  public async Task<Result<List<Expense>>> GetWhereMemberIsParticipant(BudgetType budgetType, string groupId, string memberId, string day)
+  public async Task<Result<List<Expense>>> GetWhereMemberIsParticipant(BudgetType budgetType, string groupId, string memberId, DateTime startDate)
   {
-
-    DateTime currentDate = DateTime.Now;
-    DateTime startDate;
-
-    var day2Int = day.ToInt();
-
-    switch (budgetType)
-    {
-      case BudgetType.Monthly:
-        if (currentDate.Day >= day2Int)
-        {
-          // Start from the specified day of the current month
-          startDate = new DateTime(currentDate.Year, currentDate.Month, day2Int);
-        }
-        else
-        {
-          // Start from the specified day of the previous month
-          startDate = currentDate.AddDays(-day2Int + 1);
-        }
-        break;
-
-      case BudgetType.Weekly:
-      
-        if (currentDate.DayOfWeek > (DayOfWeek)day2Int)
-        {
-          // Start from the current day
-          startDate = currentDate.Date.AddDays(-(- day2Int + (int)currentDate.DayOfWeek));
-        }
-        else
-        {
-          // Start from the day before the specified day of the current week
-
-          startDate = currentDate.Date.AddDays(-7);
-        }
-        break;
-
-      default:
-        throw new NotImplementedException("Unsupported budget type");
-    }
-
-
+         
     var groupFilter = Builders<Expense>.Filter.Eq(e => e.GroupId, groupId);
     var memberFilter = Builders<Expense>.Filter.ElemMatch(e => e.Participants, p => p.MemberId == memberId);
-    var creationTimeFilter = Builders<Expense>.Filter.Gte(e => e.CreationTime, startDate) & Builders<Expense>.Filter.Lte(e => e.CreationTime, currentDate);
+    var creationTimeFilter = Builders<Expense>.Filter.Gte(e => e.CreationTime, startDate) & Builders<Expense>.Filter.Lte(e => e.CreationTime, DateTime.Now);
 
     var filter = groupFilter & memberFilter & creationTimeFilter;
 
