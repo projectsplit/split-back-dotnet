@@ -35,6 +35,7 @@ public static partial class BudgetsEndpoints
     string day = budgetResult.IsFailure ? "1" : budgetResult.Value.Day; //calculate budget by taking first day of current week or month as a starting point
     var startDate = BudgetHelpers.StartDateBasedOnBudgetAndDay(budgetResult.Value.BudgetType, day).Value;
     var currentDate = DateTime.Now;
+    List<Expense> expenses = new();
 
     foreach (var group in groups)
     {
@@ -44,7 +45,7 @@ public static partial class BudgetsEndpoints
       var expensesResult = await expenseRepository.GetWhereMemberIsParticipant(budgetResult.Value.BudgetType, groupId, memberId, startDate);
       if (expensesResult.IsFailure) return Results.BadRequest(expensesResult.Error);
 
-      var expenses = expensesResult.Value;
+      expenses.AddRange(expensesResult.Value);
 
       foreach (var expense in expenses)
       {
