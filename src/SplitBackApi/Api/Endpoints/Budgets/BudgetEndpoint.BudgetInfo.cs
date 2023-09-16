@@ -22,24 +22,22 @@ public static partial class BudgetsEndpoints
   {
 
     var authenticatedUserId = "63ff33b09e4437f07d9d3982"; //claimsPrincipal.GetAuthenticatedUserId();
-    // var budgetTypeString = request.Query["budgetType"].ToString();
+    //var budgetTypeString = request.Query["budgetType"].ToString();
 
-    // if (Enum.TryParse(budgetTypeString, out BudgetType budgetType))
-    // {
+
     var groupsResult = await groupRepository.GetGroupsByUserId(authenticatedUserId);
     if (groupsResult.IsFailure) return Results.BadRequest(groupsResult.Error);
 
     var groups = groupsResult.Value;
 
-    //Dictionary<string, decimal> currencyAndAmount = new();
-    decimal totalSpent = 0;
 
+    decimal totalSpent = 0;
     var budgetResult = await budgetRepository.GetByUserId(authenticatedUserId);
     string day = budgetResult.IsFailure ? "1" : budgetResult.Value.Day; //calculate budget by taking first day of current week or month as a starting point
     var budget = budgetResult.Value;
     var startDate = BudgetHelpers.StartDateBasedOnBudgetAndDay(budget.BudgetType, day).Value;
     var currentDate = DateTime.Now;
-    //List<Expense> expenses = new();
+
 
     foreach (var group in groups)
     {
@@ -62,10 +60,10 @@ public static partial class BudgetsEndpoints
         }
         else
         {
-          var historicalFxRateResult = await BudgetHelpers.HistoricalFxRate(currency, budget.Currency, expense.CreationTime.ToString("yyyy-MM-dd"));
-          if (historicalFxRateResult.IsFailure) return Results.BadRequest(historicalFxRateResult.Error);
-          var historicalFxRate = historicalFxRateResult.Value.Rates;
-          totalSpent += amount / historicalFxRate[expense.Currency];
+          // var historicalFxRateResult = await BudgetHelpers.HistoricalFxRate(currency, budget.Currency, expense.CreationTime.ToString("yyyy-MM-dd"));
+          // if (historicalFxRateResult.IsFailure) return Results.BadRequest(historicalFxRateResult.Error);
+          // var historicalFxRate = historicalFxRateResult.Value.Rates;
+          // totalSpent += amount / historicalFxRate[expense.Currency];
 
         }
       }
@@ -83,7 +81,11 @@ public static partial class BudgetsEndpoints
     {
       AverageSpentPerDay = averageSpentPerDay.ToString(),
       RemainingDays = remainingDays.ToString(),
-      TotalAmountSpent = Math.Round(totalSpent, 2).ToString()
+      TotalAmountSpent = Math.Round(totalSpent, 2).ToString(),
+      Goal = budget.Amount,
+      Currency = budget.Currency,
+      BudgetType = budget.BudgetType,
+      Day = budget.Day
     };
 
     return Results.Ok(response);
