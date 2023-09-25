@@ -9,7 +9,7 @@ public class BudgetInfoResponse
   public string AverageSpentPerDay { get; set; }
   public string Goal { get; set; }
   public string Currency { get; set; }
-  public BudgetType BudgetType {get;set;}
+  public BudgetType? BudgetType {get;set;}
   public string Day {get;set;}
 
 }

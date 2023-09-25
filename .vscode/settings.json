@@ -1,3 +1,5 @@
 {
-  "dotnet.defaultSolution": "split-back-dotnet.sln"
+  "dotnet.defaultSolution": "split-back-dotnet.sln",
+  "editor.definitionLinkOpensInPeek": true,
+  "editor.gotoLocation.alternativeDefinitionCommand": "editor.action.goToReferences"
 }

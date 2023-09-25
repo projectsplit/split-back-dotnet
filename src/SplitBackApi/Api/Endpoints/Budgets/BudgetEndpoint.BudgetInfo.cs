@@ -6,7 +6,6 @@ using SplitBackApi.Data.Repositories.ExpenseRepository;
 using SplitBackApi.Data.Repositories.GroupRepository;
 using SplitBackApi.Domain.Models;
 using SplitBackApi.Domain.Extensions;
-using Newtonsoft.Json;
 using SplitBackApi.Api.Endpoints.Budgets.Responses;
 namespace SplitBackApi.Api.Endpoints.Budgets;
 
@@ -85,34 +84,38 @@ public static partial class BudgetsEndpoints
     }
     if (budgetResult.IsFailure)
     {
-      var response = new BudgetInfoResponse
+      var response = new NoBudgetInfoResponse
       {
         BudgetSubmitted = false,
-        AverageSpentPerDay = "",
-        RemainingDays = "",
         TotalAmountSpent = Math.Round(totalSpent, 2).ToString(),
-        Goal = "",
         Currency = budgetCurrency,
-        BudgetType = budgetType,
-        Day = ""
       };
       return Results.Ok(response);
     }
     else
     {
+      decimal averageSpentPerDay;
       var budget = budgetResult.Value;
       var remainingDaysResult = BudgetHelpers.RemainingDays(budgetType, startDate);
       if (remainingDaysResult.IsFailure) return Results.BadRequest(remainingDaysResult.Error);
 
       var remainingDays = remainingDaysResult.Value;
       var daysSinceStartDay = (currentDate - startDate).Days;
-      var averageSpentPerDay = Math.Round(totalSpent / daysSinceStartDay, 2);
+
+      if (daysSinceStartDay == 0)
+      {
+        averageSpentPerDay = Math.Round(totalSpent, 2);
+      }
+      else
+      {
+        averageSpentPerDay = Math.Round(totalSpent / daysSinceStartDay, 2);
+      }
 
       var response = new BudgetInfoResponse
       {
         BudgetSubmitted = true,
         AverageSpentPerDay = averageSpentPerDay.ToString(),
-        RemainingDays = remainingDays.ToString(),
+        RemainingDays = Math.Round(remainingDays, 1).ToString(),
         TotalAmountSpent = Math.Round(totalSpent, 2).ToString(),
         Goal = budget.Amount,
         Currency = budget.Currency,

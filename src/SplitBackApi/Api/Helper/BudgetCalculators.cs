@@ -61,22 +61,22 @@ public static class BudgetHelpers
     return Result.Success(startDate);
   }
 
-  public static Result<int> RemainingDays(BudgetType budgetType, DateTime startDate)
+  public static Result<double> RemainingDays(BudgetType budgetType, DateTime startDate)
   {
     DateTime currentDate = DateTime.Now;
-    int remainingDays;
+    double remainingDays;
 
     switch (budgetType)
     {
       case BudgetType.Monthly:
 
-        remainingDays = (startDate.AddMonths(1) - currentDate).Days + 1;
-        //var x  = (startDate.AddMonths(1) - currentDate);
+        remainingDays = (startDate.AddMonths(1) - currentDate).TotalDays;
+        
         break;
 
       case BudgetType.Weekly:
 
-        remainingDays = (startDate.AddDays(7) - currentDate).Days + 1;
+        remainingDays = (startDate.AddDays(7) - currentDate).TotalDays;
 
         break;
 

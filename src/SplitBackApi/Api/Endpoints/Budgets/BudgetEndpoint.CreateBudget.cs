@@ -4,6 +4,7 @@ using SplitBackApi.Api.Endpoints.Budgets.Requests;
 using SplitBackApi.Api.Extensions;
 using SplitBackApi.Data.Repositories.BudgetRepository;
 using SplitBackApi.Domain.Models;
+using SplitBackApi.Domain.Validators;
 
 namespace SplitBackApi.Api.Endpoints.Budgets;
 
@@ -12,17 +13,12 @@ public static partial class BudgetsEndpoints
   private static async Task<IResult> CreateBudget(
     IBudgetRepository budgetRepository,
     ClaimsPrincipal claimsPrincipal,
-    CreateBudgetRequest request
+    CreateBudgetRequest request,
+    BudgetValidator budgetValidator
   )
   {
-
     var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
-    var userBudgetFound = await budgetRepository.GetByUserId(authenticatedUserId);
 
-    if(userBudgetFound.IsSuccess) {
-      await budgetRepository.DeleteByUserId(authenticatedUserId);
-    }
-    
     var newBudget = new Budget
     {
       CreationTime = DateTime.UtcNow,
@@ -35,7 +31,15 @@ public static partial class BudgetsEndpoints
       
     };
 
-    //validator required
+    var validationResult = budgetValidator.Validate(newBudget);
+    if(validationResult.IsValid is false) return Results.BadRequest(validationResult.ToErrorResponse());
+
+    var userBudgetFound = await budgetRepository.GetByUserId(authenticatedUserId);
+
+    if(userBudgetFound.IsSuccess) {
+      await budgetRepository.DeleteByUserId(authenticatedUserId);
+    }
+    
     await budgetRepository.Create(newBudget);
 
     return Results.Ok();
