@@ -477,10 +477,10 @@ $RECYCLE.BIN/
 *.lnk
 
 # .vscode directory
-.vscode/*
+**/.vscode/*
 
 # .config directory
-.config/*
+**/.config/*
 
 **/appsettings.Development.json
 **/appsettings.Staging.json
