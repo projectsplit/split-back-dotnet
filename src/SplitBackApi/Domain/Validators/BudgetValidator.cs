@@ -14,13 +14,14 @@ public class BudgetValidator : AbstractValidator<Budget>
     .WithMessage("Invalid Currency");
 
     RuleFor(budget => budget.Amount)
-   
+    .NotEmpty()
+    .WithMessage("Amount is required")
     .Must(x => decimal.TryParse(x, out var val) && x.ToDecimal() > 0)
     .WithMessage("Amount must be a positive number")
     .DependentRules(() =>
     {
       RuleFor(budget => budget.Amount)
-      .Must(x => Decimal.Round(x.ToDecimal(), 2) == x.ToDecimal())
+      .Must(x => decimal.Round(x.ToDecimal(), 2) == x.ToDecimal())
       .WithMessage("Amount cannot have more than two decimal places");
     });
 
@@ -29,8 +30,8 @@ public class BudgetValidator : AbstractValidator<Budget>
     .WithMessage("A day should be selected");
 
     RuleFor(budget => budget.BudgetType)
-    .NotEmpty()
-    .WithMessage("A budget type must be selected");
+    .Must(budgetType => Enum.IsDefined(typeof(BudgetType), budgetType))
+    .WithMessage("A valid budget type must be selected");
   }
 
 }

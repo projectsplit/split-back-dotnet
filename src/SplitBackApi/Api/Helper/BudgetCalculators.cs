@@ -71,7 +71,7 @@ public static class BudgetHelpers
       case BudgetType.Monthly:
 
         remainingDays = (startDate.AddMonths(1) - currentDate).TotalDays;
-        
+        var x =startDate.AddMonths(1);
         break;
 
       case BudgetType.Weekly:

@@ -10,6 +10,7 @@ public class BudgetInfoResponse
   public string Goal { get; set; }
   public string Currency { get; set; }
   public BudgetType? BudgetType {get;set;}
-  public string Day {get;set;}
+  public DateTime StartDate {get;set;}
+  public DateTime EndDate {get;set;}
 
 }

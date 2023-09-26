@@ -112,7 +112,7 @@ public class ExpenseMongoDbRepository : IExpenseRepository
     return await query.ToListAsync();
   }
 
-  public async Task<Result<List<Expense>>> GetWhereMemberIsParticipant(BudgetType budgetType, string groupId, string memberId, DateTime startDate)
+  public async Task<Result<List<Expense>>> GetWhereMemberIsParticipant(string groupId, string memberId, DateTime startDate)
   {
          
     var groupFilter = Builders<Expense>.Filter.Eq(e => e.GroupId, groupId);

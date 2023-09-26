@@ -11,4 +11,5 @@ public interface ITransferRepository {
   Task<List<Transfer>> GetByGroupIdPerPage(string groupId, int pageNumber, int pageSize);
   Task<Result> Update(Transfer editedTransfer);
   Task<Result> DeleteById(string transferId);
+  Task<Result<List<Transfer>>> GetByGroupIdAndStartDate(string groupId, string memberId, DateTime startDate);
 }

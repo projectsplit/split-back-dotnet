@@ -7,6 +7,7 @@ using SplitBackApi.Data.Repositories.GroupRepository;
 using SplitBackApi.Domain.Models;
 using SplitBackApi.Domain.Extensions;
 using SplitBackApi.Api.Endpoints.Budgets.Responses;
+using SplitBackApi.Data.Repositories.TransferRepository;
 namespace SplitBackApi.Api.Endpoints.Budgets;
 
 public static partial class BudgetsEndpoints
@@ -14,6 +15,7 @@ public static partial class BudgetsEndpoints
   private static async Task<IResult> BudgetInfo(
     IBudgetRepository budgetRepository,
     IExpenseRepository expenseRepository,
+    ITransferRepository transferRepository,
     IGroupRepository groupRepository,
     ClaimsPrincipal claimsPrincipal,
     HttpRequest request
@@ -50,6 +52,7 @@ public static partial class BudgetsEndpoints
     }
 
     var startDate = BudgetHelpers.StartDateBasedOnBudgetAndDay(budgetType, day).Value;
+
     var currentDate = DateTime.Now;
 
     foreach (var group in groups)
@@ -57,7 +60,7 @@ public static partial class BudgetsEndpoints
       string groupId = group.Id;
       string memberId = UserIdToMemberIdHelper.UserIdToMemberId(group, authenticatedUserId).Value;
 
-      var expensesResult = await expenseRepository.GetWhereMemberIsParticipant(budgetType, groupId, memberId, startDate);
+      var expensesResult = await expenseRepository.GetWhereMemberIsParticipant(groupId, memberId, startDate);
       if (expensesResult.IsFailure) return Results.BadRequest(expensesResult.Error);
 
       var expenses = expensesResult.Value;
@@ -102,6 +105,19 @@ public static partial class BudgetsEndpoints
       var remainingDays = remainingDaysResult.Value;
       var daysSinceStartDay = (currentDate - startDate).Days;
 
+      DateTime endDate;
+
+      if (budget.BudgetType == 0)
+      {
+        endDate = startDate.AddDays(7);
+        //var endDate2 = currentDate.AddDays(remainingDays);
+      }
+      else
+      {
+        endDate = startDate.AddMonths(1);
+        //var endDate2 = currentDate.AddDays(remainingDays);
+      }
+
       if (daysSinceStartDay == 0)
       {
         averageSpentPerDay = Math.Round(totalSpent, 2);
@@ -115,24 +131,17 @@ public static partial class BudgetsEndpoints
       {
         BudgetSubmitted = true,
         AverageSpentPerDay = averageSpentPerDay.ToString(),
-        RemainingDays = Math.Round(remainingDays, 1).ToString(),
+        RemainingDays = remainingDays.ToString(),
         TotalAmountSpent = Math.Round(totalSpent, 2).ToString(),
         Goal = budget.Amount,
         Currency = budget.Currency,
         BudgetType = budget.BudgetType,
-        Day = budget.Day
+        StartDate = startDate,
+        EndDate = endDate
       };
 
       return Results.Ok(response);
     }
   }
-
-  // else
-  // {
-  //   return Results.BadRequest("Could not parse budget type");
-  // }
-  // (
-  //      startDate.Month < currentDate.Month && startDate.Year == currentDate.Year
-  //   || startDate.Year < currentDate.Year && startDate.Month > currentDate.Month)
 
 }
