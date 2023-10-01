@@ -1,4 +1,5 @@
 using CSharpFunctionalExtensions;
+using Microsoft.AspNetCore.WebUtilities;
 using Newtonsoft.Json;
 using SplitBackApi.Api.Endpoints.Budgets.Responses;
 
@@ -17,20 +18,21 @@ public class ExchangeRateClient
 
   public async Task<Result<ExchangeRateResponse>> GetHistorical(string symbols, string baseCurrency, string date)
   {
-    var uriBuilder = new UriBuilder($"historical/{date}.json");
+    var requestUri = $"historical/{date}.json";
 
-    var query = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);
-    query["app_id"] = "382c2dbb473546f2aa9f558a18c8da29";
-    query["base"] = baseCurrency;
-    query["symbols"] = symbols;
-    query["show_alternative"] = "false";
-    query["prettyprint"] = "false";
-    query["date"] = date;
+    var query = new Dictionary<string, string>
+      {
+        { "app_id", "382c2dbb473546f2aa9f558a18c8da29" },
+        { "base", baseCurrency },
+        { "symbols", symbols },
+        { "show_alternative", "false" },
+        { "prettyprint", "false" },
+        { "date", date }
+      };
 
-    uriBuilder.Query = query.ToString();
-    string url = uriBuilder.ToString();
+    var fullUri = QueryHelpers.AddQueryString(requestUri, query);
+    var response = await _httpClient.GetAsync(fullUri);
 
-    var response = await _httpClient.GetAsync(url);
     string responseString = await response.Content.ReadAsStringAsync();
 
     if (!response.IsSuccessStatusCode)
