@@ -18,10 +18,10 @@ public static partial class PermissionEndpoints {
     EditPermissionsRequest request
   ) {
 
-    var groupResult = await groupRepository.GetById(request.GroupId);
-    if(groupResult.IsFailure) Results.BadRequest(groupResult.Error);
+    var groupMaybe = await groupRepository.GetById(request.GroupId);
+    if(groupMaybe.HasNoValue) Results.BadRequest("Group not found");
 
-    var group = groupResult.Value;
+    var group = groupMaybe.Value;
 
     var member = group.Members.FirstOrDefault(m => m.MemberId == request.MemberId);
     if(member is null) {

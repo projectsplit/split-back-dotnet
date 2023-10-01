@@ -33,14 +33,11 @@ public class GroupMongoDbRepository : IGroupRepository {
     throw new NotImplementedException();
   }
 
-  public async Task<Result<Group>> GetById(string groupId) {
+  public async Task<Maybe<Group>> GetById(string groupId) {
 
     var filter = Builders<Group>.Filter.Eq(g => g.Id, groupId);
 
-    var group = await _groupCollection.Find(filter).FirstOrDefaultAsync();
-    if(group is null) return Result.Failure<Group>($"Group with id {groupId} not found");
-
-    return group;
+    return await _groupCollection.Find(filter).FirstOrDefaultAsync();
   }
 
   public async Task<Result> Update(Group group) {

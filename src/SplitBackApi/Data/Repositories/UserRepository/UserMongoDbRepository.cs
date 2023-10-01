@@ -58,14 +58,10 @@ public class UserMongoDbRepository : IUserRepository {
     return user;
   }
 
-  public async Task<Result<List<User>>> GetByIds(List<string> userIds) {
+  public async Task<List<User>> GetByIds(List<string> userIds) {
     
     var filter = Builders<User>.Filter.In(u => u.Id, userIds);
-    var users = await _userCollection.Find(filter).ToListAsync();
-
-    if(users is null) return Result.Failure<List<User>>("None of the provided user ids were found.");
-  
-    return users;
+    return await _userCollection.Find(filter).ToListAsync();
   }
 
   public async Task<Result> Update(User editedUser) {

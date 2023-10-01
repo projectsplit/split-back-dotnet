@@ -10,9 +10,9 @@ public class PermissionService {
 
   public async Task<IResult> CheckPermissions(string groupId, ClaimsPrincipal claimsPrincipal, IGroupRepository groupRepository, Permissions permission) {
 
-    var groupResult = await groupRepository.GetById(groupId);
-    if(groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
-    var group = groupResult.Value;
+    var groupMaybe = await groupRepository.GetById(groupId);
+    if(groupMaybe.HasNoValue) return Results.BadRequest("Group not found");
+    var group = groupMaybe.Value;
 
     var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
 

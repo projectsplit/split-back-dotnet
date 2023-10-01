@@ -10,10 +10,7 @@ public static class MemberIdToNameHelper {
     var userMembers = group.Members.Where(m => m is UserMember).Cast<UserMember>();
     var guestMembers = group.Members.Where(m => m is GuestMember).Cast<GuestMember>();
 
-    var usersResult = await userRepository.GetByIds(userMembers.Select(um => um.UserId).ToList());
-    if(usersResult.IsFailure) return Result.Failure<IEnumerable<MemberWithName>>(usersResult.Error);
-
-    var users = usersResult.Value;
+    var users = await userRepository.GetByIds(userMembers.Select(um => um.UserId).ToList());
 
     var membersWithNames = userMembers.Select(m => new MemberWithName {
       Id = m.MemberId,

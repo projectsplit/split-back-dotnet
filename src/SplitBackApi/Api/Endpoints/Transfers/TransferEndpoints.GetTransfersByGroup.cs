@@ -19,9 +19,9 @@ public static partial class TransferEndpoints {
 
     var transfers = await transferRepository.GetByGroupIdPerPage(request.GroupId, request.PageNumber, request.PageSize);
 
-    var groupResult = await groupRepository.GetById(request.GroupId);
-    if(groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
-    var group = groupResult.Value;
+    var groupMaybe = await groupRepository.GetById(request.GroupId);
+    if(groupMaybe.HasNoValue) return Results.BadRequest("Group not found");
+    var group = groupMaybe.Value;
 
     var membersWithNamesResult = await MemberIdToNameHelper.MembersWithNames(group, userRepository);
     if(membersWithNamesResult.IsFailure) return Results.BadRequest(membersWithNamesResult.Error);

@@ -16,13 +16,13 @@ public static partial class ExpenseEndpoints {
     RemoveExpenseRequest request
   ) {
     
-    var expenseResult = await expenseRepository.GetById(request.ExpenseId);
-    if(expenseResult.IsFailure) return Results.BadRequest(expenseResult.Error);
-    var expense = expenseResult.Value;
+    var expenseMaybe = await expenseRepository.GetById(request.ExpenseId);
+    if(expenseMaybe.HasNoValue) return Results.BadRequest("Expense not found");
+    var expense = expenseMaybe.Value;
 
-    var groupResult = await groupRepository.GetById(expense.GroupId);
-    if(groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
-    var group = groupResult.Value;
+    var groupMaybe = await groupRepository.GetById(expense.GroupId);
+    if(groupMaybe.HasNoValue) return Results.BadRequest("Group not found");
+    var group = groupMaybe.Value;
 
     var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
 

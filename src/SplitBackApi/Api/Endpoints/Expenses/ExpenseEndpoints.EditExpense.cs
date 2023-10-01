@@ -19,13 +19,13 @@ public static partial class ExpenseEndpoints {
     EditExpenseRequest request
   ) {
 
-    var expenseResult = await expenseRepository.GetById(request.ExpenseId);
-    if(expenseResult.IsFailure) return Results.BadRequest(expenseResult.Error);
-    var expense = expenseResult.Value;
+    var expenseMaybe = await expenseRepository.GetById(request.ExpenseId);
+    if(expenseMaybe.HasNoValue) return Results.BadRequest("Expense not found");
+    var expense = expenseMaybe.Value;
 
-    var groupResult = await groupRepository.GetById(expense.GroupId);
-    if(groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
-    var group = groupResult.Value;
+    var groupMaybe = await groupRepository.GetById(expense.GroupId);
+    if(groupMaybe.HasNoValue) return Results.BadRequest("Group not found");
+    var group = groupMaybe.Value;
 
     var groupMemberIds = group.Members.Select(m => m.MemberId).ToList();
     
@@ -45,9 +45,9 @@ public static partial class ExpenseEndpoints {
     var permissions = member.Permissions;
     if(permissions.HasFlag(Domain.Models.Permissions.WriteAccess) is false) return Results.Forbid();
 
-    var oldExpenseResult = await expenseRepository.GetById(request.ExpenseId);
-    if(oldExpenseResult.IsFailure) return Results.BadRequest(oldExpenseResult.Error);
-    var oldExpense = oldExpenseResult.Value;
+    var oldExpenseMaybe = await expenseRepository.GetById(request.ExpenseId);
+    if(oldExpenseMaybe.HasNoValue) return Results.BadRequest("Expense not found");
+    var oldExpense = oldExpenseMaybe.Value;
 
     var editedExpense = new Expense {
       Id = oldExpense.Id,

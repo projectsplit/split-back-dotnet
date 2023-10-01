@@ -13,5 +13,6 @@ public static partial class GroupEndpoints {
     groupGroup.MapGet("/get", GetGroupById);
     groupGroup.MapGet("/latest-sessions", GetLatestSessions);
     groupGroup.MapGet("/expenses", GetGroupExpenses);
+    groupGroup.MapGet("/", GetGroup);
   }
 }

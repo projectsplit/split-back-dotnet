@@ -16,6 +16,4 @@ public class GroupResponse : EntityBase {
   public string BaseCurrency { get; set; }
 
   public ICollection<GroupMemberWithNameAndType> Members { get; set; } = new List<GroupMemberWithNameAndType>();
-
-
 }

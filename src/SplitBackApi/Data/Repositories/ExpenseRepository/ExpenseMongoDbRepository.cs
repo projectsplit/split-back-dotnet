@@ -69,14 +69,11 @@ public class ExpenseMongoDbRepository : IExpenseRepository {
     return expense;
   }
 
-  public async Task<Result<Expense>> GetById(string expenseId) {
+  public async Task<Maybe<Expense>> GetById(string expenseId) {
 
     var filter = Builders<Expense>.Filter.Eq(e => e.Id, expenseId);
 
-    var expense = await _expenseCollection.Find(filter).FirstOrDefaultAsync();
-    if(expense is null) return Result.Failure<Expense>($"Expense with id {expenseId} not found");
-
-    return expense;
+    return await _expenseCollection.Find(filter).FirstOrDefaultAsync();
   }
 
   public async Task<List<Expense>> GetByGroupId(string groupId) {

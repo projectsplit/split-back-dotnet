@@ -22,9 +22,9 @@ public static partial class TransactionEndpoints {
 
     var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
 
-    var groupResult = await groupRepository.GetById(request.GroupId);
-    if(groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
-    var group = groupResult.Value;
+    var groupMaybe = await groupRepository.GetById(request.GroupId);
+    if(groupMaybe.HasNoValue) return Results.BadRequest("Group not found");
+    var group = groupMaybe.Value;
 
     var member = group.GetMemberByUserId(authenticatedUserId);
     if(member is null) return Results.BadRequest($"User with id {authenticatedUserId} is not a member of group with id {request.GroupId}"); //not required? idk

@@ -31,10 +31,10 @@ public class TransactionService {
 
   public async Task<Result<Dictionary<string, List<TransactionTimelineItem>>>> GetTransactionHistory(string groupId, string memberId) {
 
-    var groupResult = await _groupRepository.GetById(groupId);
-    if(groupResult.IsFailure) return Result.Failure<Dictionary<string, List<TransactionTimelineItem>>>(groupResult.Error);
+    var groupMaybe = await _groupRepository.GetById(groupId);
+    if(groupMaybe.HasNoValue) return Result.Failure<Dictionary<string, List<TransactionTimelineItem>>>("Group not found");
 
-    var group = groupResult.Value;
+    var group = groupMaybe.Value;
     var expenses = await _expenseRepository.GetByGroupId(groupId);
     var transfers = await _transferRepository.GetByGroupId(groupId);
 
@@ -93,10 +93,10 @@ public class TransactionService {
 
   public async Task<Result<List<PendingTransaction>>> PendingTransactionsAsync(string groupId) {
 
-    var groupResult = await _groupRepository.GetById(groupId);
-    if(groupResult.IsFailure) return Result.Failure<List<PendingTransaction>>(groupResult.Error);
+    var groupMaybe = await _groupRepository.GetById(groupId);
+    if(groupMaybe.HasNoValue) return Result.Failure<List<PendingTransaction>>("Group not found");
 
-    var group = groupResult.Value;
+    var group = groupMaybe.Value;
     var expenses = await _expenseRepository.GetByGroupId(groupId);
     var transfers = await _transferRepository.GetByGroupId(groupId);
 

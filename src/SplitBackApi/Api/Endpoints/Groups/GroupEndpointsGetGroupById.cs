@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using MongoDB.Bson.Serialization.Attributes;
 using SplitBackApi.Api.Endpoints.Groups.Requests;
-using SplitBackApi.Api.Extensions;
 using SplitBackApi.Api.Helper;
 using SplitBackApi.Data.Repositories.GroupRepository;
 using SplitBackApi.Data.Repositories.UserRepository;
@@ -13,7 +12,7 @@ namespace SplitBackApi.Api.Endpoints.Groups;
 
 public static partial class GroupEndpoints {
 
-  private static async Task<Microsoft.AspNetCore.Http.IResult> GetGroupById(
+  private static async Task<IResult> GetGroupById(
     ClaimsPrincipal claimsPrincipal,
     IGroupRepository groupRepository,
     IUserRepository userRepository,
@@ -22,9 +21,9 @@ public static partial class GroupEndpoints {
     var groupId = request.Query["id"].ToString();
     if (string.IsNullOrEmpty(groupId)) return Results.BadRequest("Group id is missing");
 
-    var groupResult = await groupRepository.GetById(groupId);
-    if(groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
-    var group = groupResult.Value;
+    var groupMaybe = await groupRepository.GetById(groupId);
+    if(groupMaybe.HasNoValue) return Results.BadRequest("Group not found");
+    var group = groupMaybe.Value;
 
     var membersWithNamesResult = await MemberIdToNameHelper.MembersWithNames(group, userRepository);
     if(membersWithNamesResult.IsFailure) return Results.BadRequest(membersWithNamesResult.Error);

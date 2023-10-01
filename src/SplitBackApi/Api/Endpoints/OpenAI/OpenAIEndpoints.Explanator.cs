@@ -20,9 +20,9 @@ public static partial class OpenAIEndpoints {
    IOptions<AppSettings> appSettings
   ) {
 
-    var groupResult = await groupRepository.GetById(request.GroupId);
-    if(groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
-    var group = groupResult.Value;
+    var groupMaybe = await groupRepository.GetById(request.GroupId);
+    if(groupMaybe.HasNoValue) return Results.BadRequest("Group not found");
+    var group = groupMaybe.Value;
 
     var textResult = await openAIService.GenerateTransactionsExplanationTextAsync(group.Id);
 

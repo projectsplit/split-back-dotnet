@@ -22,9 +22,9 @@ public static partial class GuestEndpoints {
     CreateGuestRequest request
   ) {
 
-    var groupResult = await groupRepository.GetById(request.GroupId);
-    if(groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
-    var group = groupResult.Value;
+    var groupMaybe = await groupRepository.GetById(request.GroupId);
+    if(groupMaybe.HasNoValue) return Results.BadRequest("Group not found");
+    var group = groupMaybe.Value;
 
     var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
 
@@ -34,8 +34,7 @@ public static partial class GuestEndpoints {
     if(guestCreatorMember.Permissions.HasFlag(Domain.Models.Permissions.WriteAccess) is false) return Results.Forbid();
 
     var userMemberIds = group.Members.Where(m => m is UserMember).Cast<UserMember>().Select(m => m.UserId).ToList();
-    var usersResult = await userRepository.GetByIds(userMemberIds);
-    var users = usersResult.Value;
+    var users = await userRepository.GetByIds(userMemberIds);
     var userNameExists = users.Any(u => u.Nickname == request.Name);
     if(userNameExists) return Results.BadRequest($"A member with the name {request.Name} already exists");
 

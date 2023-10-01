@@ -26,9 +26,9 @@ public static partial class TransferEndpoints {
 
     var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
 
-    var groupResult = await groupRepository.GetById(request.GroupId);
-    if(groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
-    var group = groupResult.Value;
+    var groupMaybe = await groupRepository.GetById(request.GroupId);
+    if(groupMaybe.HasNoValue) return Results.BadRequest("Group not found");
+    var group = groupMaybe.Value;
 
     var groupMemberIds = group.Members.Select(m => m.MemberId).ToList();
 

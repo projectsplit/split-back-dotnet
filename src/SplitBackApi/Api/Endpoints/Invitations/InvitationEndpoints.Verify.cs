@@ -41,9 +41,9 @@ public static partial class InvitationEndpoints {
     if(inviterUserResult.IsFailure) return Results.BadRequest(inviterUserResult.Error);
     var inviterUser = inviterUserResult.Value;
 
-    var groupResult = await groupRepository.GetById(invitation.GroupId);
-    if(groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
-    var group = groupResult.Value;
+    var groupMaybe = await groupRepository.GetById(invitation.GroupId);
+    if(groupMaybe.HasNoValue) return Results.BadRequest("Group not found");
+    var group = groupMaybe.Value;
 
     var member = group.GetMemberByUserId(authenticatedUserId);
     if(member is not null) return Results.BadRequest($"User {authenticatedUserId} is already a member of the group");

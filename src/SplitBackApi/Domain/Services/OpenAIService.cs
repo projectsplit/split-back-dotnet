@@ -30,10 +30,10 @@ public class OpenAIService {
 
   public async Task<Result<List<ExplanationText>>> GenerateChatScriptAsync(string groupId) { //GenerateChatScript
 
-    var groupResult = await _groupRepository.GetById(groupId);
-    if(groupResult.IsFailure) return Result.Failure<List<ExplanationText>>(groupResult.Error);
+    var groupMaybe = await _groupRepository.GetById(groupId);
+    if(groupMaybe.HasNoValue) return Result.Failure<List<ExplanationText>>("Group not found");
 
-    var group = groupResult.Value;
+    var group = groupMaybe.Value;
     //var memberIds = group.Members.Select(m => m.MemberId).ToList();
     var expenses = await _expenseRepository.GetByGroupId(groupId);
     var transfers = await _transferRepository.GetByGroupId(groupId);
@@ -250,10 +250,10 @@ public class OpenAIService {
 
   public async Task<Result<List<ExplanationText>>> GenerateTransactionsExplanationTextAsync(string groupId) {
 
-    var groupResult = await _groupRepository.GetById(groupId);
-    if(groupResult.IsFailure) return Result.Failure<List<ExplanationText>>(groupResult.Error);
+    var groupMaybe = await _groupRepository.GetById(groupId);
+    if(groupMaybe.HasNoValue) return Result.Failure<List<ExplanationText>>("Group not found");
 
-    var group = groupResult.Value;
+    var group = groupMaybe.Value;
     var memberIds = group.Members.Select(m => m.MemberId).ToList();
 
     var expenses = await _expenseRepository.GetByGroupId(groupId);

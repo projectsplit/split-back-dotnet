@@ -19,9 +19,9 @@ public static partial class GuestEndpoints {
     RemoveGuestRequest request
   ) {
 
-    var groupResult = await groupRepository.GetById(request.GroupId);
-    if(groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
-    var group = groupResult.Value;
+    var groupMaybe = await groupRepository.GetById(request.GroupId);
+    if(groupMaybe.HasNoValue) return Results.BadRequest("Group not found");
+    var group = groupMaybe.Value;
 
     var memberToRemove = group.Members.Where(m => m.MemberId == request.MemberId).FirstOrDefault();
     if(memberToRemove is not GuestMember) return Results.BadRequest($"member with Id {memberToRemove.MemberId} is not a guest");
