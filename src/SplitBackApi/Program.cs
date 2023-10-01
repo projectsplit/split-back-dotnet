@@ -68,6 +68,7 @@ public class Program {
     builder.Services.AddScoped<GoogleAuthService>();
     builder.Services.AddScoped<TransactionService>();
     builder.Services.AddScoped<OpenAIService>();
+    builder.Services.AddScoped<BudgetService>();
     
     builder.Services.AddHttpClient();
 

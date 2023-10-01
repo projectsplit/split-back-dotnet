@@ -14,7 +14,6 @@ public static partial class BudgetsEndpoints
     ClaimsPrincipal claimsPrincipal
   )
   {
-
     var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
     var userBudgetFound = await budgetRepository.GetByUserId(authenticatedUserId);
 

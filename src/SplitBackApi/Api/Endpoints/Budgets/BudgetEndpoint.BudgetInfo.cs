@@ -8,6 +8,8 @@ using SplitBackApi.Domain.Models;
 using SplitBackApi.Domain.Extensions;
 using SplitBackApi.Api.Endpoints.Budgets.Responses;
 using SplitBackApi.Data.Repositories.TransferRepository;
+using SplitBackApi.Api.Services;
+
 namespace SplitBackApi.Api.Endpoints.Budgets;
 
 public static partial class BudgetsEndpoints
@@ -18,7 +20,8 @@ public static partial class BudgetsEndpoints
     ITransferRepository transferRepository,
     IGroupRepository groupRepository,
     ClaimsPrincipal claimsPrincipal,
-    HttpRequest request
+    HttpRequest request,
+    BudgetService budgetService
   )
   {
 
@@ -51,8 +54,8 @@ public static partial class BudgetsEndpoints
       budgetCurrency = budgetResult.Value.Currency;
     }
 
-    var startDate = BudgetHelpers.StartDateBasedOnBudgetAndDay(budgetType, day).Value;
-
+    var startDate = budgetService.StartAndEndDateBasedOnBudgetAndDay(budgetType, day).Value.startDate;
+    var endDate = budgetService.StartAndEndDateBasedOnBudgetAndDay(budgetType, day).Value.endDate;
     var currentDate = DateTime.Now;
 
     foreach (var group in groups)
@@ -76,7 +79,7 @@ public static partial class BudgetsEndpoints
         }
         else
         {
-          // var historicalFxRateResult = await BudgetHelpers.HistoricalFxRate(currency, budgetCurrency, expense.CreationTime.ToString("yyyy-MM-dd"));
+          // var historicalFxRateResult = await budgetService.HistoricalFxRate(currency, budgetCurrency, expense.CreationTime.ToString("yyyy-MM-dd"));
           // if (historicalFxRateResult.IsFailure) return Results.BadRequest(historicalFxRateResult.Error);
           // var historicalFxRate = historicalFxRateResult.Value.Rates;
           // totalSpent += amount / historicalFxRate[expense.Currency];
@@ -99,33 +102,13 @@ public static partial class BudgetsEndpoints
     {
       decimal averageSpentPerDay;
       var budget = budgetResult.Value;
-      var remainingDaysResult = BudgetHelpers.RemainingDays(budgetType, startDate);
+      var remainingDaysResult = budgetService.RemainingDays(budgetType, startDate);
       if (remainingDaysResult.IsFailure) return Results.BadRequest(remainingDaysResult.Error);
 
       var remainingDays = remainingDaysResult.Value;
       var daysSinceStartDay = (currentDate - startDate).Days;
 
-      DateTime endDate;
-
-      if (budget.BudgetType == 0)
-      {
-        endDate = startDate.AddDays(7);
-        //var endDate2 = currentDate.AddDays(remainingDays);
-      }
-      else
-      {
-        endDate = startDate.AddMonths(1);
-        //var endDate2 = currentDate.AddDays(remainingDays);
-      }
-
-      if (daysSinceStartDay == 0)
-      {
-        averageSpentPerDay = Math.Round(totalSpent, 2);
-      }
-      else
-      {
-        averageSpentPerDay = Math.Round(totalSpent / daysSinceStartDay, 2);
-      }
+      averageSpentPerDay = (daysSinceStartDay == 0) ? Math.Round(totalSpent, 2) : Math.Round(totalSpent / daysSinceStartDay, 2);
 
       var response = new BudgetInfoResponse
       {
