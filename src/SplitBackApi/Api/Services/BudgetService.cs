@@ -1,12 +1,20 @@
 using SplitBackApi.Domain.Models;
 using CSharpFunctionalExtensions;
 using SplitBackApi.Domain.Extensions;
-using Newtonsoft.Json;
+using SplitBackApi.Api.Services.HttpClients;
+using SplitBackApi.Api.Endpoints.Budgets.Responses;
 
 namespace SplitBackApi.Api.Services;
 
 public class BudgetService
 {
+  private readonly ExchangeRateClient _exchangeRateClient;
+
+  public BudgetService(ExchangeRateClient exchangeRateClient)
+  {
+    _exchangeRateClient = exchangeRateClient;
+  }
+
   public Result<(DateTime startDate, DateTime endDate)> StartAndEndDateBasedOnBudgetAndDay(BudgetType budgetType, string day)
   {
     DateTime currentDate = DateTime.Now;
@@ -109,28 +117,6 @@ public class BudgetService
 
   public async Task<Result<ExchangeRateResponse>> HistoricalFxRate(string symbols, string baseCurrency, string date)
   {
-    using var client = new HttpClient();
-    client.DefaultRequestHeaders.Add("accept", "application/json");
-
-    string apiUrl = $"https://openexchangerates.org/api/historical/{date}.json";
-    string appId = "382c2dbb473546f2aa9f558a18c8da29";
-
-    var uriBuilder = new UriBuilder(apiUrl);
-    var query = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);
-    query["app_id"] = appId;
-    query["base"] = baseCurrency;
-    query["symbols"] = symbols;
-    query["show_alternative"] = "false";
-    query["prettyprint"] = "false";
-    query["date"] = date;
-    uriBuilder.Query = query.ToString();
-    string url = uriBuilder.ToString();
-
-    var response = await client.GetAsync(url);
-    string responseString = await response.Content.ReadAsStringAsync();
-    var deserializedResponse = JsonConvert.DeserializeObject<ExchangeRateResponse>(responseString);
-
-    return Result.Success(deserializedResponse);
-
+    return await _exchangeRateClient.GetHistorical(symbols, baseCurrency, date);
   }
 }

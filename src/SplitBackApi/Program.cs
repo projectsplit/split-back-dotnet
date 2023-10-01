@@ -28,12 +28,15 @@ using SplitBackApi.Domain.Validators;
 using SplitBackApi.Data.Repositories.GoogleUserRepository;
 using SplitBackApi.Api.Services.GoogleAuthService;
 using SplitBackApi.Data.Repositories.BudgetRepository;
+using SplitBackApi.Api.Services.HttpClients;
 
 namespace SplitBackApi;
 
-public class Program {
+public class Program
+{
 
-  public static void Main(string[] args) {
+  public static void Main(string[] args)
+  {
 
     var builder = WebApplication.CreateBuilder(args);
 
@@ -42,14 +45,19 @@ public class Program {
     builder.Services.Configure<AppSettings>(configSection);
 
     // Cors
-    builder.Services.AddCors(options => {
-      options.AddDefaultPolicy(builder => {
+    builder.Services.AddCors(options =>
+    {
+      options.AddDefaultPolicy(builder =>
+      {
         builder.WithOrigins("http://localhost:3000")
             .AllowCredentials()
             .AllowAnyHeader()
             .AllowAnyMethod();
       });
     });
+
+    builder.Services.AddHttpClient<ExchangeRateClient>();
+    builder.Services.AddScoped<ExchangeRateClient>();
 
     // Repositories
     builder.Services.AddScoped<IUserRepository, UserMongoDbRepository>();
@@ -60,8 +68,8 @@ public class Program {
     builder.Services.AddScoped<ITransferRepository, TransferMongoDbRepository>();
     builder.Services.AddScoped<ICommentRepository, CommentMongoDbRepository>();
     builder.Services.AddScoped<IInvitationRepository, InvitationMongoDbRepository>();
-    builder.Services.AddScoped<IBudgetRepository,BudgetMongoDbRepository>();
-    
+    builder.Services.AddScoped<IBudgetRepository, BudgetMongoDbRepository>();
+
 
     // Services
     builder.Services.AddScoped<AuthService>();
@@ -69,7 +77,7 @@ public class Program {
     builder.Services.AddScoped<TransactionService>();
     builder.Services.AddScoped<OpenAIService>();
     builder.Services.AddScoped<BudgetService>();
-    
+
     builder.Services.AddHttpClient();
 
     // Validators
@@ -90,7 +98,8 @@ public class Program {
     // Auth
     builder.Services.AddJwtBearerAuthentication();
     builder.Services.AddAuthorization();
-    builder.Services.AddAuthorization(options => {
+    builder.Services.AddAuthorization(options =>
+    {
       options.FallbackPolicy = new AuthorizationPolicyBuilder()
         .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
         .RequireAuthenticatedUser()
@@ -104,10 +113,12 @@ public class Program {
 
     var app = builder.Build();
 
-    if(app.Environment.IsDevelopment()) {
+    if (app.Environment.IsDevelopment())
+    {
       app.UseSwagger();
       app.UseSwaggerUI();
-      app.MapGet("/app-settings", (IOptions<AppSettings> appSettings) => {
+      app.MapGet("/app-settings", (IOptions<AppSettings> appSettings) =>
+      {
         return appSettings.Value;
       }).AllowAnonymous();
     }
