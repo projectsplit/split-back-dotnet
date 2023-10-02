@@ -1,6 +1,7 @@
 namespace SplitBackApi.Configuration;
 
-public class AppSettings {
+public class AppSettings
+{
 
   public const string SectionName = "App";
 
@@ -9,41 +10,48 @@ public class AppSettings {
   public MongoDbSettings MongoDb { get; set; }
   public OpenAISettings OpenAI { get; set; }
   public string FrontendUrl { get; set; }
+  public string OpenExchangeRatesAppId { get; set; }
 }
 
-public class GoogleSettings {
+public class GoogleSettings
+{
 
   public string ClientId { get; set; }
   public string ClientSecret { get; set; }
 
 }
 
-public class OpenAISettings {
+public class OpenAISettings
+{
 
   public string SecretKey { get; set; }
 
 }
 
-public class JwtSettings {
+public class JwtSettings
+{
 
   public string Issuer { get; set; }
   public string Audience { get; set; }
   public string Key { get; set; }
 }
 
-public class MongoDbSettings {
+public class MongoDbSettings
+{
 
   public string ConnectionString { get; set; }
   public DatabaseSettings Database { get; set; }
 }
 
-public class DatabaseSettings {
+public class DatabaseSettings
+{
 
   public string Name { get; set; }
   public CollectionSettings Collections { get; set; }
 }
 
-public class CollectionSettings {
+public class CollectionSettings
+{
 
   public string Groups { get; set; }
   public string Expenses { get; set; }

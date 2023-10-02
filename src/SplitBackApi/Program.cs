@@ -56,7 +56,12 @@ public class Program
       });
     });
 
-    builder.Services.AddHttpClient<ExchangeRateClient>();
+    builder.Services.AddHttpClient("openexchangerates",client =>
+    {
+      client.DefaultRequestHeaders.Add("accept", "application/json");
+      client.BaseAddress = new Uri("https://openexchangerates.org/api/");
+    });
+
     builder.Services.AddScoped<ExchangeRateClient>();
 
     // Repositories

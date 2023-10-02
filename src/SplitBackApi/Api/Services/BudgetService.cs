@@ -10,9 +10,9 @@ public class BudgetService
 {
   private readonly ExchangeRateClient _exchangeRateClient;
 
-  public BudgetService(ExchangeRateClient exchangeRateClient)
+  public BudgetService(ExchangeRateClient exchangeRateClient) //ExchangeRateClient comes from dependency injection
   {
-    _exchangeRateClient = exchangeRateClient;
+   _exchangeRateClient = exchangeRateClient;
   }
 
   public Result<(DateTime startDate, DateTime endDate)> StartAndEndDateBasedOnBudgetAndDay(BudgetType budgetType, string day)

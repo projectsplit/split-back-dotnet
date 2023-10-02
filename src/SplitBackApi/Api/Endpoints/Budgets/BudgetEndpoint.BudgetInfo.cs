@@ -66,7 +66,11 @@ public static partial class BudgetsEndpoints
       var expensesResult = await expenseRepository.GetWhereMemberIsParticipant(groupId, memberId, startDate);
       if (expensesResult.IsFailure) return Results.BadRequest(expensesResult.Error);
 
+      var transfersResult = await transferRepository.GetByGroupIdAndStartDate(groupId, memberId, startDate);
+      if (transfersResult.IsFailure) return Results.BadRequest(transfersResult.Error);
+
       var expenses = expensesResult.Value;
+      var transfers = transfersResult.Value;
 
       foreach (var expense in expenses)
       {
@@ -82,8 +86,30 @@ public static partial class BudgetsEndpoints
           // var historicalFxRateResult = await budgetService.HistoricalFxRate(currency, budgetCurrency, expense.CreationTime.ToString("yyyy-MM-dd"));
           // if (historicalFxRateResult.IsFailure) return Results.BadRequest(historicalFxRateResult.Error);
           // var historicalFxRate = historicalFxRateResult.Value.Rates;
+
           // totalSpent += amount / historicalFxRate[expense.Currency];
 
+        }
+      }
+
+      foreach (var transfer in transfers)
+      {
+        string currency = transfer.Currency;
+        decimal amount = transfer.Amount.ToDecimal();
+
+        if (currency == budgetCurrency)
+        {
+          totalSpent = transfer.SenderId == memberId ? totalSpent + amount : totalSpent - amount;
+        }
+        else
+        {
+          // var historicalFxRateResult = await budgetService.HistoricalFxRate(currency, budgetCurrency, transfer.CreationTime.ToString("yyyy-MM-dd"));
+          // if (historicalFxRateResult.IsFailure) return Results.BadRequest(historicalFxRateResult.Error);
+          // var historicalFxRate = historicalFxRateResult.Value.Rates;
+
+          // totalSpent = transfer.SenderId == memberId ?
+          // totalSpent + amount / historicalFxRate[transfer.Currency] :
+          // totalSpent - amount / historicalFxRate[transfer.Currency];
         }
       }
 
