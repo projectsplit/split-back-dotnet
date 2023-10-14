@@ -2,7 +2,6 @@ using SplitBackApi.Api.Endpoints.Authentication.Requests;
 using SplitBackApi.Api.Services;
 using SplitBackApi.Data.Repositories.SessionRepository;
 using SplitBackApi.Data.Repositories.UserRepository;
-using SplitBackApi.Domain.Models;
 
 namespace SplitBackApi.Api.Endpoints.Authentication;
 

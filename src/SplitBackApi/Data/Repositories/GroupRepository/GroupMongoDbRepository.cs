@@ -7,72 +7,68 @@ using SplitBackApi.Domain.Models;
 
 namespace SplitBackApi.Data.Repositories.GroupRepository;
 
-public class GroupMongoDbRepository : IGroupRepository {
+public class GroupMongoDbRepository : IGroupRepository
+{
+    private readonly IMongoCollection<Group> _groupCollection;
 
-  private readonly MongoClient _mongoClient;
-  private readonly IMongoCollection<Group> _groupCollection;
+    public GroupMongoDbRepository(
+        IOptions<AppSettings> appSettings)
+    {
+        var dbSettings = appSettings.Value.MongoDb;
+        var mongoClient = new MongoClient(dbSettings.ConnectionString);
+        var mongoDatabase = mongoClient.GetDatabase(dbSettings.Database.Name);
 
-  public GroupMongoDbRepository(
-    IOptions<AppSettings> appSettings
-  ) {
+        _groupCollection = mongoDatabase.GetCollection<Group>(dbSettings.Database.Collections.Groups);
+    }
 
-    var dbSettings = appSettings.Value.MongoDb;
-    _mongoClient = new MongoClient(dbSettings.ConnectionString);
-    var mongoDatabase = _mongoClient.GetDatabase(dbSettings.Database.Name);
+    public async Task Create(Group group)
+    {
+        group.Id = ObjectId.GenerateNewId().ToString();
 
-    _groupCollection = mongoDatabase.GetCollection<Group>(dbSettings.Database.Collections.Groups);
-  }
+        await _groupCollection.InsertOneAsync(group);
+    }
 
-  public async Task Create(Group group) {
-    group.Id = ObjectId.GenerateNewId().ToString();
+    public Task<Result> DeleteById(string groupId)
+    {
+        throw new NotImplementedException();
+    }
 
-    await _groupCollection.InsertOneAsync(group);
-  }
+    public async Task<Result<Group>> GetById(string groupId)
+    {
+        var filter = Builders<Group>.Filter.Eq(g => g.Id, groupId);
 
-  public Task<Result> DeleteById(string groupId) {
-    throw new NotImplementedException();
-  }
+        var group = await _groupCollection.Find(filter).FirstOrDefaultAsync();
 
-  public async Task<Result<Group>> GetById(string groupId) {
+        return group ?? Result.Failure<Group>($"Group with id {groupId} not found");
+    }
 
-    var filter = Builders<Group>.Filter.Eq(g => g.Id, groupId);
+    public async Task<Result> Update(Group group)
+    {
+        var filter = Builders<Group>.Filter.Eq(g => g.Id, group.Id);
 
-    var group = await _groupCollection.Find(filter).FirstOrDefaultAsync();
-    if(group is null) return Result.Failure<Group>($"Group with id {groupId} not found");
+        var replaceResult = await _groupCollection.ReplaceOneAsync(filter, group);
 
-    return group;
-  }
+        return replaceResult.IsAcknowledged ? Result.Success() : Result.Failure("Failed to update group");
+    }
 
-  public async Task<Result> Update(Group group) {
+    public async Task<Result<List<Group>>> GetPaginatedGroupsByUserId(string userId, int limit, DateTime lastDateTime)
+    {
+        var filterCreationTime =
+            Builders<Group>.Filter.Lt(u => u.CreationTime, lastDateTime);
+        var filterUserId =
+            Builders<Group>.Filter.ElemMatch(g => g.Members, m => m is UserMember && ((UserMember)m).UserId == userId);
 
-    var filter = Builders<Group>.Filter.Eq(g => g.Id, group.Id);
+        var filter = filterCreationTime & filterUserId;
 
-    var replaceResult = await _groupCollection.ReplaceOneAsync(filter, group);
+        var sort = Builders<Group>.Sort.Descending(u => u.CreationTime);
 
-    if(replaceResult.IsAcknowledged) return Result.Success();
+        return await _groupCollection.Find(filter).Sort(sort).Limit(limit).ToListAsync();
+    }
 
-    return Result.Failure("Failed to update group");
-  }
-
-  public async Task<Result<List<Group>>> GetPaginatedGroupsByUserId(string userId, int limit, DateTime lastDateTime) {
-
-    var filterCreationTime = Builders<Group>.Filter.Lt(u => u.CreationTime, lastDateTime);
-    var filteruserId = Builders<Group>.Filter.ElemMatch(g => g.Members, m => m is UserMember && ((UserMember)m).UserId == userId);
-    var filter = filterCreationTime & filteruserId;
-
-    var sort = Builders<Group>.Sort.Descending(u => u.CreationTime);
-
-    var groups = await _groupCollection.Find(filter).Sort(sort).Limit(limit).ToListAsync();
-
-    return groups;
-  }
-
-  public async Task<Result<List<Group>>> GetGroupsByUserId(string userId) {
-
-    var filter = Builders<Group>.Filter.ElemMatch(g => g.Members, m => m is UserMember && ((UserMember)m).UserId == userId);
-    var groups = await _groupCollection.Find(filter).ToListAsync();
-
-    return groups;
-  }
-
+    public async Task<List<Group>> GetGroupsByUserId(string userId)
+    {
+        var filter =
+            Builders<Group>.Filter.ElemMatch(g => g.Members, m => m is UserMember && ((UserMember)m).UserId == userId);
+        return await _groupCollection.Find(filter).ToListAsync();
+    }
 }

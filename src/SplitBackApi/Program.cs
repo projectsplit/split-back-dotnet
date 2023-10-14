@@ -22,7 +22,6 @@ using SplitBackApi.Data.Repositories.InvitationRepository;
 using SplitBackApi.Data.Repositories.SessionRepository;
 using SplitBackApi.Data.Repositories.TransferRepository;
 using SplitBackApi.Data.Repositories.UserRepository;
-using SplitBackApi.Domain.Models;
 using SplitBackApi.Domain.Services;
 using SplitBackApi.Domain.Validators;
 using SplitBackApi.Data.Repositories.GoogleUserRepository;

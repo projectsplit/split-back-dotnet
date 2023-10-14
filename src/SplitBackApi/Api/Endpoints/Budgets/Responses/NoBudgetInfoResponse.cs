@@ -1,5 +1,3 @@
-using SplitBackApi.Domain.Models;
-
 namespace SplitBackApi.Api.Endpoints.Budgets.Responses;
 
 public class NoBudgetInfoResponse

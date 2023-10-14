@@ -11,6 +11,6 @@ public static partial class BudgetsEndpoints
 
     budgetGroup.MapPost("/create", CreateBudget);
     budgetGroup.MapPost("/delete", DeleteBudget);
-    budgetGroup.MapGet("/budgetinfo", BudgetInfo);
+    budgetGroup.MapGet("/budgetinfo", GetBudgetInfo);
   }
 }

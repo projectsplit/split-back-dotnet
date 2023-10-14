@@ -8,10 +8,6 @@ public static partial class AuthenticationEndpoints {
       .WithTags("Authentication")
       .AllowAnonymous();
 
-    // authGroup.MapPost("/verify-token", VerifyToken);
-    // authGroup.MapPost("/sign-in", SignIn);
-    // authGroup.MapPost("/request-sign-up", RequestSignUp);
-    // authGroup.MapPost("/request-sign-in", RequestSignIn);
     authGroup.MapPost("/refresh-token", RefreshToken);
     
     authGroup.MapPost("/email/send-link", EmailSendLink);

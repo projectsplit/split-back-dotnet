@@ -5,8 +5,11 @@ namespace SplitBackApi.Data.Repositories.BudgetRepository;
 
 public interface IBudgetRepository
 {
-  Task Create(Budget budget);
-  Task<Result> DeleteByUserId(string UserId);
-  Task<Result<Budget>> GetByUserId(string UserId);
-  // Task<Result<Expense>> GetExpensesByBudgetType(BudgetType BudgetType, string day);
+    Task<Result> Create(Budget budget, CancellationToken ct);
+
+    Task<Result> DeleteByUserId(string userId);
+
+    Task<Maybe<Budget>> GetByUserId(string userId);
+    
+    // Task<Result<Expense>> GetExpensesByBudgetType(BudgetType BudgetType, string day);
 }

@@ -1,6 +1,7 @@
 using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using SplitBackApi.Common;
 using SplitBackApi.Configuration;
 using SplitBackApi.Domain.Models;
 
@@ -25,9 +26,9 @@ public class BudgetMongoDbRepository : IBudgetRepository
     _expenseCollection = mongoDatabase.GetCollection<Expense>(dbSettings.Database.Collections.Expenses);
 
   }
-  public async Task Create(Budget budget)
+  public async Task<Result> Create(Budget budget, CancellationToken ct)
   {
-    await _budgetCollection.InsertOneAsync(budget);
+    return await _budgetCollection.InsertOneAsync(budget, ct).ExecuteResultAsync();
   }
 
   public async Task<Result> DeleteByUserId(string UserId)
@@ -42,14 +43,11 @@ public class BudgetMongoDbRepository : IBudgetRepository
 
   }
 
-  public async Task<Result<Budget>> GetByUserId(string UserId)
+  public async Task<Maybe<Budget>> GetByUserId(string userId)
   {
-    var filter = Builders<Budget>.Filter.Eq(b => b.UserId, UserId);
+    var filter = Builders<Budget>.Filter.Eq(b => b.UserId, userId);
 
-    var budget = await _budgetCollection.Find(filter).FirstOrDefaultAsync();
-    if (budget is null) return Result.Failure<Budget>($"budget from {UserId} not found");
-
-    return budget;
+    return await _budgetCollection.Find(filter).FirstOrDefaultAsync();
   }
 
   // public Task<Result<Expense>> GetExpensesByBudgetType(BudgetType BudgetType, string day)

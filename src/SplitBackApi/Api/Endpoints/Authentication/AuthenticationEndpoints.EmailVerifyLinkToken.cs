@@ -1,7 +1,6 @@
 using CSharpFunctionalExtensions;
 using MongoDB.Bson;
 using SplitBackApi.Api.Endpoints.Authentication.Models;
-using SplitBackApi.Api.Endpoints.Authentication.Requests;
 using SplitBackApi.Api.Endpoints.Authentication.Responses;
 using SplitBackApi.Api.Services;
 using SplitBackApi.Data.Repositories.SessionRepository;

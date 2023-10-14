@@ -1,12 +1,10 @@
 using CSharpFunctionalExtensions;
-using SplitBackApi.Api.Helper;
 using SplitBackApi.Data.Repositories.ExpenseRepository;
 using SplitBackApi.Data.Repositories.GroupRepository;
 using SplitBackApi.Data.Repositories.TransferRepository;
 using SplitBackApi.Data.Repositories.UserRepository;
 using SplitBackApi.Domain.Extensions;
 using SplitBackApi.Domain.Models;
-using NMoneys;
 
 namespace SplitBackApi.Domain.Services;
 

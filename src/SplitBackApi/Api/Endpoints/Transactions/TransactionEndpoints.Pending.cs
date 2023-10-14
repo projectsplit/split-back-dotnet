@@ -5,7 +5,6 @@ using SplitBackApi.Api.Helper;
 using SplitBackApi.Data.Repositories.GroupRepository;
 using SplitBackApi.Data.Repositories.UserRepository;
 using SplitBackApi.Domain.Extensions;
-using SplitBackApi.Domain.Models;
 using SplitBackApi.Domain.Services;
 
 namespace SplitBackApi.Api.Endpoints.Transactions;

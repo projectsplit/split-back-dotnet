@@ -1,7 +1,5 @@
-using System.Net.Http.Headers;
 using System.Web;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using SplitBackApi.Api.Endpoints.Authentication.Requests;
 using SplitBackApi.Api.Extensions;
 using SplitBackApi.Api.Services;

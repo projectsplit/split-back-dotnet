@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
 using SplitBackApi.Api.Endpoints.Transfers.Requests;
 using SplitBackApi.Api.Endpoints.Transfers.Responses;
 using SplitBackApi.Api.Helper;

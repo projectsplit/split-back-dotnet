@@ -3,7 +3,6 @@ using SplitBackApi.Api.Endpoints.Groups.Responses;
 using SplitBackApi.Api.Extensions;
 using SplitBackApi.Data.Repositories.GroupRepository;
 using SplitBackApi.Domain.Services;
-using CSharpFunctionalExtensions;
 using SplitBackApi.Domain.Models;
 
 
