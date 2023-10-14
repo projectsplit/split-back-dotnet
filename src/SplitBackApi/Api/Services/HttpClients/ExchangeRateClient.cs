@@ -1,19 +1,21 @@
 using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using SplitBackApi.Api.Endpoints.Budgets.Responses;
+using SplitBackApi.Configuration;
 
 namespace SplitBackApi.Api.Services.HttpClients;
 
 public class ExchangeRateClient
 {
   private readonly HttpClient _httpClient;
+  private readonly string _openExchangeRatesAppId;
 
-  public ExchangeRateClient(HttpClient httpClient)
+  public ExchangeRateClient(IHttpClientFactory httpClientFactory, IOptions<AppSettings> appSettings)
   {
-    _httpClient = httpClient;
-    _httpClient.DefaultRequestHeaders.Add("accept", "application/json");
-    _httpClient.BaseAddress = new Uri("https://openexchangerates.org/api/");
+    _httpClient = httpClientFactory.CreateClient("openexchangerates");
+    _openExchangeRatesAppId = appSettings.Value.OpenExchangeRatesAppId;
   }
 
   public async Task<Result<ExchangeRateResponse>> GetHistorical(string symbols, string baseCurrency, string date)
@@ -22,7 +24,7 @@ public class ExchangeRateClient
 
     var query = new Dictionary<string, string>
       {
-        { "app_id", "382c2dbb473546f2aa9f558a18c8da29" },
+        { "app_id", _openExchangeRatesAppId },
         { "base", baseCurrency },
         { "symbols", symbols },
         { "show_alternative", "false" },

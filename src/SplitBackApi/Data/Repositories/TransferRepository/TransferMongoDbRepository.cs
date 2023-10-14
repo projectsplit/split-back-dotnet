@@ -125,7 +125,7 @@ public class TransferMongoDbRepository : ITransferRepository
     return Result.Success();
   }
 
-  public async Task<Result<List<Transfer>>> GetByGroupIdAndStartDate(string groupId, string memberId, DateTime startDate)
+  public async Task<List<Transfer>> GetByGroupIdAndStartDate(string groupId, string memberId, DateTime startDate)
   {
     var groupFilter = Builders<Transfer>.Filter.Eq(e => e.GroupId, groupId);
 
@@ -136,9 +136,6 @@ public class TransferMongoDbRepository : ITransferRepository
     var creationTimeFilter = Builders<Transfer>.Filter.Gte(e => e.CreationTime, startDate) & Builders<Transfer>.Filter.Lte(e => e.CreationTime, DateTime.Now);
     var filter = groupFilter & memberFilter & creationTimeFilter;
 
-    var transfers = await _transferCollection.Find(filter).ToListAsync();
-
-    return transfers;
-
+    return await _transferCollection.Find(filter).ToListAsync();
   }
 }

@@ -24,17 +24,17 @@ public static partial class BudgetsEndpoints
         HttpRequest request,
         BudgetService budgetService)
     {
-        // TODO remove
-        // var authenticatedUserId = "63ff33b09e4437f07d9d3982"; //claimsPrincipal.GetAuthenticatedUserId();
+        // var authenticatedUserId = "63ff33b09e4437f07d9d3982";
         var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
-        var budgetTypeString = request.Query["budgetType"].ToString();
-        if (string.IsNullOrEmpty(budgetTypeString)) return Results.BadRequest("Budget type is missing");
 
-        // TODO Validate
+        // TODO Handle no budgetType
+        var budgetTypeString = request.Query["budgetType"].ToString();
+
+        // TODO Handle no currency
         var currencyFromReq = request.Query["currency"];
 
         var groups = await groupRepository.GetGroupsByUserId(authenticatedUserId);
-        if (groups.IsNullOrEmpty()) return Results.BadRequest("No groups found");
+        if (groups.IsNullOrEmpty()) return Results.BadRequest("No groups");
 
         decimal totalSpent = 0;
         string day;
@@ -46,7 +46,7 @@ public static partial class BudgetsEndpoints
         {
             day = "1";
             Enum.TryParse<BudgetType>(budgetTypeString, true, out budgetType);
-            budgetCurrency = "USD"; //TODO Why USD?
+            budgetCurrency = "USD";
         }
         else
         {
@@ -55,15 +55,20 @@ public static partial class BudgetsEndpoints
             budgetCurrency = budgetMaybe.Value.Currency;
         }
 
-        var (startDate, endDate) = budgetService.StartAndEndDateBasedOnBudgetAndDay(budgetType, day).Value;
+        var startDate = budgetService.StartAndEndDateBasedOnBudgetAndDay(budgetType, day).Value.startDate;
+        var endDate = budgetService.StartAndEndDateBasedOnBudgetAndDay(budgetType, day).Value.endDate;
         var currentDate = DateTime.Now;
 
         foreach (var group in groups)
         {
-            // TODO Handle failure
+            var groupId = group.Id;
             var memberId = UserIdToMemberIdHelper.UserIdToMemberId(group, authenticatedUserId).Value;
 
-            var expenses = await expenseRepository.GetLatestByGroupIdMemberId(group.Id, memberId, startDate);
+            var expenses = await expenseRepository.GetLatestByGroupIdMemberId(groupId, memberId, startDate);
+            if (expenses.IsNullOrEmpty()) return Results.BadRequest("No expenses found");
+
+            var transfers = await transferRepository.GetByGroupIdAndStartDate(groupId, memberId, startDate);
+            if (transfers.IsNullOrEmpty()) return Results.BadRequest("No transfers found");
 
             foreach (var expense in expenses)
             {
@@ -79,7 +84,29 @@ public static partial class BudgetsEndpoints
                     // var historicalFxRateResult = await budgetService.HistoricalFxRate(currency, budgetCurrency, expense.CreationTime.ToString("yyyy-MM-dd"));
                     // if (historicalFxRateResult.IsFailure) return Results.BadRequest(historicalFxRateResult.Error);
                     // var historicalFxRate = historicalFxRateResult.Value.Rates;
+
                     // totalSpent += amount / historicalFxRate[expense.Currency];
+                }
+            }
+
+            foreach (var transfer in transfers)
+            {
+                string currency = transfer.Currency;
+                decimal amount = transfer.Amount.ToDecimal();
+
+                if (currency == budgetCurrency)
+                {
+                    totalSpent = transfer.SenderId == memberId ? totalSpent + amount : totalSpent - amount;
+                }
+                else
+                {
+                    // var historicalFxRateResult = await budgetService.HistoricalFxRate(currency, budgetCurrency, transfer.CreationTime.ToString("yyyy-MM-dd"));
+                    // if (historicalFxRateResult.IsFailure) return Results.BadRequest(historicalFxRateResult.Error);
+                    // var historicalFxRate = historicalFxRateResult.Value.Rates;
+
+                    // totalSpent = transfer.SenderId == memberId ?
+                    // totalSpent + amount / historicalFxRate[transfer.Currency] :
+                    // totalSpent - amount / historicalFxRate[transfer.Currency];
                 }
             }
         }
@@ -96,6 +123,7 @@ public static partial class BudgetsEndpoints
         }
         else
         {
+            decimal averageSpentPerDay;
             var budget = budgetMaybe.Value;
             var remainingDaysResult = budgetService.RemainingDays(budgetType, startDate);
             if (remainingDaysResult.IsFailure) return Results.BadRequest(remainingDaysResult.Error);
@@ -103,7 +131,7 @@ public static partial class BudgetsEndpoints
             var remainingDays = remainingDaysResult.Value;
             var daysSinceStartDay = (currentDate - startDate).Days;
 
-            var averageSpentPerDay = daysSinceStartDay == 0
+            averageSpentPerDay = (daysSinceStartDay == 0)
                 ? Math.Round(totalSpent, 2)
                 : Math.Round(totalSpent / daysSinceStartDay, 2);
 
