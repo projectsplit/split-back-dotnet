@@ -32,18 +32,14 @@ public static partial class BudgetsEndpoints
     var groups = await groupRepository.GetGroupsByUserId(authenticatedUserId);
     if (groups.IsNullOrEmpty()) return Results.BadRequest("No groups");
 
-    string day;
-    string budgetCurrency;
-    BudgetType budgetType;
-
     var budgetMaybe = await budgetRepository.GetByUserId(authenticatedUserId);
     if (budgetMaybe.HasNoValue) return Results.Ok(new BudgetInfoResponse { BudgetSubmitted = false });
 
     var budget = budgetMaybe.Value;
 
-    day = budget.Day;
-    budgetType = budget.BudgetType;
-    budgetCurrency = budget.Currency;
+    var day = budget.Day;
+    var budgetType = budget.BudgetType;
+    var budgetCurrency = budget.Currency;
 
     var startDate = budgetService.StartAndEndDateBasedOnBudgetAndDay(budgetType, day).Value.startDate;
     var endDate = budgetService.StartAndEndDateBasedOnBudgetAndDay(budgetType, day).Value.endDate;
@@ -61,14 +57,14 @@ public static partial class BudgetsEndpoints
     if (totalSpentResult.IsFailure) return Results.BadRequest(totalSpentResult.Error);
     var totalSpent = totalSpentResult.Value;
 
-    decimal averageSpentPerDay;
+
     var remainingDaysResult = budgetService.RemainingDays(budgetType, startDate);
     if (remainingDaysResult.IsFailure) return Results.BadRequest(remainingDaysResult.Error);
 
     var remainingDays = remainingDaysResult.Value;
     var daysSinceStartDay = (currentDate - startDate).Days;
 
-    averageSpentPerDay = (daysSinceStartDay == 0)
+    var averageSpentPerDay = (daysSinceStartDay == 0)
         ? Math.Round(totalSpent, 2)
         : Math.Round(totalSpent / daysSinceStartDay, 2);
 

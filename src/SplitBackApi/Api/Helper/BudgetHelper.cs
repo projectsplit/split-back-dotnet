@@ -47,7 +47,6 @@ public class BudgetHelper
         {
           // var historicalFxRateResult = await budgetService.HistoricalFxRate(currency, budgetCurrency, expense.CreationTime.ToString("yyyy-MM-dd"));
           // if (historicalFxRateResult.IsFailure) return Result.Failure<decimal>(historicalFxRateResult.Error);
-
           // var historicalFxRate = historicalFxRateResult.Value.Rates;
 
           // totalSpent += amount / historicalFxRate[expense.Currency];
