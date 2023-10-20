@@ -3,7 +3,6 @@ using Microsoft.IdentityModel.Tokens;
 using SplitBackApi.Api.Services;
 using SplitBackApi.Data.Repositories.ExpenseRepository;
 using SplitBackApi.Data.Repositories.TransferRepository;
-
 using SplitBackApi.Domain.Extensions;
 using SplitBackApi.Domain.Models;
 
@@ -11,17 +10,19 @@ namespace SplitBackApi.Api.Helper;
 
 public class BudgetHelper
 {
+  // private static decimal GetRate(string currencyFrom, string currencyTo, DateTime timestamp)
+  // {
+  //   return 0.9m;
+  // }
 
   public static async Task<Result<decimal>> CalculateTotalSpent(
-
     string authenticatedUserId,
     IEnumerable<Group> groups,
     string budgetCurrency,
     DateTime startDate,
     IExpenseRepository expenseRepository,
     ITransferRepository transferRepository,
-    BudgetService budgetService
-    )
+    BudgetService budgetService)
   {
     decimal totalSpent = 0;
 
@@ -33,6 +34,20 @@ public class BudgetHelper
       var expenses = await expenseRepository.GetLatestByGroupIdMemberId(groupId, memberId, startDate);
 
       var transfers = await transferRepository.GetByGroupIdAndStartDate(groupId, memberId, startDate);
+
+      // var expensesTotalSpent = expenses
+      //   .Sum(e => e.Amount.ToDecimal() / GetRate(e.Currency, budgetCurrency, e.CreationTime));
+
+      // var transfersTotalSent = transfers
+      //   .Where(t => t.SenderId == memberId)
+      //   .Sum(t => t.Amount.ToDecimal() / GetRate(t.Currency, budgetCurrency, t.CreationTime));
+
+      // var transfersTotalReceived = transfers
+      //   .Where(t => t.ReceiverId == memberId)
+      //   .Sum(t => (-1) * t.Amount.ToDecimal() / GetRate(t.Currency, budgetCurrency, t.CreationTime));
+
+      // return expensesTotalSpent + transfersTotalSent + transfersTotalReceived;
+
 
       foreach (var expense in expenses)
       {
@@ -78,6 +93,4 @@ public class BudgetHelper
     }
     return totalSpent;
   }
-
-
 }
