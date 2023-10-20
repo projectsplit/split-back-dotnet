@@ -1,3 +1,4 @@
+using CSharpFunctionalExtensions;
 using Microsoft.IdentityModel.Tokens;
 using SplitBackApi.Api.Services;
 using SplitBackApi.Data.Repositories.ExpenseRepository;
@@ -11,7 +12,8 @@ namespace SplitBackApi.Api.Helper;
 public class BudgetHelper
 {
 
-  public static async Task<(decimal TotalSpent, string ErrorMessage)> CalculateTotalSpent(
+  public static async Task<Result<decimal>> CalculateTotalSpent(
+
     string authenticatedUserId,
     IEnumerable<Group> groups,
     string budgetCurrency,
@@ -21,9 +23,7 @@ public class BudgetHelper
     BudgetService budgetService
     )
   {
-
     decimal totalSpent = 0;
-    string errorMessage = null;
 
     foreach (var group in groups)
     {
@@ -31,18 +31,8 @@ public class BudgetHelper
       var memberId = UserIdToMemberIdHelper.UserIdToMemberId(group, authenticatedUserId).Value;
 
       var expenses = await expenseRepository.GetLatestByGroupIdMemberId(groupId, memberId, startDate);
-      if (expenses.IsNullOrEmpty())
-      {
-        errorMessage = "No expenses";
-        break;
-      }
 
       var transfers = await transferRepository.GetByGroupIdAndStartDate(groupId, memberId, startDate);
-      if (transfers.IsNullOrEmpty())
-      {
-        errorMessage = "No transfers";
-        break;
-      }
 
       foreach (var expense in expenses)
       {
@@ -56,11 +46,8 @@ public class BudgetHelper
         else
         {
           // var historicalFxRateResult = await budgetService.HistoricalFxRate(currency, budgetCurrency, expense.CreationTime.ToString("yyyy-MM-dd"));
-          // if (historicalFxRateResult.IsFailure)
-          // {
-          //   errorMessage = historicalFxRateResult.Error;
-          //   break;
-          // }
+          // if (historicalFxRateResult.IsFailure) return Result.Failure<decimal>(historicalFxRateResult.Error);
+
           // var historicalFxRate = historicalFxRateResult.Value.Rates;
 
           // totalSpent += amount / historicalFxRate[expense.Currency];
@@ -80,11 +67,7 @@ public class BudgetHelper
         else
         {
           // var historicalFxRateResult = await budgetService.HistoricalFxRate(currency, budgetCurrency, transfer.CreationTime.ToString("yyyy-MM-dd"));
-          // if (historicalFxRateResult.IsFailure)
-          // {
-          //   errorMessage = historicalFxRateResult.Error;
-          //   break;
-          // }
+          // if (historicalFxRateResult.IsFailure) return Result.Failure<decimal>(historicalFxRateResult.Error);
           // var historicalFxRate = historicalFxRateResult.Value.Rates;
 
           // totalSpent = transfer.SenderId == memberId ?
@@ -94,7 +77,7 @@ public class BudgetHelper
       }
 
     }
-    return (totalSpent, errorMessage);
+    return totalSpent;
   }
 
 
