@@ -9,38 +9,38 @@ namespace SplitBackApi.Api.Endpoints.Budgets;
 
 public static partial class BudgetsEndpoints
 {
-    private static async Task<IResult> CreateBudget(
-        IBudgetRepository budgetRepository,
-        ClaimsPrincipal claimsPrincipal,
-        CreateBudgetRequest request,
-        BudgetValidator budgetValidator,
-        CancellationToken ct)
+  private static async Task<IResult> CreateBudget(
+      IBudgetRepository budgetRepository,
+      ClaimsPrincipal claimsPrincipal,
+      CreateBudgetRequest request,
+      BudgetValidator budgetValidator,
+      CancellationToken ct)
+  {
+    var authenticatedUserId = "63ff33b09e4437f07d9d3982"; //claimsPrincipal.GetAuthenticatedUserId();
+
+    var newBudget = new Budget
     {
-        var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
+      CreationTime = DateTime.UtcNow,
+      LastUpdateTime = DateTime.UtcNow,
+      UserId = authenticatedUserId,
+      Amount = request.Amount,
+      Currency = request.Currency,
+      BudgetType = request.BudgetType,
+      Day = request.Day,
+    };
 
-        var newBudget = new Budget
-        {
-            CreationTime = DateTime.UtcNow,
-            LastUpdateTime = DateTime.UtcNow,
-            UserId = authenticatedUserId,
-            Amount = request.Amount,
-            Currency = request.Currency,
-            BudgetType = request.BudgetType,
-            Day = request.Day,
-        };
+    var validationResult = await budgetValidator.ValidateAsync(newBudget, ct);
+    if (validationResult.IsValid is false) return Results.BadRequest(validationResult.ToErrorResponse());
 
-        var validationResult = await budgetValidator.ValidateAsync(newBudget, ct);
-        if (validationResult.IsValid is false) return Results.BadRequest(validationResult.ToErrorResponse());
+    var userBudgetMaybe = await budgetRepository.GetByUserId(authenticatedUserId);
 
-        var userBudgetMaybe = await budgetRepository.GetByUserId(authenticatedUserId);
-
-        if (userBudgetMaybe.HasValue)
-        {
-            await budgetRepository.DeleteByUserId(authenticatedUserId);
-        }
-
-        var createResult = await budgetRepository.Create(newBudget, ct);
-
-        return createResult.IsSuccess ? Results.Ok() : Results.BadRequest(createResult.Error);
+    if (userBudgetMaybe.HasValue)
+    {
+      await budgetRepository.DeleteByUserId(authenticatedUserId);
     }
+
+    var createResult = await budgetRepository.Create(newBudget, ct);
+
+    return createResult.IsSuccess ? Results.Ok() : Results.BadRequest(createResult.Error);
+  }
 }
