@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using SplitBackApi.Api.Endpoints.Budgets.Responses;
 using SplitBackApi.Configuration;
+using SplitBackApi.Domain.Models;
 
 namespace SplitBackApi.Api.Services.HttpClients;
 
@@ -18,7 +19,7 @@ public class ExchangeRateClient
     _openExchangeRatesAppId = appSettings.Value.OpenExchangeRatesAppId;
   }
 
-  public async Task<Result<ExchangeRateResponse>> GetHistorical(string symbols, string baseCurrency, string date)
+  public async Task<Result<ExchangeRates>> GetHistorical(string symbols, string baseCurrency, string date)
   {
     var requestUri = $"historical/{date}.json";
 
@@ -40,10 +41,15 @@ public class ExchangeRateClient
     if (!response.IsSuccessStatusCode)
     {
       // Handle error if needed
-      return Result.Failure<ExchangeRateResponse>("Failed to retrieve exchange rates");
+      return Result.Failure<ExchangeRates>("Failed to retrieve exchange rates");
     }
 
-    var deserializedResponse = JsonConvert.DeserializeObject<ExchangeRateResponse>(responseString);
+    var deserializedResponse = JsonConvert.DeserializeObject<ExchangeRates>(responseString);
+    
+    deserializedResponse.Date = date;
+    deserializedResponse.CreationTime = DateTime.UtcNow;
+    deserializedResponse.LastUpdateTime = DateTime.UtcNow;;
+      
     return Result.Success(deserializedResponse);
   }
 }

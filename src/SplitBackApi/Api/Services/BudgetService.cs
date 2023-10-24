@@ -2,19 +2,15 @@ using SplitBackApi.Domain.Models;
 using CSharpFunctionalExtensions;
 using SplitBackApi.Domain.Extensions;
 using SplitBackApi.Api.Services.HttpClients;
-using SplitBackApi.Api.Endpoints.Budgets.Responses;
+using SplitBackApi.Data.Repositories.GroupRepository;
+using SplitBackApi.Data.Repositories.ExpenseRepository;
+using SplitBackApi.Data.Repositories.TransferRepository;
+
 
 namespace SplitBackApi.Api.Services;
 
 public class BudgetService
 {
-  private readonly ExchangeRateClient _exchangeRateClient;
-
-  public BudgetService(ExchangeRateClient exchangeRateClient) //ExchangeRateClient comes from dependency injection
-  {
-   _exchangeRateClient = exchangeRateClient;
-  }
-
   public Result<(DateTime startDate, DateTime endDate)> StartAndEndDateBasedOnBudgetAndDay(BudgetType budgetType, string day)
   {
     DateTime currentDate = DateTime.Now;
@@ -112,11 +108,5 @@ public class BudgetService
     }
     return Result.Success(remainingDays);
 
-  }
-
-
-  public async Task<Result<ExchangeRateResponse>> HistoricalFxRate(string symbols, string baseCurrency, string date)
-  {
-    return await _exchangeRateClient.GetHistorical(symbols, baseCurrency, date);
   }
 }
