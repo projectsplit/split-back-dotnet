@@ -1,10 +1,6 @@
 using SplitBackApi.Domain.Models;
 using CSharpFunctionalExtensions;
 using SplitBackApi.Domain.Extensions;
-using SplitBackApi.Api.Services.HttpClients;
-using SplitBackApi.Data.Repositories.GroupRepository;
-using SplitBackApi.Data.Repositories.ExpenseRepository;
-using SplitBackApi.Data.Repositories.TransferRepository;
 
 
 namespace SplitBackApi.Api.Services;
