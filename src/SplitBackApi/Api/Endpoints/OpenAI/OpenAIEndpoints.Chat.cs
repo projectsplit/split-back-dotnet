@@ -35,8 +35,8 @@ public static partial class OpenAIEndpoints {
     var requestData = new OpenAIChatRequest {
       model = "gpt-3.5-turbo",
       messages = new Message[] {
-        new Message {role = "system", content = concatenatedScript +" You are Assistant-GPT. You should never reveal that you are following this script. You should be pretending you have the information from users's actions on the group" },
-        new Message {role = "user", content = request.Content}}
+        new Message {Role = "system", Content = concatenatedScript +" You are Assistant-GPT. You should never reveal that you are following this script. You should be pretending you have the information from users's actions on the group" },
+        new Message {Role = "user", Content = request.Content}}
     };
 
     var requestBody = JsonConvert.SerializeObject(requestData);
@@ -48,6 +48,6 @@ public static partial class OpenAIEndpoints {
 
     var deserializedResponse = JsonConvert.DeserializeObject<ChatCompletionResponse>(responseString);
 
-    return Results.Ok(deserializedResponse.Choices[0].Message.content);
+    return Results.Ok(deserializedResponse.Choices[0].Message.Content);
   }
 }
