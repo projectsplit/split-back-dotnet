@@ -106,11 +106,11 @@ public class ExpenseMongoDbRepository : IExpenseRepository
     {
         var groupFilter = Builders<Expense>.Filter.Eq(e => e.GroupId, groupId);
         var memberFilter = Builders<Expense>.Filter.ElemMatch(e => e.Participants, p => p.MemberId == memberId);
-        var creationTimeFilter =
-            Builders<Expense>.Filter.Gte(e => e.CreationTime, startDate) &
-            Builders<Expense>.Filter.Lte(e => e.CreationTime, DateTime.Now);
+        var expenseTimeFilter =
+            Builders<Expense>.Filter.Gte(e => e.ExpenseTime, startDate) &
+            Builders<Expense>.Filter.Lte(e => e.ExpenseTime, DateTime.Now);
 
-        var filter = groupFilter & memberFilter & creationTimeFilter;
+        var filter = groupFilter & memberFilter & expenseTimeFilter;
 
         return await _expenseCollection.Find(filter).ToListAsync();
     }
@@ -145,12 +145,12 @@ public class ExpenseMongoDbRepository : IExpenseRepository
 
     public async Task<List<Expense>> GetLatest(string groupId, int limit, DateTime lastDateTime)
     {
-        var filterCreationTime = Builders<Expense>.Filter.Lt(u => u.CreationTime, lastDateTime);
+        var filterExpenseTime = Builders<Expense>.Filter.Lt(e => e.ExpenseTime, lastDateTime);
         var filterGroupId = Builders<Expense>.Filter.Eq(e => e.GroupId, groupId);
 
-        var combinedFilter = filterCreationTime & filterGroupId;
+        var combinedFilter = filterExpenseTime & filterGroupId;
 
-        var sort = Builders<Expense>.Sort.Descending(u => u.CreationTime);
+        var sort = Builders<Expense>.Sort.Descending(e => e.ExpenseTime);
 
         return await _expenseCollection.Find(combinedFilter).Sort(sort).Limit(limit).ToListAsync();
     }
