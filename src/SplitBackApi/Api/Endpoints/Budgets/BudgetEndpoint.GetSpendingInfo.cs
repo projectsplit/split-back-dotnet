@@ -10,6 +10,7 @@ using SplitBackApi.Api.Endpoints.Budgets.Responses;
 using SplitBackApi.Data.Repositories.TransferRepository;
 using SplitBackApi.Api.Services;
 using Microsoft.IdentityModel.Tokens;
+using SplitBackApi.Data.Repositories.ExchangeRateRepository;
 
 namespace SplitBackApi.Api.Endpoints.Budgets;
 
@@ -22,7 +23,8 @@ public static partial class BudgetsEndpoints
      IGroupRepository groupRepository,
      ClaimsPrincipal claimsPrincipal,
      HttpRequest request,
-     BudgetService budgetService
+     BudgetService budgetService,
+     IExchangeRateRepository exchangeRateRepository
    )
   {
     var authenticatedUserId = "63ff33b09e4437f07d9d3982"; //claimsPrincipal.GetAuthenticatedUserId();
@@ -47,7 +49,7 @@ public static partial class BudgetsEndpoints
           startDate,
           expenseRepository,
           transferRepository,
-          budgetService);
+          exchangeRateRepository);
 
     if (totalSpentResult.IsFailure) return Results.BadRequest(totalSpentResult.Error);
     var totalSpent = totalSpentResult.Value;

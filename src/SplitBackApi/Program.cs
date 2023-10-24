@@ -28,6 +28,7 @@ using SplitBackApi.Data.Repositories.GoogleUserRepository;
 using SplitBackApi.Api.Services.GoogleAuthService;
 using SplitBackApi.Data.Repositories.BudgetRepository;
 using SplitBackApi.Api.Services.HttpClients;
+using SplitBackApi.Data.Repositories.ExchangeRateRepository;
 
 namespace SplitBackApi;
 
@@ -55,7 +56,7 @@ public class Program
       });
     });
 
-    builder.Services.AddHttpClient("openexchangerates",client =>
+    builder.Services.AddHttpClient("openexchangerates", client =>
     {
       client.DefaultRequestHeaders.Add("accept", "application/json");
       client.BaseAddress = new Uri("https://openexchangerates.org/api/");
@@ -73,6 +74,7 @@ public class Program
     builder.Services.AddScoped<ICommentRepository, CommentMongoDbRepository>();
     builder.Services.AddScoped<IInvitationRepository, InvitationMongoDbRepository>();
     builder.Services.AddScoped<IBudgetRepository, BudgetMongoDbRepository>();
+    builder.Services.AddScoped<IExchangeRateRepository, ExchangeRateRepository>();
 
 
     // Services
@@ -81,6 +83,7 @@ public class Program
     builder.Services.AddScoped<TransactionService>();
     builder.Services.AddScoped<OpenAIService>();
     builder.Services.AddScoped<BudgetService>();
+    builder.Services.AddScoped<ExchangeRateService>();
 
     builder.Services.AddHttpClient();
 

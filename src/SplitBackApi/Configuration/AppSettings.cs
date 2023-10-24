@@ -65,4 +65,5 @@ public class CollectionSettings
   public string Invitations { get; set; }
   public string Sessions { get; set; }
   public string Budgets { get; set; }
+  public string ExchangeRates { get; set; }
 }

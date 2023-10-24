@@ -11,6 +11,8 @@ using SplitBackApi.Data.Repositories.TransferRepository;
 using SplitBackApi.Api.Services;
 using Microsoft.IdentityModel.Tokens;
 using CSharpFunctionalExtensions;
+using SplitBackApi.Data.Repositories.ExchangeRateRepository;
+using SplitBackApi.Api.Extensions;
 
 namespace SplitBackApi.Api.Endpoints.Budgets;
 
@@ -23,11 +25,14 @@ public static partial class BudgetsEndpoints
     IGroupRepository groupRepository,
     ClaimsPrincipal claimsPrincipal,
     HttpRequest request,
-    BudgetService budgetService
+    BudgetService budgetService,
+    IExchangeRateRepository exchangeRateRepository
   )
   {
 
-    var authenticatedUserId = "63ff33b09e4437f07d9d3982"; //claimsPrincipal.GetAuthenticatedUserId();
+    var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
+
+    //await exchangeRateRepository.GetExchangeRates("USD","2023-10-21");
 
     var groups = await groupRepository.GetGroupsByUserId(authenticatedUserId);
     if (groups.IsNullOrEmpty()) return Results.BadRequest("No groups");
@@ -41,8 +46,10 @@ public static partial class BudgetsEndpoints
     var budgetType = budget.BudgetType;
     var budgetCurrency = budget.Currency;
 
-    var startDate = budgetService.StartAndEndDateBasedOnBudgetAndDay(budgetType, day).Value.startDate;
-    var endDate = budgetService.StartAndEndDateBasedOnBudgetAndDay(budgetType, day).Value.endDate;
+    var dates = budgetService.StartAndEndDateBasedOnBudgetAndDay(budgetType, day).Value;
+    var startDate = dates.startDate;
+    var endDate = dates.endDate;
+
     var currentDate = DateTime.Now;
 
     var totalSpentResult = await BudgetHelper.CalculateTotalSpent(
@@ -52,7 +59,7 @@ public static partial class BudgetsEndpoints
           startDate,
           expenseRepository,
           transferRepository,
-          budgetService);
+          exchangeRateRepository);
 
     if (totalSpentResult.IsFailure) return Results.BadRequest(totalSpentResult.Error);
     var totalSpent = totalSpentResult.Value;
