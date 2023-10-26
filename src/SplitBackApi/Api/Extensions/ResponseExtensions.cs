@@ -9,7 +9,9 @@ public static class ResponseExtensions {
   
   public static void AppendUniqueCookie(this HttpResponse response, string unique) {
 
-    response.Cookies.Append("unique", unique, AuthCookieOptions("/auth/sign-in"));
+    response.Cookies.Append("unique", unique, AuthCookieOptions("/auth/email/connect"));
+    response.Headers.Add("Access-Control-Allow-Origin", "http://localhost:3000");
+    response.Headers.Add("Access-Control-Allow-Credentials", "true");
   }
 
   public static void DeleteUniqueCookie(this HttpResponse response) {
@@ -20,11 +22,12 @@ public static class ResponseExtensions {
   private static CookieOptions AuthCookieOptions(string path) {
 
     return new CookieOptions {
-      SameSite = SameSiteMode.Lax,
+      SameSite = SameSiteMode.None,
       HttpOnly = true,
       Path = path,
       Expires = DateTime.UtcNow.AddDays(30),
-      MaxAge = TimeSpan.FromDays(30)
+      MaxAge = TimeSpan.FromDays(30),
+      Secure = true
     };
   }
 }

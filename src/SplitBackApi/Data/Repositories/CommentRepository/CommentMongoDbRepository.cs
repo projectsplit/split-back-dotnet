@@ -34,7 +34,7 @@ public class CommentMongoDbRepository : ICommentRepository {
     
     var findCommentFilter = Builders<Comment>.Filter.Eq(c => c.Id, commentId);
     
-    var commentFound = await _commentCollection.Find<Comment>(findCommentFilter).FirstOrDefaultAsync();
+    var commentFound = await _commentCollection.Find(findCommentFilter).FirstOrDefaultAsync();
     if (commentFound is null) return Result.Failure($"Comment with id {commentId} has not been found to be deleted");
 
     using var session = await _mongoClient.StartSessionAsync();

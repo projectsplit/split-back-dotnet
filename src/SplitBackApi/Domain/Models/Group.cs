@@ -2,7 +2,6 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace SplitBackApi.Domain.Models;
-
 public class Group : EntityBase {
 
   [BsonRepresentation(BsonType.ObjectId)]

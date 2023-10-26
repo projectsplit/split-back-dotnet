@@ -15,3 +15,13 @@ public record TransactionMember {
 
   public decimal TotalAmountTaken { get; set; }
 }
+
+public class TransactionMemberWrapper {
+  public TransactionMemberWrapper(TransactionMember member, decimal remainder) {
+    Member = member;
+    Remainder = remainder;
+  }
+
+  public TransactionMember Member { get; set; }
+  public decimal Remainder { get; set; }
+}

@@ -1,15 +1,14 @@
+using SplitBackApi.Api.Services.GoogleAuthService;
+
 namespace SplitBackApi.Api.Endpoints.Authentication;
 
-public static partial class AuthenticationEndpoints {
+public static partial class AuthenticationEndpoints
+{
+  public static IResult GoogleUrl(
+    GoogleAuthService googleAuthService)
+  {
+    var signInWithGoogleUrl = googleAuthService.GenerateSignInWithGoogleUrl();
 
-  public static async Task<IResult> GoogleUrl(
-    HttpContext httpContext,
-    HttpRequest httpRequest
-  ) {   
-    // Construct Url for Sign In With Google Button
-    
-    // Send Url
-    
-    return Results.Ok();
+    return Results.Ok(signInWithGoogleUrl);
   }
 }

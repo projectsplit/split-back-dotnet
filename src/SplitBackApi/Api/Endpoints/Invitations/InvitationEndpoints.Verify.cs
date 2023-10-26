@@ -59,7 +59,7 @@ public static partial class InvitationEndpoints {
     return Results.Ok(new {
       InviterNickName = inviterUser.Nickname,
       GroupTitle = group.Title,
-      GroupMembersCount = group.Members.Count
+      GroupId = group.Id
     });
   }
 }

@@ -31,7 +31,7 @@ public static partial class InvitationEndpoints {
     }
 
     if(invitation.ExpirationTime < DateTime.UtcNow) {
-      return Results.BadRequest("This invitation has been expired");
+      return Results.BadRequest("This invitation has expired");
     }
 
     var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();

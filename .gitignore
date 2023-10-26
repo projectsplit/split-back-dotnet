@@ -3,6 +3,9 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+# Rider
+.idea/
+
 # User-specific files
 *.rsuser
 *.suo
@@ -475,6 +478,12 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+# .vscode directory
+**/.vscode/*
+
+# .config directory
+**/.config/*
 
 **/appsettings.Development.json
 **/appsettings.Staging.json

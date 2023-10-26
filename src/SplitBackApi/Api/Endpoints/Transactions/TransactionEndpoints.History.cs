@@ -27,7 +27,7 @@ public static partial class TransactionEndpoints {
     
     var historyResult = await transactionService.GetTransactionHistory(group.Id, member.MemberId);
     if(historyResult.IsFailure) return Results.BadRequest(historyResult.Error);
-
+    
     return Results.Ok(historyResult.Value);
   }
 }

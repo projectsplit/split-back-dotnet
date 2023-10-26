@@ -34,7 +34,7 @@ public static partial class ExpenseEndpoints {
     var memberIdsAreValid = requestMemberIds.Intersect(groupMemberIds).Count() == requestMemberIds.Count();
     if(memberIdsAreValid is false) return Results.BadRequest("Invalid member Id(s)");
 
-    var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
+    var authenticatedUserId ="63ff33b09e4437f07d9d3982";//claimsPrincipal.GetAuthenticatedUserId();
 
     var member = group.GetMemberByUserId(authenticatedUserId);
     if(member is null) return Results.BadRequest($"{authenticatedUserId} is not a member of group with id {request.GroupId}");
@@ -74,6 +74,7 @@ public static partial class ExpenseEndpoints {
 
     await expenseRepository.Create(newExpense);
 
-    return Results.Ok();
+    var expenses = await expenseRepository.GetByGroupIdPerPage(request.GroupId, 1, 20);
+    return Results.Ok(expenses);
   }
 }

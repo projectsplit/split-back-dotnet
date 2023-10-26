@@ -37,11 +37,24 @@ public class SessionMongoDbRepository : ISessionRepository {
 
   public async Task<Result<Session>> GetByUnique(string unique) {
 
-    var filter = Builders<Session>.Filter.Eq(s => s.Unique, unique);
-
+    var filter = Builders<Session>.Filter.And(
+       Builders<Session>.Filter.Eq("_t", "JwtAuth"),
+       Builders<Session>.Filter.Eq("Unique", unique)
+   );
     var session = await _sessionCollection.Find(filter).SingleOrDefaultAsync();
+
     if(session is null) return Result.Failure<Session>($"Session with unique {unique} has not been found");
 
     return session;
+
+    
+  }
+
+   public async Task<List<Session>> GetLatest(int limit, DateTime lastDateTime)
+  {
+    var filter = Builders<Session>.Filter.Lt(u => u.CreationTime, lastDateTime);
+    var sort = Builders<Session>.Sort.Descending(u => u.CreationTime);
+
+    return await _sessionCollection.Find(filter).Sort(sort).Limit(limit).ToListAsync();
   }
 }

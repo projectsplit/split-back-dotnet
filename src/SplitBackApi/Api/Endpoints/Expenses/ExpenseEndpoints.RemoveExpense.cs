@@ -35,7 +35,8 @@ public static partial class ExpenseEndpoints {
     // ensure user can do this
 
     await expenseRepository.DeleteById(request.ExpenseId);
+    var expenses = await expenseRepository.GetByGroupIdPerPage(request.GroupId, 1, 20);
 
-    return Results.Ok();
+    return Results.Ok(expenses);
   }
 }
