@@ -1,6 +1,4 @@
 using CSharpFunctionalExtensions;
-using SplitBackApi.Api.Services;
-using SplitBackApi.Data.Repositories.BudgetRepository;
 using SplitBackApi.Data.Repositories.ExchangeRateRepository;
 using SplitBackApi.Data.Repositories.ExpenseRepository;
 using SplitBackApi.Data.Repositories.TransferRepository;
@@ -12,7 +10,6 @@ namespace SplitBackApi.Api.Helper;
 
 public static class BudgetHelper
 {
-
   public static async Task<Result<decimal>> CalculateTotalSpent(
     string authenticatedUserId,
     IEnumerable<Group> groups,
@@ -22,11 +19,11 @@ public static class BudgetHelper
     ITransferRepository transferRepository,
     IExchangeRateRepository exchangeRateRepository)
   {
-
+    var budgetCurrencyISO = Enum.Parse<CurrencyIsoCode>(budgetCurrency);
     var totalSpentPerGroup = await Task.WhenAll(groups.Select(async group =>
     {
       var groupId = group.Id;
-      var memberId = UserIdToMemberIdHelper.UserIdToMemberId(group, authenticatedUserId).Value;
+      var memberId = UserIdToMemberIdHelper.UserIdToMemberId(group, authenticatedUserId);
 
       var expenses = await expenseRepository.GetLatestByGroupIdMemberId(groupId, memberId, startDate);
 
@@ -34,23 +31,26 @@ public static class BudgetHelper
 
       var exchangeRates = await GetAllRatesFromAllOperations(expenses, transfers, budgetCurrency, exchangeRateRepository);
 
-      var expensesTotalSpent = expenses
-        .Sum(e => e.Amount.ToDecimal() / exchangeRates[e.Id]);
+      var expensesTotalSpent = expenses.Any()
+        ? Money.Total(expenses.Select(e => new Money(e.Amount.ToDecimal() / exchangeRates[e.Id], budgetCurrencyISO)))
+        : Money.Zero(budgetCurrencyISO);
 
-      var transfersTotalSent = transfers
+      var transfersTotalSent = transfers.Any() ? Money.Total(transfers
         .Where(t => t.SenderId == memberId)
-        .Sum(t => t.Amount.ToDecimal() / exchangeRates[t.Id]);
+        .Select(t => new Money(t.Amount.ToDecimal() / exchangeRates[t.Id], budgetCurrencyISO)))
+        :Money.Zero(budgetCurrencyISO);
 
-      var transfersTotalReceived = transfers
+      var transfersTotalReceived = transfers.Any() ? Money.Total(transfers
         .Where(t => t.ReceiverId == memberId)
-        .Sum(t => (-1) * t.Amount.ToDecimal() / exchangeRates[t.Id]);
+        .Select(t => new Money((-1) * t.Amount.ToDecimal() / exchangeRates[t.Id], budgetCurrencyISO)))
+        :Money.Zero(budgetCurrencyISO);
 
-      return expensesTotalSpent + transfersTotalSent + transfersTotalReceived;
+      return expensesTotalSpent.Plus(transfersTotalSent.Plus(transfersTotalReceived));
     }));
 
-    var totalSpent = totalSpentPerGroup.Sum(t => t);
+    var totalSpent = Money.Total(totalSpentPerGroup);
 
-    return totalSpent;
+    return totalSpent.Amount;
   }
 
   private static async Task<Dictionary<string, decimal>> GetAllRatesFromAllOperations(

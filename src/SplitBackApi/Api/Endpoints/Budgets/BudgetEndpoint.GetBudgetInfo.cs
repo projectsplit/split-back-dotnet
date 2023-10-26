@@ -30,7 +30,7 @@ public static partial class BudgetsEndpoints
   )
   {
 
-    var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
+    var authenticatedUserId = "63ff33b09e4437f07d9d3982";//claimsPrincipal.GetAuthenticatedUserId();
 
     //await exchangeRateRepository.GetExchangeRates("USD","2023-10-21");
 

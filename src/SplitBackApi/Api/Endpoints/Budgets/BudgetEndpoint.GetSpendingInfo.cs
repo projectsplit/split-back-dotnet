@@ -30,7 +30,10 @@ public static partial class BudgetsEndpoints
     var authenticatedUserId = "63ff33b09e4437f07d9d3982"; //claimsPrincipal.GetAuthenticatedUserId();
 
     var budgetTypeString = request.Query["budgetType"].ToString();
+    if (string.IsNullOrEmpty(budgetTypeString)) return Results.BadRequest("BudgetType is missing or empty.");
+
     var currencyFromReq = request.Query["currency"];
+    if (string.IsNullOrEmpty(currencyFromReq)) Results.BadRequest("Currency is missing or empty.");
 
     var groups = await groupRepository.GetGroupsByUserId(authenticatedUserId);
     if (groups.IsNullOrEmpty()) return Results.BadRequest("No groups");

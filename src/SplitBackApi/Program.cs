@@ -102,6 +102,9 @@ public class Program
     // Middlewares
     builder.Services.AddScoped<ExceptionHandlerMiddleware>();
 
+    //Quartz
+    builder.Services.AddQuartz();
+
     // Auth
     builder.Services.AddJwtBearerAuthentication();
     builder.Services.AddAuthorization();

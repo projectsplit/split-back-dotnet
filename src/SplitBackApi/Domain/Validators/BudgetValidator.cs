@@ -33,6 +33,8 @@ public class BudgetValidator : AbstractValidator<Budget>
     .Must(budgetType => Enum.IsDefined(typeof(BudgetType), budgetType))
     .WithMessage("A valid budget type must be selected");
 
+    When(budget => !string.IsNullOrEmpty(budget.Day) && Enum.IsDefined(typeof(BudgetType), budget.BudgetType), () =>
+  {
     RuleFor(budget => budget)
     .Custom((budget, context) =>
     {
@@ -45,6 +47,7 @@ public class BudgetValidator : AbstractValidator<Budget>
         context.AddFailure("Day cannot be greater than 31 for a monthly budget.");
       }
     });
+  });
   }
 
 }

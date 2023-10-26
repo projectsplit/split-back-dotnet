@@ -27,6 +27,9 @@ public class ExchangeRateRepository : IExchangeRateRepository
 
   public async Task<Result> GetExchangeRatesFromExternalProvider(string baseCurrency, string date)
   {
+    var rateExists = await _exchangeRatesCollection.Find(r => r.Date == date).AnyAsync(); //use timestamp or creationTime to see if it was fetched at the end of the day or on the go by the user.
+    if (rateExists) return Result.Success();
+
     var exchangeRatesResult = await _exchangeRateService.HistoricalFxRates(baseCurrency, date);
     if (exchangeRatesResult.IsFailure) return Result.Failure<ExchangeRates>(exchangeRatesResult.Error);
 

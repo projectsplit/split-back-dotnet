@@ -4,13 +4,11 @@ using SplitBackApi.Domain.Models;
 namespace SplitBackApi.Api.Helper;
 public static class UserIdToMemberIdHelper
 {
-
-  public static Result<string> UserIdToMemberId(Group group, string userId)
+  public static string UserIdToMemberId(Group group, string userId)
   {
-
     var userMembers = group.Members.Where(m => m is UserMember).Cast<UserMember>();
     var memberId = userMembers.Single(um => um.UserId == userId).MemberId;
 
-    return Result.Success(memberId);
+    return memberId;
   }
 }
