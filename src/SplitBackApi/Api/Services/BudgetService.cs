@@ -1,12 +1,98 @@
 using SplitBackApi.Domain.Models;
 using CSharpFunctionalExtensions;
 using SplitBackApi.Domain.Extensions;
+using SplitBackApi.Data.Repositories.ExpenseRepository;
+using SplitBackApi.Data.Repositories.TransferRepository;
+using SplitBackApi.Data.Repositories.ExchangeRateRepository;
+using NMoneys;
+using SplitBackApi.Api.Helper;
 
 
 namespace SplitBackApi.Api.Services;
 
 public class BudgetService
 {
+  private readonly IExpenseRepository _expenseRepository;
+  private readonly ITransferRepository _transferRepository;
+  private readonly IExchangeRateRepository _exchangeRateRepository;
+  public BudgetService(IExpenseRepository expenseRepository, ITransferRepository transferRepository, IExchangeRateRepository exchangeRateRepository)
+  {
+    _expenseRepository = expenseRepository;
+    _transferRepository = transferRepository;
+    _exchangeRateRepository = exchangeRateRepository;
+
+  }
+  public async Task<Result<decimal>> CalculateTotalSpent(
+    string authenticatedUserId,
+    IEnumerable<Group> groups,
+    string budgetCurrency,
+    DateTime startDate)
+  {
+    var budgetCurrencyISO = Enum.Parse<CurrencyIsoCode>(budgetCurrency);
+
+    var groupIdToMemberIdMap = groups.ToDictionary(
+    group => group.Id,
+    group => UserIdToMemberIdHelper.UserIdToMemberId(group, authenticatedUserId));
+
+    var expenses = await _expenseRepository.GetLatestByGroupsIdsMembersIdsAndStartDate(groupIdToMemberIdMap, startDate);
+    var transfers = await _transferRepository.GetLatestByGroupsIdsMembersIdsAndStartDate(groupIdToMemberIdMap, startDate);
+    var exchangeRates = await GetAllRatesFromAllOperations(expenses, transfers, budgetCurrency, _exchangeRateRepository);
+
+    var expensesTotalSpent = expenses.Any() ?
+      Money.Total(expenses
+      .SelectMany(e => e.Participants
+      .Where(p => p.MemberId == groupIdToMemberIdMap[e.GroupId])
+      .Select(p => new Money(p.ParticipationAmount.ToDecimal() / exchangeRates[e.Id], budgetCurrencyISO))))
+      : Money.Zero(budgetCurrencyISO);
+
+    var transfersTotalSent = transfers.Any() ? Money.Total(transfers
+      .Where(t => t.SenderId == groupIdToMemberIdMap[t.GroupId])
+      .Select(t => new Money(t.Amount.ToDecimal() / exchangeRates[t.Id], budgetCurrencyISO)))
+      : Money.Zero(budgetCurrencyISO);
+
+    var transfersTotalReceived = transfers.Any() ? Money.Total(transfers
+      .Where(t => t.ReceiverId == groupIdToMemberIdMap[t.GroupId])
+      .Select(t => new Money(t.Amount.ToDecimal() / exchangeRates[t.Id], budgetCurrencyISO)))
+      : Money.Zero(budgetCurrencyISO);
+
+    var totalMoney = expensesTotalSpent.Plus(transfersTotalSent.Minus(transfersTotalReceived));
+    return totalMoney.Amount;
+  }
+
+  private static async Task<Dictionary<string, decimal>> GetAllRatesFromAllOperations(
+     List<Expense> expenses,
+     List<Transfer> transfers,
+     string budgetCurrency,
+     IExchangeRateRepository exchangeRateRepository)
+  {
+    var expensesRateResults = await Task.WhenAll(expenses.Select(async expense =>
+    {
+      var rateResult = await exchangeRateRepository.GetRate(budgetCurrency, expense.Currency, expense.ExpenseTime.ToString("yyyy-MM-dd"));
+      if (rateResult.IsFailure) return Result.Failure<KeyValuePair<string, decimal>>($"could not retrieve rate for {budgetCurrency}/{expense.Currency}");
+
+      var rate = rateResult.Value;
+      return new KeyValuePair<string, decimal>(expense.Id, rate);
+    }));
+
+    var transfersRateResults = await Task.WhenAll(transfers.Select(async transfer =>
+   {
+     var rateResult = await exchangeRateRepository.GetRate(budgetCurrency, transfer.Currency, transfer.TransferTime.ToString("yyyy-MM-dd"));
+     if (rateResult.IsFailure) return Result.Failure<KeyValuePair<string, decimal>>($"could not retrieve rate for {budgetCurrency}/{transfer.Currency}");
+
+     var rate = rateResult.Value;
+     return new KeyValuePair<string, decimal>(transfer.Id, rate);
+   }));
+
+
+    var rateDictionary = expensesRateResults
+        .Where(result => result.IsSuccess)
+        .Concat(transfersRateResults
+        .Where(result => result.IsSuccess))
+        .Select(result => result.Value)
+        .ToDictionary(pair => pair.Key, pair => pair.Value);
+
+    return rateDictionary;
+  }
   public Result<(DateTime startDate, DateTime endDate)> StartAndEndDateBasedOnBudgetAndDay(BudgetType budgetType, string day)
   {
     DateTime currentDate = DateTime.Now;
@@ -26,7 +112,7 @@ public class BudgetService
         else
         {
           // Calculate the previous month
-          DateTime previousMonth = currentDate.AddMonths(-1);
+          var previousMonth = currentDate.AddMonths(-1);
 
           if (currentDate.Month == 1) //check if January so it will go to Dec of prev year
           {
@@ -82,7 +168,7 @@ public class BudgetService
 
   public Result<double> RemainingDays(BudgetType budgetType, DateTime startDate)
   {
-    DateTime currentDate = DateTime.Now;
+    var currentDate = DateTime.Now;
     double remainingDays;
 
     switch (budgetType)
@@ -90,7 +176,7 @@ public class BudgetService
       case BudgetType.Monthly:
 
         remainingDays = (startDate.AddMonths(1) - currentDate).TotalDays;
-        var x = startDate.AddMonths(1);
+
         break;
 
       case BudgetType.Weekly:
@@ -105,4 +191,13 @@ public class BudgetService
     return Result.Success(remainingDays);
 
   }
+
+
+
+
+
+
+
+
+
 }

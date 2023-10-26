@@ -16,7 +16,7 @@ public static partial class BudgetsEndpoints
       BudgetValidator budgetValidator,
       CancellationToken ct)
   {
-    var authenticatedUserId = "63ff33b09e4437f07d9d3982";//claimsPrincipal.GetAuthenticatedUserId();
+    var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
 
     var newBudget = new Budget
     {

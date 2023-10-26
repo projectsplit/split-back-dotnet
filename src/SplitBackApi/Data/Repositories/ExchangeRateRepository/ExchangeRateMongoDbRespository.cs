@@ -7,13 +7,13 @@ using SplitBackApi.Domain.Models;
 
 namespace SplitBackApi.Data.Repositories.ExchangeRateRepository;
 
-public class ExchangeRateRepository : IExchangeRateRepository
+public class ExchangeRateMongoDbRepository : IExchangeRateRepository
 {
   private readonly ExchangeRateService _exchangeRateService;
   private readonly MongoClient _mongoClient;
   private readonly IMongoCollection<ExchangeRates> _exchangeRatesCollection;
 
-  public ExchangeRateRepository(ExchangeRateService exchangeRateService, IOptions<AppSettings> appSettings)
+  public ExchangeRateMongoDbRepository(ExchangeRateService exchangeRateService, IOptions<AppSettings> appSettings)
   {
     _exchangeRateService = exchangeRateService;
 
