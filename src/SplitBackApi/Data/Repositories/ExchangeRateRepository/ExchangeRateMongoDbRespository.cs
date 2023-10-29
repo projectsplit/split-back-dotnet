@@ -25,6 +25,14 @@ public class ExchangeRateMongoDbRepository : IExchangeRateRepository
 
   }
 
+  public async Task<Maybe<List<ExchangeRates>>> GetAllRatesForDates(List<string> dates)
+  {
+    var filter = Builders<ExchangeRates>.Filter.In("Date", dates);
+    var exchangeRates = await _exchangeRatesCollection.Find(filter).ToListAsync();
+
+    return exchangeRates;
+  }
+
   public async Task<Result> GetExchangeRatesFromExternalProvider(string baseCurrency, string date)
   {
     var rateExists = await _exchangeRatesCollection.Find(r => r.Date == date).AnyAsync(); //use timestamp or creationTime to see if it was fetched at the end of the day or on the go by the user.
@@ -63,7 +71,7 @@ public class ExchangeRateMongoDbRepository : IExchangeRateRepository
     }
   }
 
-  private async Task<Result<ExchangeRates>> GetExchangeRatesByDate(string date)
+  public async Task<Result<ExchangeRates>> GetExchangeRatesByDate(string date)
   {
     var filter = Builders<ExchangeRates>.Filter.Eq(e => e.Date, date);
 

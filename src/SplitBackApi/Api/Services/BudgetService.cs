@@ -6,7 +6,7 @@ using SplitBackApi.Data.Repositories.TransferRepository;
 using SplitBackApi.Data.Repositories.ExchangeRateRepository;
 using NMoneys;
 using SplitBackApi.Api.Helper;
-
+using Microsoft.IdentityModel.Tokens;
 
 namespace SplitBackApi.Api.Services;
 
@@ -28,15 +28,16 @@ public class BudgetService
     string budgetCurrency,
     DateTime startDate)
   {
+    //TODO store as CurrencyIsoCode in DB?
     var budgetCurrencyISO = Enum.Parse<CurrencyIsoCode>(budgetCurrency);
 
-    var groupIdToMemberIdMap = groups.ToDictionary(
-    group => group.Id,
-    group => UserIdToMemberIdHelper.UserIdToMemberId(group, authenticatedUserId));
+    var groupIdToMemberIdMap = MemberIdHelper.GroupIdsToMemberIdsMap(groups, authenticatedUserId);
 
     var expenses = await _expenseRepository.GetLatestByGroupsIdsMembersIdsAndStartDate(groupIdToMemberIdMap, startDate);
     var transfers = await _transferRepository.GetLatestByGroupsIdsMembersIdsAndStartDate(groupIdToMemberIdMap, startDate);
-    var exchangeRates = await GetAllRatesFromAllOperations(expenses, transfers, budgetCurrency, _exchangeRateRepository);
+
+    var exchangeRates = await GetAllRatesFromAllOperations(expenses, transfers, budgetCurrency);
+    if (!exchangeRates.Any()) return Result.Failure<decimal>("exchange rates not in DB");
 
     var expensesTotalSpent = expenses.Any() ?
       Money.Total(expenses
@@ -59,40 +60,94 @@ public class BudgetService
     return totalMoney.Amount;
   }
 
-  private static async Task<Dictionary<string, decimal>> GetAllRatesFromAllOperations(
+  private async Task<Dictionary<string, decimal>> GetAllRatesFromAllOperations(
      List<Expense> expenses,
      List<Transfer> transfers,
-     string budgetCurrency,
-     IExchangeRateRepository exchangeRateRepository)
+     string budgetCurrency
+     )
   {
-    var expensesRateResults = await Task.WhenAll(expenses.Select(async expense =>
+    var expenseDates = expenses.Select(e => e.ExpenseTime.ToString("yyyy-MM-dd"));
+    var transferDates = transfers.Select(t => t.TransferTime.ToString("yyyy-MM-dd"));
+    var allDates = expenseDates.Concat(transferDates).Distinct().ToList();
+
+    var allRatesMaybe = await _exchangeRateRepository.GetAllRatesForDates(allDates);
+    var allRates = allRatesMaybe.Value;
+
+    var dateToExchangeRatesDictionary = allDates.ToDictionary(
+    date => date,
+    date => allRates.FirstOrDefault(rate => rate.Date == date));
+
+    var validatedDateToExchangeRatesDictionary = await EnsureAllExchangeRates(dateToExchangeRatesDictionary);
+
+    var expensesRates = expenses.Select(expense =>
     {
-      var rateResult = await exchangeRateRepository.GetRate(budgetCurrency, expense.Currency, expense.ExpenseTime.ToString("yyyy-MM-dd"));
-      if (rateResult.IsFailure) return Result.Failure<KeyValuePair<string, decimal>>($"could not retrieve rate for {budgetCurrency}/{expense.Currency}");
-
-      var rate = rateResult.Value;
+      var rate = CalculateExchangeRate(budgetCurrency, expense.Currency, validatedDateToExchangeRatesDictionary, expense.ExpenseTime.ToString("yyyy-MM-dd"));
       return new KeyValuePair<string, decimal>(expense.Id, rate);
-    }));
+    });
 
-    var transfersRateResults = await Task.WhenAll(transfers.Select(async transfer =>
+    var transfersRates = transfers.Select(transfer =>
    {
-     var rateResult = await exchangeRateRepository.GetRate(budgetCurrency, transfer.Currency, transfer.TransferTime.ToString("yyyy-MM-dd"));
-     if (rateResult.IsFailure) return Result.Failure<KeyValuePair<string, decimal>>($"could not retrieve rate for {budgetCurrency}/{transfer.Currency}");
-
-     var rate = rateResult.Value;
+     var rate = CalculateExchangeRate(budgetCurrency, transfer.Currency, validatedDateToExchangeRatesDictionary, transfer.TransferTime.ToString("yyyy-MM-dd"));
      return new KeyValuePair<string, decimal>(transfer.Id, rate);
-   }));
+   });
 
-
-    var rateDictionary = expensesRateResults
-        .Where(result => result.IsSuccess)
-        .Concat(transfersRateResults
-        .Where(result => result.IsSuccess))
-        .Select(result => result.Value)
+    var rateDictionary = expensesRates
+        .Concat(transfersRates)
         .ToDictionary(pair => pair.Key, pair => pair.Value);
 
     return rateDictionary;
   }
+
+  private async Task<Dictionary<string, ExchangeRates>> EnsureAllExchangeRates(Dictionary<string, ExchangeRates> dateToExchangeRatesDictionary)
+  {
+    var missingDates = dateToExchangeRatesDictionary
+      .Where(kv => kv.Value == null)
+      .Select(kv => kv.Key)
+      .ToList();
+
+    if (missingDates.IsNullOrEmpty()) return dateToExchangeRatesDictionary;
+
+    var missingDateExchangeRates = await Task.WhenAll(missingDates.Select(RefetchExchangeRates));
+
+    missingDateExchangeRates.Where(r => r.IsSuccess).ToList().ForEach(r =>
+    {
+      dateToExchangeRatesDictionary[r.Value.Date] = r.Value;
+    });
+
+    return dateToExchangeRatesDictionary;
+  }
+
+  private static decimal CalculateExchangeRate(
+    string fromCurrency,
+    string toCurrency,
+    Dictionary<string, ExchangeRates> dateToExchangeRatesDictionary,
+    string date)
+  {
+
+    switch (fromCurrency)
+    {
+      case "USD":
+        var rate = dateToExchangeRatesDictionary[date].Rates[toCurrency];
+        return rate;
+
+      default:
+        var denominatorRate = dateToExchangeRatesDictionary[date].Rates[fromCurrency];
+        var nominatorRate = dateToExchangeRatesDictionary[date].Rates[toCurrency];
+        rate = nominatorRate / denominatorRate;
+        return rate;
+    }
+  }
+
+  private async Task<Result<ExchangeRates>> RefetchExchangeRates(string date)
+  {
+    await _exchangeRateRepository.GetExchangeRatesFromExternalProvider("USD", date);
+    var exchangeRates = await _exchangeRateRepository.GetExchangeRatesByDate(date);
+
+    if (exchangeRates.IsFailure) return Result.Failure<ExchangeRates>($"Could not refetch exchange rates for {date}");
+
+    return exchangeRates;
+  }
+
   public Result<(DateTime startDate, DateTime endDate)> StartAndEndDateBasedOnBudgetAndDay(BudgetType budgetType, string day)
   {
     DateTime currentDate = DateTime.Now;
@@ -106,7 +161,7 @@ public class BudgetService
 
         if (currentDate.Day >= day2Int)
         {
-          int daysInMonth = DateTime.DaysInMonth(currentDate.Year, currentDate.Month);
+          var daysInMonth = DateTime.DaysInMonth(currentDate.Year, currentDate.Month);
           startDate = new DateTime(currentDate.Year, currentDate.Month, Math.Min(day2Int, daysInMonth));
         }
         else
@@ -117,13 +172,13 @@ public class BudgetService
           if (currentDate.Month == 1) //check if January so it will go to Dec of prev year
           {
             // If we are in January, go back to December of the previous year
-            int daysInMonth = DateTime.DaysInMonth(previousMonth.Year - 1, 12);
+            var daysInMonth = DateTime.DaysInMonth(previousMonth.Year - 1, 12);
             startDate = new DateTime(previousMonth.Year - 1, 12, Math.Min(day2Int, daysInMonth));
           }
           else
           {
             // Go back to the previous month of the current year
-            int daysInMonth = DateTime.DaysInMonth(previousMonth.Year, previousMonth.Month);
+            var daysInMonth = DateTime.DaysInMonth(previousMonth.Year, previousMonth.Month);
             startDate = new DateTime(previousMonth.Year, previousMonth.Month, Math.Min(day2Int, daysInMonth));
           }
         }
@@ -143,7 +198,7 @@ public class BudgetService
         break;
 
       case BudgetType.Weekly:
-        int dayDifference = (int)currentDate.DayOfWeek - day2Int;
+        var dayDifference = (int)currentDate.DayOfWeek - day2Int;
 
         if (dayDifference >= 0)
         {
@@ -169,35 +224,14 @@ public class BudgetService
   public Result<double> RemainingDays(BudgetType budgetType, DateTime startDate)
   {
     var currentDate = DateTime.Now;
-    double remainingDays;
-
-    switch (budgetType)
+    var remainingDays = budgetType switch
     {
-      case BudgetType.Monthly:
-
-        remainingDays = (startDate.AddMonths(1) - currentDate).TotalDays;
-
-        break;
-
-      case BudgetType.Weekly:
-
-        remainingDays = (startDate.AddDays(7) - currentDate).TotalDays;
-
-        break;
-
-      default:
-        throw new NotImplementedException("Unsupported budget type");
-    }
+      BudgetType.Monthly => (startDate.AddMonths(1) - currentDate).TotalDays,
+      BudgetType.Weekly => (startDate.AddDays(7) - currentDate).TotalDays,
+      _ => throw new NotImplementedException("Unsupported budget type"),
+    };
     return Result.Success(remainingDays);
 
   }
-
-
-
-
-
-
-
-
 
 }

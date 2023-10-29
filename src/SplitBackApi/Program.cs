@@ -74,7 +74,7 @@ public class Program
     builder.Services.AddScoped<ICommentRepository, CommentMongoDbRepository>();
     builder.Services.AddScoped<IInvitationRepository, InvitationMongoDbRepository>();
     builder.Services.AddScoped<IBudgetRepository, BudgetMongoDbRepository>();
-    builder.Services.AddScoped<IExchangeRateRepository, ExchangeRateRepository>();
+    builder.Services.AddScoped<IExchangeRateRepository, ExchangeRateMongoDbRepository>();
 
 
     // Services
