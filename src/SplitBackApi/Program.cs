@@ -81,6 +81,7 @@ public class Program
     builder.Services.AddScoped<AuthService>();
     builder.Services.AddScoped<GoogleAuthService>();
     builder.Services.AddScoped<TransactionService>();
+    builder.Services.AddScoped<TransactionService2>();
     builder.Services.AddScoped<OpenAIService>();
     builder.Services.AddScoped<BudgetService>();
     builder.Services.AddScoped<ExchangeRateService>();

@@ -12,7 +12,7 @@ namespace SplitBackApi.Api.Endpoints.Groups;
 
 public static partial class GroupEndpoints
 {
-  private static async Task<IResult> GetGroupsTotalAmounts(
+  private static async Task<IResult> GetGroupsTotalAmounts2(
       ClaimsPrincipal claimsPrincipal,
       IGroupRepository groupRepository,
       HttpRequest request,
@@ -32,20 +32,21 @@ public static partial class GroupEndpoints
       if (pendingResult.IsFailure) return Results.BadRequest(pendingResult.Error);
       var pendingTransactions = pendingResult.Value;
 
-      foreach (var pendingTransaction in pendingTransactions)
+      pendingTransactions.ForEach(pendingTransaction =>
       {
         var userIsReceiver =
-            group.Members.Any(m =>
-                m is UserMember member &&
-                member.MemberId == pendingTransaction.ReceiverId &&
-                member.UserId == authenticatedUserId);
+        group.Members.Any(m =>
+            m is UserMember member &&
+            member.MemberId == pendingTransaction.ReceiverId &&
+            member.UserId == authenticatedUserId);
 
         var userIsSender =
-            group.Members.Any(m =>
-                m is UserMember member &&
-                member.MemberId == pendingTransaction.SenderId &&
-                member.UserId == authenticatedUserId);
-
+        group.Members.Any(m =>
+            m is UserMember member &&
+            member.MemberId == pendingTransaction.SenderId &&
+            member.UserId == authenticatedUserId);
+        
+        
         if (userIsReceiver)
         {
           if (userIsReceiverTotal.ContainsKey(pendingTransaction.Currency))
@@ -68,7 +69,7 @@ public static partial class GroupEndpoints
             userIsSenderTotal[pendingTransaction.Currency] = pendingTransaction.Amount;
           }
         }
-      }
+      });
     }
 
     var aggregatedSummary = new
@@ -80,7 +81,7 @@ public static partial class GroupEndpoints
     var currenciesToRemoveUserIsSender = new List<string>();
     var currenciesToRemoveUserIsReceiver = new List<string>();
 
-    foreach (var currency in aggregatedSummary.userIsReceiverTotal.Keys)
+    aggregatedSummary.userIsReceiverTotal.Keys.ToList().ForEach(currency =>
     {
       if (aggregatedSummary.userIsSenderTotal.TryGetValue(currency, out decimal userOwesAmount))
       {
@@ -91,40 +92,32 @@ public static partial class GroupEndpoints
         var maxAmount = Math.Max(userOwesAmount, userIsOwedAmount);
 
         // Update the summaries
-        if (userOwesAmount > userIsOwedAmount)
+        switch (userOwesAmount - userIsOwedAmount)
         {
-          aggregatedSummary.userIsSenderTotal[currency] = difference;
-          aggregatedSummary.userIsReceiverTotal[currency] = 0;
-        }
-        else if (userOwesAmount < userIsOwedAmount)
-        {
-          aggregatedSummary.userIsSenderTotal[currency] = 0;
-          aggregatedSummary.userIsReceiverTotal[currency] = difference;
-        }
-        else // Both amounts are equal
-        {
-          aggregatedSummary.userIsSenderTotal[currency] = 0;
-          aggregatedSummary.userIsReceiverTotal[currency] = 0;
+          case > 0:
+            aggregatedSummary.userIsSenderTotal[currency] = difference;
+            aggregatedSummary.userIsReceiverTotal[currency] = 0;
+            break;
+          case < 0:
+            aggregatedSummary.userIsSenderTotal[currency] = 0;
+            aggregatedSummary.userIsReceiverTotal[currency] = difference;
+            break;
+          default: // Both amounts are equal
+            aggregatedSummary.userIsSenderTotal[currency] = 0;
+            aggregatedSummary.userIsReceiverTotal[currency] = 0;
+            break;
         }
 
         // Check if the amount is zero, then add to the list to remove the entry
-        if (aggregatedSummary.userIsSenderTotal[currency] == 0)
-          currenciesToRemoveUserIsSender.Add(currency);
+        if (aggregatedSummary.userIsSenderTotal[currency] == 0) currenciesToRemoveUserIsSender.Add(currency);
 
-        if (aggregatedSummary.userIsReceiverTotal[currency] == 0)
-          currenciesToRemoveUserIsReceiver.Add(currency);
+        if (aggregatedSummary.userIsReceiverTotal[currency] == 0) currenciesToRemoveUserIsReceiver.Add(currency);
       }
-    }
+    });
 
-    foreach (var currency in currenciesToRemoveUserIsSender)
-    {
-      aggregatedSummary.userIsSenderTotal.Remove(currency);
-    }
 
-    foreach (var currency in currenciesToRemoveUserIsReceiver)
-    {
-      aggregatedSummary.userIsReceiverTotal.Remove(currency);
-    }
+    currenciesToRemoveUserIsSender.Select(aggregatedSummary.userIsSenderTotal.Remove);
+    currenciesToRemoveUserIsReceiver.Select(aggregatedSummary.userIsReceiverTotal.Remove);
 
     var aggregatedSummaryResponse = new GroupsAggregatedSummaryResponse
     {
