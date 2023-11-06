@@ -5,8 +5,7 @@ public static partial class OpenAIEndpoints {
   public static void MapOpenAIEndpoints(this IEndpointRouteBuilder app) {
 
     var openaiGroup = app.MapGroup("/openai")
-      .WithTags("OpenAI")
-      .AllowAnonymous();
+      .WithTags("OpenAI");
 
     openaiGroup.MapPost("/explain", Explanator);
     openaiGroup.MapPost("/chat", Chat);

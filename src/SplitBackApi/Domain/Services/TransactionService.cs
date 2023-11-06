@@ -106,7 +106,7 @@ public class TransactionService {
     var pendingTransactions = new List<PendingTransaction>();
 
     foreach(var currency in allCurrencies) {
-
+      
       var transactionMembers = new List<TransactionMember>();
 
       foreach(var member in group.Members) {

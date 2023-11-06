@@ -1,6 +1,7 @@
-namespace SplitBackApi.Domain.Models;
+namespace SplitBackApi.Api.Endpoints.Transactions.Responses;
 
-public class TransactionTimelineItem
+public class HistoryResponse : Dictionary<string, List<TransactionTimelineItemWithDecimals>> { }
+public class TransactionTimelineItemWithDecimals
 {
 
   public string Id { get; set; }

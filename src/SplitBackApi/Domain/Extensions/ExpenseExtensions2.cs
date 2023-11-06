@@ -8,7 +8,7 @@ namespace SplitBackApi.Domain.Extensions;
 
 public static class ExpenseExtensions2
 {
-  public static PastExpense ToPastExpense(this Expense expense)
+  public static PastExpense ToPastExpense2(this Expense expense)
   {
 
     return new PastExpense
@@ -50,15 +50,18 @@ public static class ExpenseExtensions2
         paid = paymentAmount;
         participation = participationAmount;
         break;
+
       case (true, false):
         paymentAmount = new Money(expense.Payers.Single(p => p.MemberId == memberId).PaymentAmount.ToDecimal(), currency);
         lent = paymentAmount;
         paid = paymentAmount;
         break;
+
       case (false, true):
         participationAmount = new Money(expense.Participants.Single(p => p.MemberId == memberId).ParticipationAmount.ToDecimal(), currency);
         borrowed = participationAmount;
         break;
+        
       default:
         return null;
     }

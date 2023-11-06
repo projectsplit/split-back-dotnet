@@ -6,16 +6,15 @@ using SplitBackApi.Data.Repositories.GroupRepository;
 using SplitBackApi.Data.Repositories.TransferRepository;
 using SplitBackApi.Domain.Extensions;
 using SplitBackApi.Domain.Models;
-using SplitBackApi.Domain.Services.ServiceHelpers;
 
 namespace SplitBackApi.Domain.Services;
 
-public class TransactionService2
+public class TransactionService3
 {
   private readonly IGroupRepository _groupRepository;
   private readonly IExpenseRepository _expenseRepository;
   private readonly ITransferRepository _transferRepository;
-  public TransactionService2(
+  public TransactionService3(
     IGroupRepository groupRepository,
     IExpenseRepository expenseRepository,
     ITransferRepository transferRepository
@@ -59,10 +58,10 @@ public class TransactionService2
       });
       // Loop all transfers & add to list
       transfers.Where(t => t.Currency == currency).ToList().ForEach(transfer =>
-      {
-        var transactionMemberDetail = transfer.ToTransactionMemberDetailFromUserId2(memberId);
-        transactionMemberDetails?.Add(transactionMemberDetail);
-      });
+         {
+           var transactionMemberDetail = transfer.ToTransactionMemberDetailFromUserId2(memberId);
+           transactionMemberDetails?.Add(transactionMemberDetail);
+         });
 
       // Sort list
       var sortedTransactionMemberDetails = transactionMemberDetails.OrderBy(t => t.TransactionTime);
@@ -106,20 +105,102 @@ public class TransactionService2
 
     allCurrencies.ForEach(currency =>
     {
-      var groupMembers = group.Members.ToList();
 
-      var transactionMembers = TransactionHelper.InitializeTransactionMembers(groupMembers, currency);
-      TransactionHelper.CalculateTotalTakenAndGivenForEachMember(transactionMembers, expenses, transfers, currency);
+      var transactionMembers = new List<TransactionMember2>();
+      var isoCurrency = MoneyHelper.StringToIsoCode(currency);
+
+      group.Members.ToList().ForEach(member => transactionMembers
+      .Add(new TransactionMember2(member.MemberId, Money.Zero(isoCurrency), Money.Zero(currency))));
+
+      var currencyExpenses = expenses.Where(e => e.Currency == currency).ToList();
+
+      currencyExpenses.ForEach(expense =>
+      {
+        expense.Participants.ToList().ForEach(participant =>
+        {
+          transactionMembers.Single(m => m.Id == participant.MemberId)
+          .TotalAmountTaken += new Money(participant.ParticipationAmount.ToDecimal(), isoCurrency);
+        });
+
+        expense.Payers.ToList().ForEach(payer =>
+        {
+         transactionMembers.Single(m => m.Id == payer.MemberId)
+         .TotalAmountGiven += new Money(payer.PaymentAmount.ToDecimal(), isoCurrency);
+        });
+      });
+
+      transfers.Where(t => t.Currency == currency).ToList()
+      .ForEach(transfer =>
+      {
+        transactionMembers.Single(m => m.Id == transfer.ReceiverId).TotalAmountTaken += new Money(transfer.Amount.ToDecimal(), isoCurrency);
+        transactionMembers.Single(m => m.Id == transfer.SenderId).TotalAmountGiven += new Money(transfer.Amount.ToDecimal(), isoCurrency);
+      });
 
       var debtors = new Queue<TransactionMember2>();
       var creditors = new Queue<TransactionMember2>();
 
-      (debtors, creditors) = TransactionHelper.CalculateDebtorsAndCreditors(transactionMembers);
+      transactionMembers.ForEach(transactionMember =>
+      {
+        switch (transactionMember.TotalAmountGiven.Minus(transactionMember.TotalAmountTaken).Amount)
+        {
+          case < 0:
+            debtors.Enqueue(transactionMember);
+            break;
 
-      TransactionHelper.CalculatePendingTransactions(debtors, creditors, pendingTransactions, currency);
+          case > 0:
+            creditors.Enqueue(transactionMember);
+            break;
+        }
+      });
 
+      while (debtors.Count > 0 && creditors.Count > 0)
+      {
+
+        var poppedDebtor = debtors.Dequeue();
+        var poppedCreditor = creditors.Dequeue();
+
+        var debt = poppedDebtor.TotalAmountTaken.Minus(poppedDebtor.TotalAmountGiven);
+        var credit = poppedCreditor.TotalAmountGiven.Minus(poppedCreditor.TotalAmountTaken);
+        var diff = debt.Minus(credit).Amount;
+
+        switch (diff)
+        {
+          case < 0:
+            pendingTransactions.Add(new PendingTransaction2
+            {
+              SenderId = poppedDebtor.Id,
+              ReceiverId = poppedCreditor.Id,
+              Amount = debt,
+              Currency = currency
+            });
+
+            creditors.Enqueue(poppedCreditor with { TotalAmountTaken = poppedCreditor.TotalAmountTaken.Plus(debt) });
+            break;
+
+          case > 0:
+            pendingTransactions.Add(new PendingTransaction2
+            {
+              SenderId = poppedDebtor.Id,
+              ReceiverId = poppedCreditor.Id,
+              Amount = credit,
+              Currency = currency
+            });
+
+            debtors.Enqueue(poppedDebtor with { TotalAmountGiven = poppedDebtor.TotalAmountGiven.Plus(credit) });
+            break;
+
+          case 0:
+            pendingTransactions.Add(new PendingTransaction2
+            {
+              SenderId = poppedDebtor.Id,
+              ReceiverId = poppedCreditor.Id,
+              Amount = credit, //credit == debt
+              Currency = currency
+            });
+            break;
+        }
+      }
     });
-
     return pendingTransactions;
   }
 }

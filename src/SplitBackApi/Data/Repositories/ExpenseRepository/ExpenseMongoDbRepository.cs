@@ -48,7 +48,7 @@ public class ExpenseMongoDbRepository : IExpenseRepository
     {
       await _expenseCollection.DeleteOneAsync(session, findExpenseFilter);
 
-      await _pastExpenseCollection.InsertOneAsync(session, expenseFound.ToPastExpense());
+      await _pastExpenseCollection.InsertOneAsync(session, expenseFound.ToPastExpense2());
 
       await session.CommitTransactionAsync();
     }
@@ -136,7 +136,7 @@ public class ExpenseMongoDbRepository : IExpenseRepository
     {
       await _expenseCollection.ReplaceOneAsync(session, findExpenseFilter, editedExpense);
 
-      await _pastExpenseCollection.InsertOneAsync(session, currentExpense.ToPastExpense());
+      await _pastExpenseCollection.InsertOneAsync(session, currentExpense.ToPastExpense2());
 
       await session.CommitTransactionAsync();
     }

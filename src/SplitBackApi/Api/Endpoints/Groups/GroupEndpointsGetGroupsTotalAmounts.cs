@@ -18,7 +18,7 @@ public static partial class GroupEndpoints
       HttpRequest request,
       TransactionService transactionService)
   {
-    var authenticatedUserId = "63ff33b09e4437f07d9d3982";//claimsPrincipal.GetAuthenticatedUserId();
+    var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
 
     var groups = await groupRepository.GetGroupsByUserId(authenticatedUserId);
     if (groups.IsNullOrEmpty()) return Results.BadRequest("No groups");
@@ -88,7 +88,7 @@ public static partial class GroupEndpoints
 
         // Calculate the difference
         var difference = Math.Abs(userOwesAmount - userIsOwedAmount);
-        var maxAmount = Math.Max(userOwesAmount, userIsOwedAmount);
+       var maxAmount = Math.Max(userOwesAmount, userIsOwedAmount);
 
         // Update the summaries
         if (userOwesAmount > userIsOwedAmount)
@@ -130,7 +130,7 @@ public static partial class GroupEndpoints
     {
       UserIsOwedAmounts = aggregatedSummary.userIsReceiverTotal,
       UserOwesAmounts = aggregatedSummary.userIsSenderTotal,
-      numberOfGroups = groups.Count
+      NumberOfGroups = groups.Count
     };
 
     return Results.Ok(aggregatedSummaryResponse);

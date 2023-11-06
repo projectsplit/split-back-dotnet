@@ -25,7 +25,7 @@ public static partial class GuestEndpoints {
     if(groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
     var group = groupResult.Value;
 
-    var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
+    var authenticatedUserId =claimsPrincipal.GetAuthenticatedUserId();
 
     var guestCreatorMember = group.GetMemberByUserId(authenticatedUserId);
     if(guestCreatorMember is null) return Results.BadRequest($"{authenticatedUserId} is not a member of group with id {request.GroupId}");

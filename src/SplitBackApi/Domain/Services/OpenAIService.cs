@@ -95,7 +95,7 @@ public class OpenAIService {
 
       var retainedDebtors = new Queue<TransactionMemberWrapper>(debtors.Select(member => new TransactionMemberWrapper(member, member.TotalAmountTaken - member.TotalAmountGiven)).ToList());
       var retainedCreditors = new Queue<TransactionMemberWrapper>(creditors.Select(member => new TransactionMemberWrapper(member, member.TotalAmountGiven - member.TotalAmountTaken)).ToList());
-
+      
       while(debtors.Count > 0 && creditors.Count > 0) {
 
         var poppedDebtor = debtors.Dequeue();
