@@ -10,15 +10,14 @@ using SplitBackApi.Domain.Services.ServiceHelpers;
 
 namespace SplitBackApi.Domain.Services;
 
-public class OpenAIService2
+public class ChatAndTextService2
 {
-
   private readonly IGroupRepository _groupRepository;
   private readonly IExpenseRepository _expenseRepository;
   private readonly ITransferRepository _transferRepository;
   private readonly IUserRepository _userRepository;
 
-  public OpenAIService2(
+  public ChatAndTextService2(
     IGroupRepository groupRepository,
     IExpenseRepository expenseRepository,
     ITransferRepository transferRepository,
@@ -92,8 +91,8 @@ public class OpenAIService2
 
             explanationTexts.Add(new ExplanationText
             {
-              Txt = $" The total amount {memberName} paid for the group is {member.TotalAmountGiven} {currency}.{(member.TotalAmountTaken == Money.Zero(isoCurrency) ? $"{memberName} received nothing from the group in {currency}." : $"The total amount {memberName} received from the group is {member.TotalAmountTaken} {currency}.")}" +
-                    $"As a result, {memberName} is a creditor with a credit of {member.TotalAmountGiven - member.TotalAmountTaken} {currency}."
+              Txt = $" The total amount {memberName} paid for the group is {member.TotalAmountGiven.Amount} {currency}.{(member.TotalAmountTaken == Money.Zero(isoCurrency) ? $"{memberName} received nothing from the group in {currency}." : $"The total amount {memberName} received from the group is {member.TotalAmountTaken.Amount} {currency}.")}" +
+                    $"As a result, {memberName} is a creditor with a credit of {(member.TotalAmountGiven - member.TotalAmountTaken).Amount} {currency}."
             });
             break;
 
@@ -105,8 +104,8 @@ public class OpenAIService2
 
             explanationTexts.Add(new ExplanationText
             {
-              Txt = $"{(member.TotalAmountGiven == Money.Zero(isoCurrency) ? $"{memberName} paid nothing for the group in {currency}." : $"The total amount {memberName} paid for the group is {member.TotalAmountGiven}{currency}.")} The total amount {memberName} received from the group is {member.TotalAmountTaken} {currency}." +
-                    $"As a result {memberName} is a debtor with a debt of {member.TotalAmountTaken - member.TotalAmountGiven} {currency}."
+              Txt = $"{(member.TotalAmountGiven == Money.Zero(isoCurrency) ? $"{memberName} paid nothing for the group in {currency}." : $"The total amount {memberName} paid for the group is {member.TotalAmountGiven.Amount}{currency}.")} The total amount {memberName} received from the group is {member.TotalAmountTaken.Amount} {currency}." +
+                    $"As a result {memberName} is a debtor with a debt of {(member.TotalAmountTaken - member.TotalAmountGiven).Amount} {currency}."
             });
             break;
 
@@ -154,7 +153,7 @@ public class OpenAIService2
               0 => $"{debtorName} owes {p.Amount.Amount} {currency} to {creditorName} because if {debtorName} pays {p.Amount.Amount} {currency} to {creditorName} " +
                    $"it will reduce {debtorName}'s debt to {(debtor.Remainder - p.Amount).Amount} {currency} and {creditorName}'s credit will be cleared.",
 
-              > 0 => $"{debtorName} owes {p.Amount} {currency} to {creditorName} because if {debtorName} pays {p.Amount.Amount} {currency} to {creditorName} " +
+              > 0 => $"{debtorName} owes {p.Amount.Amount} {currency} to {creditorName} because if {debtorName} pays {p.Amount.Amount} {currency} to {creditorName} " +
                      $"it will reduce {debtorName}'s debt to {(debtor.Remainder - p.Amount).Amount} {currency} and {creditorName}'s credit will be reduced to {(creditor.Remainder - p.Amount).Amount}.",
 
               _ => ""
@@ -171,7 +170,6 @@ public class OpenAIService2
 
   public async Task<Result<List<ExplanationText>>> GenerateTransactionsExplanationTextAsync(string groupId)
   {
-
     var groupResult = await _groupRepository.GetById(groupId);
     if (groupResult.IsFailure) return Result.Failure<List<ExplanationText>>(groupResult.Error);
 
@@ -188,12 +186,12 @@ public class OpenAIService2
     var allCurrencies =
       expenses.Select(e => e.Currency)
       .Concat(transfers.Select(t => t.Currency))
-      .Distinct();
+      .Distinct().ToList();
 
     var pendingTransactions = new List<PendingTransaction2>();
     var explanationTexts = new List<ExplanationText>();
 
-    foreach (var currency in allCurrencies)
+    allCurrencies.ForEach(currency =>
     {
       var groupMembers = group.Members.ToList();
       var isoCurrency = MoneyHelper.StringToIsoCode(currency);
@@ -229,8 +227,8 @@ public class OpenAIService2
 
             explanationTexts.Add(new ExplanationText
             {
-              Txt = $" The total amount {memberName} paid for the group is {memberInfo.TotalAmountGiven} {currency}.{(memberInfo.TotalAmountTaken == Money.Zero(isoCurrency) ? $"{memberName} received nothing from the group in {currency}." : $"The total amount {memberName} received from the group is {memberInfo.TotalAmountTaken} {currency}.")}" +
-                    $"As a result, {memberName} is a creditor with a credit of {memberInfo.TotalAmountGiven - memberInfo.TotalAmountTaken} {currency}."
+              Txt = $" The total amount {memberName} paid for the group is {memberInfo.TotalAmountGiven.Amount} {currency}.{(memberInfo.TotalAmountTaken == Money.Zero(isoCurrency) ? $"{memberName} received nothing from the group in {currency}." : $"The total amount {memberName} received from the group is {memberInfo.TotalAmountTaken.Amount} {currency}.")}" +
+                    $"As a result, {memberName} is a creditor with a credit of {(memberInfo.TotalAmountGiven - memberInfo.TotalAmountTaken).Amount} {currency}."
             });
 
             var memberCredit = memberInfo.TotalAmountGiven - memberInfo.TotalAmountTaken;
@@ -247,17 +245,17 @@ public class OpenAIService2
                 var Txt = (debtor.TotalAmountTaken - debtor.TotalAmountGiven - p.Amount).Amount switch
                 {
                   0 =>
-                    $"{(debtor.TotalAmountGiven == Money.Zero(isoCurrency) ? $"{senderName} paid nothing for the group in {currency}." : $"{senderName}'s total amount paid for the group is {debtor.TotalAmountGiven} {currency}.")}" +
-                    $" The total amount {senderName} received from the group is {debtor.TotalAmountTaken}, therefore {senderName} is a debtor, with debt of {debtor.TotalAmountTaken - debtor.TotalAmountGiven} {currency}. " +
+                    $"{(debtor.TotalAmountGiven == Money.Zero(isoCurrency) ? $"{senderName} paid nothing for the group in {currency}." : $"{senderName}'s total amount paid for the group is {debtor.TotalAmountGiven.Amount} {currency}.")}" +
+                    $" The total amount {senderName} received from the group is {debtor.TotalAmountTaken.Amount}, therefore {senderName} is a debtor, with debt of {(debtor.TotalAmountTaken - debtor.TotalAmountGiven).Amount} {currency}. " +
                     //$"This debt of {debtor.TotalAmountTaken - debtor.TotalAmountGiven} {currency} is paid from {senderName} to {memberName}, reducing {memberName}'s credit to {memberCredit} {currency}. "
                     //$"{senderName} pays this debt of {debtor.TotalAmountTaken - debtor.TotalAmountGiven} {currency} to {memberName}, reducing {memberName}'s credit to {memberCredit} {currency}."
-                    $"If {senderName} pays this debt of {debtor.TotalAmountTaken - debtor.TotalAmountGiven} {currency} to {memberName}, {((memberCredit -= debtorAmount) == Money.Zero(isoCurrency) ? $"{memberName}'s credit will be cleared." : $"{memberName}'s credit will be reduced to {memberCredit} {currency}.")}",
+                    $"If {senderName} pays this debt of {(debtor.TotalAmountTaken - debtor.TotalAmountGiven).Amount} {currency} to {memberName}, {((memberCredit -= debtorAmount) == Money.Zero(isoCurrency) ? $"{memberName}'s credit will be cleared." : $"{memberName}'s credit will be reduced to {memberCredit.Amount} {currency}.")}",
                   //+ $"{memberName}'s credit will be reduced to {memberCredit} {currency}.
 
                   > 0 =>
-                    $"{(debtor.TotalAmountGiven == Money.Zero(isoCurrency) ? $"{senderName} paid nothing for the group in {currency}." : $"{senderName}'s total amount paid for the group is {debtor.TotalAmountGiven} {currency}.")}" +
-                    $" The total amount {senderName} received from the group is {debtor.TotalAmountTaken} {currency}, therefore {senderName} is a debtor, with debt of {debtor.TotalAmountTaken - debtor.TotalAmountGiven} {currency}. " +
-                    $"If {memberName} takes {p.Amount} from {senderName}, {memberName}'s credit will be cleared."//.{senderName} reduces their debt to {debtor.TotalAmountTaken - debtor.TotalAmountGiven - p.Amount}{currency} as a result. "
+                    $"{(debtor.TotalAmountGiven == Money.Zero(isoCurrency) ? $"{senderName} paid nothing for the group in {currency}." : $"{senderName}'s total amount paid for the group is {debtor.TotalAmountGiven.Amount} {currency}.")}" +
+                    $" The total amount {senderName} received from the group is {debtor.TotalAmountTaken.Amount} {currency}, therefore {senderName} is a debtor, with debt of {(debtor.TotalAmountTaken - debtor.TotalAmountGiven).Amount} {currency}. " +
+                    $"If {memberName} takes {p.Amount.Amount} from {senderName}, {memberName}'s credit will be cleared."//.{senderName} reduces their debt to {debtor.TotalAmountTaken - debtor.TotalAmountGiven - p.Amount}{currency} as a result. "
                   ,
                   _ => ""
                 };
@@ -277,8 +275,8 @@ public class OpenAIService2
 
             explanationTexts.Add(new ExplanationText
             {
-              Txt = $"{(memberInfo.TotalAmountGiven == Money.Zero(isoCurrency) ? $"{memberName} paid nothing for the group in {currency}." : $"The total amount {memberName} paid for the group is {memberInfo.TotalAmountGiven}{currency}.")} The total amount {memberName} received from the group is {memberInfo.TotalAmountTaken} {currency}." +
-                    $"As a result {memberName} is a debtor with a debt of {memberInfo.TotalAmountTaken - memberInfo.TotalAmountGiven} {currency}."
+              Txt = $"{(memberInfo.TotalAmountGiven == Money.Zero(isoCurrency) ? $"{memberName} paid nothing for the group in {currency}." : $"The total amount {memberName} paid for the group is {memberInfo.TotalAmountGiven.Amount}{currency}.")} The total amount {memberName} received from the group is {memberInfo.TotalAmountTaken.Amount} {currency}." +
+                    $"As a result {memberName} is a debtor with a debt of {(memberInfo.TotalAmountTaken - memberInfo.TotalAmountGiven).Amount} {currency}."
             });
             var memberDebt = memberInfo.TotalAmountTaken - memberInfo.TotalAmountGiven;
 
@@ -292,17 +290,17 @@ public class OpenAIService2
               {
                 var Txt = (creditor.TotalAmountGiven - creditor.TotalAmountTaken - p.Amount).Amount switch
                 {
-                  0 => $"{receiverName}'s total amount paid for the group is {creditor.TotalAmountGiven} {currency}. " +
-                     $"{(creditor.TotalAmountTaken == Money.Zero(isoCurrency) ? $"{receiverName} did not receive anything from the group in {currency}." : $"The total amount {receiverName} received from the group is {creditor.TotalAmountTaken} {currency}.")}" +
-                     $"As a result {receiverName} is a creditor, with a credit of {creditor.TotalAmountGiven - creditor.TotalAmountTaken} {currency}. " +
+                  0 => $"{receiverName}'s total amount paid for the group is {creditor.TotalAmountGiven.Amount} {currency}. " +
+                     $"{(creditor.TotalAmountTaken == Money.Zero(isoCurrency) ? $"{receiverName} did not receive anything from the group in {currency}." : $"The total amount {receiverName} received from the group is {creditor.TotalAmountTaken.Amount} {currency}.")}" +
+                     $"As a result {receiverName} is a creditor, with a credit of {(creditor.TotalAmountGiven - creditor.TotalAmountTaken).Amount} {currency}. " +
                      //$"This credit of {creditor.TotalAmountGiven - creditor.TotalAmountTaken} {currency} is paid from {memberName} to {receiverName}, reducing {memberName}'s debt to {memberDebt} {currency}."
                      //$"{memberName} pays this credit of {creditor.TotalAmountGiven - creditor.TotalAmountTaken} {currency} to {receiverName}, reducing {memberName}'s debt to {memberDebt} {currency}."
-                     $"If {memberName} pays this credit of {creditor.TotalAmountGiven - creditor.TotalAmountTaken} {currency} to {receiverName}, {((memberDebt -= creditorAmount) == Money.Zero(isoCurrency) ? $"{memberName}'s debt will be cleared." : $"{memberName}'s debt will be reduced to {memberDebt} {currency}.")}"
+                     $"If {memberName} pays this credit of {(creditor.TotalAmountGiven - creditor.TotalAmountTaken).Amount} {currency} to {receiverName}, {((memberDebt -= creditorAmount) == Money.Zero(isoCurrency) ? $"{memberName}'s debt will be cleared." : $"{memberName}'s debt will be reduced to {memberDebt.Amount} {currency}.")}"
                   ,
-                  > 0 => $"{receiverName}'s total amount paid for the group is {creditor.TotalAmountGiven} {currency}. " +
-                     $"{(creditor.TotalAmountTaken == Money.Zero(isoCurrency) ? $"{receiverName} did not receive anything from the group in {currency}." : $"The total amount {receiverName} received from the group is {creditor.TotalAmountTaken} {currency}.")}" +
-                     $"As a result {receiverName} is a creditor, with a credit of {creditor.TotalAmountGiven - creditor.TotalAmountTaken} {currency}. " +
-                     $"If {memberName} pays {p.Amount} {currency} to {receiverName}, {memberName}'s debt will be cleared.", //and reducing {receiverName}'s credit to {creditor.TotalAmountGiven - creditor.TotalAmountTaken - p.Amount}{currency}.",
+                  > 0 => $"{receiverName}'s total amount paid for the group is {creditor.TotalAmountGiven.Amount} {currency}. " +
+                     $"{(creditor.TotalAmountTaken == Money.Zero(isoCurrency) ? $"{receiverName} did not receive anything from the group in {currency}." : $"The total amount {receiverName} received from the group is {creditor.TotalAmountTaken.Amount} {currency}.")}" +
+                     $"As a result {receiverName} is a creditor, with a credit of {(creditor.TotalAmountGiven - creditor.TotalAmountTaken).Amount} {currency}. " +
+                     $"If {memberName} pays {p.Amount.Amount} {currency} to {receiverName}, {memberName}'s debt will be cleared.", //and reducing {receiverName}'s credit to {creditor.TotalAmountGiven - creditor.TotalAmountTaken - p.Amount}{currency}.",
                   _ => ""
                 };
                 explanationTexts.Add(new ExplanationText { Txt = Txt });
@@ -319,7 +317,7 @@ public class OpenAIService2
             break;
         }
       });
-    }
+    });
     return explanationTexts;
   }
 }

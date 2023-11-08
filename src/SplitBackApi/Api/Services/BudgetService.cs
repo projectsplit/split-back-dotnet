@@ -23,7 +23,7 @@ public class BudgetService
     _exchangeRateRepository = exchangeRateRepository;
 
   }
-  public async Task<Result<decimal>> CalculateTotalSpent(
+  public async Task<Result<Money>> CalculateTotalSpentInSingleCurrency(
     string authenticatedUserId,
     IEnumerable<Group> groups,
     string budgetCurrency,
@@ -38,7 +38,7 @@ public class BudgetService
     var transfers = await _transferRepository.GetLatestByGroupsIdsMembersIdsAndStartDate(groupIdToMemberIdMap, startDate);
 
     var exchangeRates = await GetAllRatesFromAllOperations(expenses, transfers, budgetCurrency);
-    if (!exchangeRates.Any()) return Result.Failure<decimal>("exchange rates not in DB");
+    if (!exchangeRates.Any()) return Result.Failure<Money>("exchange rates not in DB");
 
     var expensesTotalSpent = expenses.Any() ?
       Money.Total(expenses
@@ -58,7 +58,7 @@ public class BudgetService
       : Money.Zero(budgetCurrencyISO);
 
     var totalMoney = expensesTotalSpent.Plus(transfersTotalSent.Minus(transfersTotalReceived));
-    return totalMoney.Amount;
+    return totalMoney;
   }
 
   private async Task<Dictionary<string, decimal>> GetAllRatesFromAllOperations(
@@ -160,30 +160,16 @@ public class BudgetService
     {
       case BudgetType.Monthly:
 
-        if (currentDate.Day >= day2Int)
-        {
-          var daysInMonth = DateTime.DaysInMonth(currentDate.Year, currentDate.Month);
-          startDate = new DateTime(currentDate.Year, currentDate.Month, Math.Min(day2Int, daysInMonth));
-        }
-        else
-        {
-          // Calculate the previous month
-          var previousMonth = currentDate.AddMonths(-1);
+        var previousMonth = currentDate.AddMonths(-1);
 
-          if (currentDate.Month == 1) //check if January so it will go to Dec of prev year
-          {
-            // If we are in January, go back to December of the previous year
-            var daysInMonth = DateTime.DaysInMonth(previousMonth.Year - 1, 12);
-            startDate = new DateTime(previousMonth.Year - 1, 12, Math.Min(day2Int, daysInMonth));
-          }
-          else
-          {
-            // Go back to the previous month of the current year
-            var daysInMonth = DateTime.DaysInMonth(previousMonth.Year, previousMonth.Month);
-            startDate = new DateTime(previousMonth.Year, previousMonth.Month, Math.Min(day2Int, daysInMonth));
-          }
-        }
-
+        startDate = (currentDate.Day - day2Int) switch
+        {
+          >= 0 => new DateTime(currentDate.Year, currentDate.Month, Math.Min(day2Int, DateTime.DaysInMonth(currentDate.Year, currentDate.Month))),
+          _ => currentDate.Month == 1  //check if January so it will go to Dec of prev year
+              ? new DateTime(previousMonth.Year - 1, 12, Math.Min(day2Int, DateTime.DaysInMonth(previousMonth.Year - 1, 12)))// If we are in January, go back to December of the previous year
+              : new DateTime(previousMonth.Year, previousMonth.Month, Math.Min(day2Int, DateTime.DaysInMonth(previousMonth.Year, previousMonth.Month)))// Go back to the previous month of the current year
+        };
+        
         var tempEndDate = startDate.AddMonths(1);
         //case where previous month has 30 and next month 31 days.
         //February does not have an issue as regardless at what day the previous month ends
@@ -201,15 +187,12 @@ public class BudgetService
       case BudgetType.Weekly:
         var dayDifference = (int)currentDate.DayOfWeek - day2Int;
 
-        if (dayDifference >= 0)
+        startDate = dayDifference switch
         {
-          startDate = currentDate.AddDays(-dayDifference);
-        }
-        else
-        {
-          // Start from the day2Int of the previous week
-          startDate = currentDate.AddDays(-dayDifference - 7);
-        }
+          >= 0 => currentDate.AddDays(-dayDifference),
+          _ => currentDate.AddDays(-dayDifference - 7)
+        };
+
         startDate = startDate.Date;
         endDate = startDate.AddDays(7);
         break;

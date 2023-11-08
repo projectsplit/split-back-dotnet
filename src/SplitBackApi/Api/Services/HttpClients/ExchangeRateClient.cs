@@ -2,7 +2,6 @@ using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using SplitBackApi.Api.Endpoints.Budgets.Responses;
 using SplitBackApi.Configuration;
 using SplitBackApi.Domain.Models;
 
@@ -43,7 +42,7 @@ public class ExchangeRateClient
       // Handle error if needed
       return Result.Failure<ExchangeRates>("Failed to retrieve exchange rates");
     }
-
+    
     var deserializedResponse = JsonConvert.DeserializeObject<ExchangeRates>(responseString);
     
     deserializedResponse.Date = date;

@@ -9,14 +9,14 @@ using SplitBackApi.Domain.Models;
 
 namespace SplitBackApi.Domain.Services;
 
-public class OpenAIService {
+public class ChatAndTextService {
 
   private readonly IGroupRepository _groupRepository;
   private readonly IExpenseRepository _expenseRepository;
   private readonly ITransferRepository _transferRepository;
   private readonly IUserRepository _userRepository;
 
-  public OpenAIService(
+  public ChatAndTextService(
     IGroupRepository groupRepository,
     IExpenseRepository expenseRepository,
     ITransferRepository transferRepository,
