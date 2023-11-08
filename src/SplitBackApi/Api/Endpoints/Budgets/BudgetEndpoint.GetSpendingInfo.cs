@@ -45,7 +45,7 @@ public static partial class BudgetsEndpoints
 
     var startDate = budgetService.StartAndEndDateBasedOnBudgetAndDay(budgetType, day).Value.startDate;
 
-    var totalSpentResult = await budgetService.CalculateTotalSpent(
+    var totalSpentResult = await budgetService.CalculateTotalSpentInSingleCurrency(
           authenticatedUserId,
           groups,
           budgetCurrency,
@@ -60,7 +60,7 @@ public static partial class BudgetsEndpoints
     var response = new SpendingInfoResponse
     {
       BudgetSubmitted = budgetMaybe.HasValue,
-      TotalAmountSpent = Math.Round(totalSpent, 2).ToString(),
+      TotalAmountSpent = Math.Round(totalSpent.Amount, 2).ToString(),
       Currency = budgetCurrency,
     };
     return Results.Ok(response);
