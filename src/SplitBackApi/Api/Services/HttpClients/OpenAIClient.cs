@@ -6,6 +6,7 @@ using SplitBackApi.Api.Endpoints.OpenAI.Response;
 using SplitBackApi.Configuration;
 using Newtonsoft.Json;
 using System.Text;
+using SplitBackApi.Api.Models;
 
 namespace SplitBackApi.Api.Services.HttpClients;
 

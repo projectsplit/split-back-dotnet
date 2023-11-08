@@ -1,3 +1,5 @@
+using SplitBackApi.Api.Models;
+
 namespace SplitBackApi.Api.Endpoints.OpenAI.Response;
 public class OpenAIExplanatorResponse {
   public string Id { get; set; }

@@ -12,6 +12,7 @@ using CSharpFunctionalExtensions;
 using MongoDB.Bson;
 using SplitBackApi.Api.Services.GoogleAuthService;
 using SplitBackApi.Api.Services.GoogleAuthService.Models;
+using SplitBackApi.Api.Models;
 
 namespace SplitBackApi.Api.Endpoints.Authentication;
 

@@ -1,6 +1,7 @@
 using CSharpFunctionalExtensions;
 using SplitBackApi.Data.Repositories.UserRepository;
 using SplitBackApi.Domain.Models;
+using SplitBackApi.Api.Models;
 
 namespace SplitBackApi.Api.Helper;
 public static class MemberIdToNameHelper {

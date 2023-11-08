@@ -3,6 +3,7 @@ using MongoDB.Bson.Serialization.Attributes;
 using SplitBackApi.Api.Endpoints.Groups.Requests;
 using SplitBackApi.Api.Extensions;
 using SplitBackApi.Api.Helper;
+using SplitBackApi.Api.Models;
 using SplitBackApi.Data.Repositories.GroupRepository;
 using SplitBackApi.Data.Repositories.UserRepository;
 using SplitBackApi.Domain.Extensions;

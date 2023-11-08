@@ -1,4 +1,4 @@
-
+namespace SplitBackApi.Api.Models;
 public class AuthedUserPendingTransaction {
 
   public bool UserIsSender { get; set; }

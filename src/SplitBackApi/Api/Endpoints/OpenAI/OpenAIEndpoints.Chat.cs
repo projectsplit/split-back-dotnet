@@ -8,6 +8,7 @@ using SplitBackApi.Configuration;
 using SplitBackApi.Data.Repositories.GroupRepository;
 using SplitBackApi.Domain.Services;
 using SplitBackApi.Api.Endpoints.OpenAI.Response;
+using SplitBackApi.Api.Models;
 
 namespace SplitBackApi.Api.Endpoints.OpenAI;
 

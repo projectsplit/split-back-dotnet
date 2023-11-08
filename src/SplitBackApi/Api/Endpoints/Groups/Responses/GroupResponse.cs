@@ -1,5 +1,6 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using SplitBackApi.Api.Models;
 using SplitBackApi.Domain.Models;
 
 namespace SplitBackApi.Api.Endpoints.Groups.Requests;

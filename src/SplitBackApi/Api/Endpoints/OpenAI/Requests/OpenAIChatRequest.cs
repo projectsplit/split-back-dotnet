@@ -1,3 +1,5 @@
+using SplitBackApi.Api.Models;
+
 namespace SplitBackApi.Api.Endpoints.OpenAI.Requests;
 
 
