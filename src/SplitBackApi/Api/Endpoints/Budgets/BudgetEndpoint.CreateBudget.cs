@@ -32,14 +32,7 @@ public static partial class BudgetsEndpoints
     var validationResult = await budgetValidator.ValidateAsync(newBudget, ct);
     if (validationResult.IsValid is false) return Results.BadRequest(validationResult.ToErrorResponse());
 
-    var userBudgetMaybe = await budgetRepository.GetByUserId(authenticatedUserId);
-
-    if (userBudgetMaybe.HasValue)
-    {
-      await budgetRepository.DeleteByUserId(authenticatedUserId);
-    }
-
-    var createResult = await budgetRepository.Create(newBudget, ct);
+    var createResult = await budgetRepository.Create(newBudget, authenticatedUserId, ct);
 
     return createResult.IsSuccess ? Results.Ok() : Results.BadRequest(createResult.Error);
   }

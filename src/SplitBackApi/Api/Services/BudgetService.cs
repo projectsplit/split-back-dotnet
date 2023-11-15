@@ -36,6 +36,7 @@ public class BudgetService
 
     var expenses = await _expenseRepository.GetLatestByGroupsIdsMembersIdsAndStartDate(groupIdToMemberIdMap, startDate);
     var transfers = await _transferRepository.GetLatestByGroupsIdsMembersIdsAndStartDate(groupIdToMemberIdMap, startDate);
+    if (expenses.Count == 0 && transfers.Count == 0) return new Money(0, budgetCurrencyISO);
 
     var exchangeRates = await GetAllRatesFromAllOperations(expenses, transfers, budgetCurrency);
     if (!exchangeRates.Any()) return Result.Failure<Money>("exchange rates not in DB");
@@ -169,7 +170,7 @@ public class BudgetService
               ? new DateTime(previousMonth.Year - 1, 12, Math.Min(day2Int, DateTime.DaysInMonth(previousMonth.Year - 1, 12)))// If we are in January, go back to December of the previous year
               : new DateTime(previousMonth.Year, previousMonth.Month, Math.Min(day2Int, DateTime.DaysInMonth(previousMonth.Year, previousMonth.Month)))// Go back to the previous month of the current year
         };
-        
+
         var tempEndDate = startDate.AddMonths(1);
         //case where previous month has 30 and next month 31 days.
         //February does not have an issue as regardless at what day the previous month ends
