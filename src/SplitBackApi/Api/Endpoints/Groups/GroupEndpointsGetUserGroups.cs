@@ -4,6 +4,7 @@ using SplitBackApi.Api.Extensions;
 using SplitBackApi.Data.Repositories.GroupRepository;
 using SplitBackApi.Domain.Services;
 using SplitBackApi.Domain.Models;
+using SplitBackApi.Api.Models;
 
 
 // https://stackoverflow.com/questions/50530363/aggregate-lookup-with-c-sharp

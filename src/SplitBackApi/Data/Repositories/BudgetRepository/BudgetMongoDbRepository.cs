@@ -26,20 +26,34 @@ public class BudgetMongoDbRepository : IBudgetRepository
     _expenseCollection = mongoDatabase.GetCollection<Expense>(dbSettings.Database.Collections.Expenses);
 
   }
-  public async Task<Result> Create(Budget budget, CancellationToken ct)
+  public async Task<Result> Create(Budget budget, string userId, CancellationToken ct)
   {
-    return await _budgetCollection.InsertOneAsync(budget, ct).ExecuteResultAsync();
+    using var session = await _mongoClient.StartSessionAsync(cancellationToken: ct);
+    session.StartTransaction();
+
+    try
+    {
+      await DeleteByUserId(userId);
+      await _budgetCollection.InsertOneAsync(budget, ct).ExecuteResultAsync();
+    }
+    catch (MongoException e)
+    {
+
+      await session.AbortTransactionAsync(ct);
+      return Result.Failure(e.ToString());
+    }
+
+    return Result.Success();
   }
 
-  public async Task<Result> DeleteByUserId(string UserId)
+  public async Task<Maybe<DeleteResult>> DeleteByUserId(string UserId)
   {
     var findBudgetFilter = Builders<Budget>.Filter.Eq(b => b.UserId, UserId);
 
-    var budgetFound = await _budgetCollection.Find(findBudgetFilter).FirstOrDefaultAsync();
-    if (budgetFound is null) return Result.Failure($"Budget from user {UserId} has not been found to be deleted");
+    // var budgetFound = await _budgetCollection.Find(findBudgetFilter).FirstOrDefaultAsync();
+    // if (budgetFound is null) return Result.Failure($"Budget from user {UserId} has not been found to be deleted");
 
-    await _budgetCollection.DeleteOneAsync(findBudgetFilter);
-    return Result.Success();
+    return await _budgetCollection.DeleteOneAsync(findBudgetFilter);
 
   }
 

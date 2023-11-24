@@ -1,6 +1,7 @@
 using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using SplitBackApi.Api.Helper;
 using SplitBackApi.Configuration;
 using SplitBackApi.Domain.Extensions;
 using SplitBackApi.Domain.Models;
@@ -125,17 +126,29 @@ public class TransferMongoDbRepository : ITransferRepository
     return Result.Success();
   }
 
-  public async Task<List<Transfer>> GetByGroupIdAndStartDate(string groupId, string memberId, DateTime startDate)
+  public async Task<List<Transfer>> GetLatestByGroupsIdsMembersIdsAndStartDate(
+      Dictionary<string, string> groupIdToMemberIdMap,
+      DateTime startDate)
   {
-    var groupFilter = Builders<Transfer>.Filter.Eq(e => e.GroupId, groupId);
+    var groupIds = groupIdToMemberIdMap.Keys.ToList();
 
-    var senderFilter = Builders<Transfer>.Filter.Eq(e => e.SenderId, memberId);
-    var receiverFilter = Builders<Transfer>.Filter.Eq(e => e.ReceiverId, memberId);
-    var memberFilter = Builders<Transfer>.Filter.Or(senderFilter, receiverFilter);
-    
-    var creationTimeFilter = Builders<Transfer>.Filter.Gte(e => e.CreationTime, startDate) & Builders<Transfer>.Filter.Lte(e => e.CreationTime, DateTime.Now);
-    var filter = groupFilter & memberFilter & creationTimeFilter;
+    var groupFilter = Builders<Transfer>.Filter.In(t => t.GroupId, groupIds);
+    var creationTimeFilter =
+        Builders<Transfer>.Filter.Gte(t => t.TransferTime, startDate) &
+        Builders<Transfer>.Filter.Lte(t => t.TransferTime, DateTime.Now);
 
-    return await _transferCollection.Find(filter).ToListAsync();
+    var transfers = await _transferCollection.Find(groupFilter & creationTimeFilter).ToListAsync();
+
+    var senderFilter = transfers
+    .Where(t => groupIds.Contains(t.GroupId) && t.SenderId == groupIdToMemberIdMap[t.GroupId])
+    .ToList();
+
+    var receiverFilter = transfers
+    .Where(t => groupIds.Contains(t.GroupId) && t.ReceiverId == groupIdToMemberIdMap[t.GroupId])
+    .ToList();
+
+    var filteredTransfers = senderFilter.Concat(receiverFilter).ToList();
+
+    return filteredTransfers;
   }
 }

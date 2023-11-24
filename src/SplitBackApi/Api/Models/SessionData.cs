@@ -1,3 +1,4 @@
+namespace SplitBackApi.Api.Models;
 public class SessionData {
   public string Id { get; set; }
   public string UserId { get; set; }

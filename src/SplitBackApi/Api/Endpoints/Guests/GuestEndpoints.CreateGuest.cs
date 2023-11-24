@@ -3,6 +3,7 @@ using MongoDB.Bson.Serialization.Attributes;
 using SplitBackApi.Api.Endpoints.Groups.Requests;
 using SplitBackApi.Api.Extensions;
 using SplitBackApi.Api.Helper;
+using SplitBackApi.Api.Models;
 using SplitBackApi.Data.Repositories.GroupRepository;
 using SplitBackApi.Data.Repositories.UserRepository;
 using SplitBackApi.Domain.Extensions;
@@ -25,7 +26,7 @@ public static partial class GuestEndpoints {
     if(groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
     var group = groupResult.Value;
 
-    var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
+    var authenticatedUserId =claimsPrincipal.GetAuthenticatedUserId();
 
     var guestCreatorMember = group.GetMemberByUserId(authenticatedUserId);
     if(guestCreatorMember is null) return Results.BadRequest($"{authenticatedUserId} is not a member of group with id {request.GroupId}");

@@ -33,4 +33,5 @@ public static class StringExtensions {
 
     return Decimal.Round(input, 2) == input;
   }
+  
 }

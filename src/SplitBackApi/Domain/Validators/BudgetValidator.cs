@@ -38,13 +38,18 @@ public class BudgetValidator : AbstractValidator<Budget>
     RuleFor(budget => budget)
     .Custom((budget, context) =>
     {
-      if (budget.BudgetType == BudgetType.Weekly && budget.Day.ToDecimal() > 7)
+      switch (budget.BudgetType)
       {
-        context.AddFailure("Day cannot be greater than 7 for a weekly budget.");
-      }
-      else if (budget.BudgetType == BudgetType.Monthly && budget.Day.ToDecimal() > 31)
-      {
-        context.AddFailure("Day cannot be greater than 31 for a monthly budget.");
+        case BudgetType.Weekly when budget.Day.ToDecimal() > 7:
+          context.AddFailure("Day cannot be greater than 7 for a weekly budget.");
+          break;
+
+        case BudgetType.Monthly when budget.Day.ToDecimal() > 31:
+          context.AddFailure("Day cannot be greater than 31 for a monthly budget.");
+
+          break;
+        default:
+          break;
       }
     });
   });

@@ -1,4 +1,4 @@
-namespace SplitBackApi.Api.Endpoints.Transactions.Requests;
+namespace SplitBackApi.Api.Endpoints.Transactions.Responses;
 
 public class PendingTransactionResponse {
 

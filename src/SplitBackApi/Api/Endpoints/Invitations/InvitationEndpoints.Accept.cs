@@ -50,7 +50,7 @@ public static partial class InvitationEndpoints {
 
     var member = group.GetMemberByUserId(authenticatedUserId);
     if(member is not null) return Results.BadRequest($"User {authenticatedUserId} is already a member of the group");
-
+    
     if(invitation is ReplacementInvitation) {
 
       var replacementInvitation = (ReplacementInvitation)invitation;

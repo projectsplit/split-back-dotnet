@@ -1,3 +1,4 @@
+using SplitBackApi.Api.Models;
 using SplitBackApi.Domain.Models;
 
 namespace SplitBackApi.Api.Endpoints.Groups.Responses;

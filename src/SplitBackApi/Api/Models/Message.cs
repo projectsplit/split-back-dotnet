@@ -1,3 +1,4 @@
+namespace SplitBackApi.Api.Models;
 public class Message {
 
   public string Role { get; set; }

@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using SplitBackApi.Api.Endpoints.Transactions.Requests;
+using SplitBackApi.Api.Endpoints.Transactions.Responses;
 using SplitBackApi.Api.Extensions;
 using SplitBackApi.Api.Helper;
 using SplitBackApi.Data.Repositories.GroupRepository;

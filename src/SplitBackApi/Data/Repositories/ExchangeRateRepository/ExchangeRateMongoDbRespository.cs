@@ -7,13 +7,13 @@ using SplitBackApi.Domain.Models;
 
 namespace SplitBackApi.Data.Repositories.ExchangeRateRepository;
 
-public class ExchangeRateRepository : IExchangeRateRepository
+public class ExchangeRateMongoDbRepository : IExchangeRateRepository
 {
   private readonly ExchangeRateService _exchangeRateService;
   private readonly MongoClient _mongoClient;
   private readonly IMongoCollection<ExchangeRates> _exchangeRatesCollection;
 
-  public ExchangeRateRepository(ExchangeRateService exchangeRateService, IOptions<AppSettings> appSettings)
+  public ExchangeRateMongoDbRepository(ExchangeRateService exchangeRateService, IOptions<AppSettings> appSettings)
   {
     _exchangeRateService = exchangeRateService;
 
@@ -23,6 +23,14 @@ public class ExchangeRateRepository : IExchangeRateRepository
 
     _exchangeRatesCollection = mongoDatabase.GetCollection<ExchangeRates>(dbSettings.Database.Collections.ExchangeRates);
 
+  }
+
+  public async Task<Maybe<List<ExchangeRates>>> GetAllRatesForDates(List<string> dates)
+  {
+    var filter = Builders<ExchangeRates>.Filter.In("Date", dates);
+    var exchangeRates = await _exchangeRatesCollection.Find(filter).ToListAsync();
+
+    return exchangeRates;
   }
 
   public async Task<Result> GetExchangeRatesFromExternalProvider(string baseCurrency, string date)
@@ -63,7 +71,7 @@ public class ExchangeRateRepository : IExchangeRateRepository
     }
   }
 
-  private async Task<Result<ExchangeRates>> GetExchangeRatesByDate(string date)
+  public async Task<Result<ExchangeRates>> GetExchangeRatesByDate(string date)
   {
     var filter = Builders<ExchangeRates>.Filter.Eq(e => e.Date, date);
 

@@ -9,14 +9,14 @@ using SplitBackApi.Domain.Models;
 
 namespace SplitBackApi.Domain.Services;
 
-public class OpenAIService {
+public class ChatAndTextService {
 
   private readonly IGroupRepository _groupRepository;
   private readonly IExpenseRepository _expenseRepository;
   private readonly ITransferRepository _transferRepository;
   private readonly IUserRepository _userRepository;
 
-  public OpenAIService(
+  public ChatAndTextService(
     IGroupRepository groupRepository,
     IExpenseRepository expenseRepository,
     ITransferRepository transferRepository,
@@ -95,7 +95,7 @@ public class OpenAIService {
 
       var retainedDebtors = new Queue<TransactionMemberWrapper>(debtors.Select(member => new TransactionMemberWrapper(member, member.TotalAmountTaken - member.TotalAmountGiven)).ToList());
       var retainedCreditors = new Queue<TransactionMemberWrapper>(creditors.Select(member => new TransactionMemberWrapper(member, member.TotalAmountGiven - member.TotalAmountTaken)).ToList());
-
+      
       while(debtors.Count > 0 && creditors.Count > 0) {
 
         var poppedDebtor = debtors.Dequeue();

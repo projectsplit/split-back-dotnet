@@ -1,4 +1,5 @@
 using SplitBackApi.Api.Extensions;
+using SplitBackApi.Api.Models;
 using SplitBackApi.Api.Services;
 using SplitBackApi.Data.Repositories.SessionRepository;
 using SplitBackApi.Data.Repositories.UserRepository;

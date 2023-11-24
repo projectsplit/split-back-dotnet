@@ -56,13 +56,21 @@ public class Program
       });
     });
 
+    //Http Clients
     builder.Services.AddHttpClient("openexchangerates", client =>
     {
       client.DefaultRequestHeaders.Add("accept", "application/json");
       client.BaseAddress = new Uri("https://openexchangerates.org/api/");
     });
 
+    builder.Services.AddHttpClient("openai", client =>
+    {
+      client.DefaultRequestHeaders.Add("accept", "application/json");
+      client.BaseAddress = new Uri("https://api.openai.com/v1/");
+    });
+
     builder.Services.AddScoped<ExchangeRateClient>();
+    builder.Services.AddScoped<OpenAIClient>();
 
     // Repositories
     builder.Services.AddScoped<IUserRepository, UserMongoDbRepository>();
@@ -74,14 +82,17 @@ public class Program
     builder.Services.AddScoped<ICommentRepository, CommentMongoDbRepository>();
     builder.Services.AddScoped<IInvitationRepository, InvitationMongoDbRepository>();
     builder.Services.AddScoped<IBudgetRepository, BudgetMongoDbRepository>();
-    builder.Services.AddScoped<IExchangeRateRepository, ExchangeRateRepository>();
+    builder.Services.AddScoped<IExchangeRateRepository, ExchangeRateMongoDbRepository>();
 
 
     // Services
     builder.Services.AddScoped<AuthService>();
     builder.Services.AddScoped<GoogleAuthService>();
     builder.Services.AddScoped<TransactionService>();
-    builder.Services.AddScoped<OpenAIService>();
+    builder.Services.AddScoped<TransactionService2>();
+    builder.Services.AddScoped<TransactionService3>();
+    builder.Services.AddScoped<ChatAndTextService>();
+    builder.Services.AddScoped<ChatAndTextService2>();
     builder.Services.AddScoped<BudgetService>();
     builder.Services.AddScoped<ExchangeRateService>();
 

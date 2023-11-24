@@ -16,7 +16,7 @@ public static partial class BudgetsEndpoints
       BudgetValidator budgetValidator,
       CancellationToken ct)
   {
-    var authenticatedUserId = "63ff33b09e4437f07d9d3982";//claimsPrincipal.GetAuthenticatedUserId();
+    var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
 
     var newBudget = new Budget
     {
@@ -32,14 +32,7 @@ public static partial class BudgetsEndpoints
     var validationResult = await budgetValidator.ValidateAsync(newBudget, ct);
     if (validationResult.IsValid is false) return Results.BadRequest(validationResult.ToErrorResponse());
 
-    var userBudgetMaybe = await budgetRepository.GetByUserId(authenticatedUserId);
-
-    if (userBudgetMaybe.HasValue)
-    {
-      await budgetRepository.DeleteByUserId(authenticatedUserId);
-    }
-
-    var createResult = await budgetRepository.Create(newBudget, ct);
+    var createResult = await budgetRepository.Create(newBudget, authenticatedUserId, ct);
 
     return createResult.IsSuccess ? Results.Ok() : Results.BadRequest(createResult.Error);
   }

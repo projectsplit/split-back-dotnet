@@ -1,6 +1,7 @@
 namespace SplitBackApi.Domain.Models;
 
-public class TransactionTimelineItem {
+public class TransactionTimelineItem
+{
 
   public string Id { get; set; }
 

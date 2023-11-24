@@ -16,9 +16,9 @@ public static partial class BudgetsEndpoints
     var budgetMaybe = await budgetRepository.GetByUserId(authenticatedUserId);
 
     if (budgetMaybe.HasNoValue) return Results.BadRequest($"Budget from user {authenticatedUserId} does not exist");
-    var deleteResult = await budgetRepository.DeleteByUserId(authenticatedUserId);
+    await budgetRepository.DeleteByUserId(authenticatedUserId);
 
-    return deleteResult.IsSuccess ? Results.Ok() : Results.BadRequest(deleteResult.Error);
+    return Results.Ok();
 
   }
 
