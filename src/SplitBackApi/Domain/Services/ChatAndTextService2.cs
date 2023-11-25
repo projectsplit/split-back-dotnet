@@ -1,12 +1,12 @@
 using CSharpFunctionalExtensions;
 using NMoneys;
+using SplitBackApi.Api.Extensions;
 using SplitBackApi.Api.Helper;
 using SplitBackApi.Data.Repositories.ExpenseRepository;
 using SplitBackApi.Data.Repositories.GroupRepository;
 using SplitBackApi.Data.Repositories.TransferRepository;
 using SplitBackApi.Data.Repositories.UserRepository;
 using SplitBackApi.Domain.Models;
-using SplitBackApi.Domain.Services.ServiceHelpers;
 
 namespace SplitBackApi.Domain.Services;
 
@@ -17,17 +17,20 @@ public class ChatAndTextService2
   private readonly ITransferRepository _transferRepository;
   private readonly IUserRepository _userRepository;
 
+
   public ChatAndTextService2(
     IGroupRepository groupRepository,
     IExpenseRepository expenseRepository,
     ITransferRepository transferRepository,
     IUserRepository userRepository
+
   )
   {
     _groupRepository = groupRepository;
     _expenseRepository = expenseRepository;
     _transferRepository = transferRepository;
     _userRepository = userRepository;
+
   }
 
   public async Task<Result<List<ExplanationText>>> GenerateChatScriptAsync(string groupId)
@@ -56,20 +59,19 @@ public class ChatAndTextService2
     allCurrencies.ForEach(currency =>
     {
       var groupMembers = group.Members.ToList();
-      var isoCurrency = MoneyHelper.StringToIsoCode(currency);
+      var isoCurrency = currency.StringToIsoCode();
 
-      var transactionMembers = TransactionHelper.InitializeTransactionMembers(groupMembers, currency);
-      TransactionHelper.CalculateTotalTakenAndGivenForEachMember(transactionMembers, expenses, transfers, currency);
+      var transactionMembers = TransactionService2.CalculateTotalTakenAndGivenForEachTransactionMember(groupMembers, expenses, transfers, currency);
 
       var debtors = new Queue<TransactionMember2>();
       var creditors = new Queue<TransactionMember2>();
 
-      (debtors, creditors) = TransactionHelper.CalculateDebtorsAndCreditors(transactionMembers);
+      (debtors, creditors) = TransactionService2.CalculateDebtorsAndCreditors(transactionMembers);
 
       var retainedDebtors = new Queue<TransactionMemberWrapper2>(debtors.Select(member => new TransactionMemberWrapper2(member, member.TotalAmountTaken - member.TotalAmountGiven)).ToList());
       var retainedCreditors = new Queue<TransactionMemberWrapper2>(creditors.Select(member => new TransactionMemberWrapper2(member, member.TotalAmountGiven - member.TotalAmountTaken)).ToList());
 
-      TransactionHelper.CalculatePendingTransactions(debtors, creditors, pendingTransactions, currency);
+      TransactionService2.CalculatePendingTransactions(debtors, creditors, pendingTransactions, currency);
 
       //only use Ids in pendingTransactions.
       var senderIds = pendingTransactions.Select(t => t.SenderId).Distinct().ToList();
@@ -194,20 +196,19 @@ public class ChatAndTextService2
     allCurrencies.ForEach(currency =>
     {
       var groupMembers = group.Members.ToList();
-      var isoCurrency = MoneyHelper.StringToIsoCode(currency);
-      var transactionMembers = TransactionHelper.InitializeTransactionMembers(groupMembers, currency);
+      var isoCurrency = currency.StringToIsoCode();
 
-      TransactionHelper.CalculateTotalTakenAndGivenForEachMember(transactionMembers, expenses, transfers, currency);
+     var transactionMembers= TransactionService2.CalculateTotalTakenAndGivenForEachTransactionMember(groupMembers, expenses, transfers, currency);
 
       var debtors = new Queue<TransactionMember2>();
       var creditors = new Queue<TransactionMember2>();
 
-      (debtors, creditors) = TransactionHelper.CalculateDebtorsAndCreditors(transactionMembers);
+      (debtors, creditors) = TransactionService2.CalculateDebtorsAndCreditors(transactionMembers);
 
       var retainedDebtors = new Queue<TransactionMember2>(debtors.ToList()); ;
       var retainedCreditors = new Queue<TransactionMember2>(creditors.ToList());
 
-      TransactionHelper.CalculatePendingTransactions(debtors, creditors, pendingTransactions, currency);
+      TransactionService2.CalculatePendingTransactions(debtors, creditors, pendingTransactions, currency);
 
       //only use Ids in pendingTransactions.
       memberIds.ForEach(memberId =>

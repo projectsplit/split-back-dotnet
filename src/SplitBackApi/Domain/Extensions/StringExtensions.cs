@@ -29,9 +29,5 @@ public static class StringExtensions {
     return decimal.TryParse(str, out decimal x);
   }
 
-  public static bool HasNoMoreThanTwoDecimalPlaces(this Decimal input) {
-
-    return Decimal.Round(input, 2) == input;
-  }
   
 }

@@ -1,8 +1,7 @@
 using MongoDB.Bson;
 using NMoneys;
-using SplitBackApi.Api.Helper;
+using SplitBackApi.Api.Extensions;
 using SplitBackApi.Domain.Models;
-
 
 namespace SplitBackApi.Domain.Extensions;
 
@@ -10,7 +9,6 @@ public static class ExpenseExtensions2
 {
   public static PastExpense ToPastExpense2(this Expense expense)
   {
-
     return new PastExpense
     {
       Id = ObjectId.GenerateNewId().ToString(),
@@ -31,39 +29,35 @@ public static class ExpenseExtensions2
 
   public static TransactionMemberDetail2 ToTransactionMemberDetailFromUserId2(this Expense expense, string memberId)
   {
+    var isPayer = expense.Payers.Any(p => p.MemberId == memberId);
+    var isParticipant = expense.Participants.ToList().Any(p => p.MemberId == memberId);
+    var currency = expense.Currency.StringToIsoCode();
 
-    bool isPayer = expense.Payers.Any(p => p.MemberId == memberId);
-    bool isParticipant = expense.Participants.ToList().Any(p => p.MemberId == memberId);
-    var currency = MoneyHelper.StringToIsoCode(expense.Currency);
-    
-    Money lent = Money.Zero(currency);
-    Money borrowed = Money.Zero(currency);
-    Money paid = Money.Zero(currency);
-    Money participation = Money.Zero(currency);
+    var lent = Money.Zero(currency);
+    var borrowed = Money.Zero(currency);
+    var paid = Money.Zero(currency);
+    var participation = Money.Zero(currency);
 
-    switch (isPayer, isParticipant)
+    if (isPayer && isParticipant)
     {
-      case (true, true):
-        var paymentAmount = new Money(expense.Payers.Single(p => p.MemberId == memberId).PaymentAmount.ToDecimal(), currency);
-        var participationAmount = new Money(expense.Participants.Single(p => p.MemberId == memberId).ParticipationAmount.ToDecimal(), currency);
-        lent = paymentAmount.Minus(participationAmount);
-        paid = paymentAmount;
-        participation = participationAmount;
-        break;
+      var paymentAmount = new Money(expense.Payers.Single(p => p.MemberId == memberId).PaymentAmount.ToDecimal(), currency);
+      var participationAmount = new Money(expense.Participants.Single(p => p.MemberId == memberId).ParticipationAmount.ToDecimal(), currency);
+      lent = paymentAmount.Minus(participationAmount);
+      paid = paymentAmount;
+      participation = participationAmount;
+    };
 
-      case (true, false):
-        paymentAmount = new Money(expense.Payers.Single(p => p.MemberId == memberId).PaymentAmount.ToDecimal(), currency);
-        lent = paymentAmount;
-        paid = paymentAmount;
-        break;
+    if (isPayer && !isParticipant)
+    {
+      var paymentAmount = new Money(expense.Payers.Single(p => p.MemberId == memberId).PaymentAmount.ToDecimal(), currency);
+      lent = paymentAmount;
+      paid = paymentAmount;
+    };
 
-      case (false, true):
-        participationAmount = new Money(expense.Participants.Single(p => p.MemberId == memberId).ParticipationAmount.ToDecimal(), currency);
-        borrowed = participationAmount;
-        break;
-        
-      default:
-        return null;
+    if (!isPayer && isParticipant)
+    {
+      var participationAmount = new Money(expense.Participants.Single(p => p.MemberId == memberId).ParticipationAmount.ToDecimal(), currency);
+      borrowed = participationAmount;
     }
 
     return new TransactionMemberDetail2

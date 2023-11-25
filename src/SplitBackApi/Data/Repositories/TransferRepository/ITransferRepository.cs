@@ -10,6 +10,8 @@ public interface ITransferRepository {
   Task<Result<Transfer>> GetById(string transferId);
     
   Task<List<Transfer>> GetByGroupId(string groupId);
+
+  Task<List<Transfer>> GetByGroupIds(List<string> groupIds);
     
   Task<List<Transfer>> GetByGroupIdPerPage(string groupId, int pageNumber, int pageSize);
     

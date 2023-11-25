@@ -9,7 +9,7 @@ public interface IExchangeRateRepository
 
   Task<Maybe<List<ExchangeRates>>> GetAllRatesForDates(List<string> dates);
 
-  Task<Result<decimal>> GetRate(string fromCurrency, string toCurrency, string date);
+  Task<Result<decimal>> GetRate(string fromCurrency, string toCurrency, string date);//Maybe
 
   Task<Result<ExchangeRates>> GetExchangeRatesByDate(string date);
 }

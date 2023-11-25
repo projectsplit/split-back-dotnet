@@ -10,6 +10,8 @@ public interface IExpenseRepository
     Task<Result<Expense>> GetById(string expenseId);
 
     Task<List<Expense>> GetByGroupId(string groupId);
+    
+    Task<List<Expense>> GetByGroupIds(List<string> groupIds);
 
     Task<List<Expense>> GetByGroupIdPerPage(string groupId, int pageNumber, int pageSize);
 

@@ -82,6 +82,13 @@ public class TransferMongoDbRepository : ITransferRepository
     return await _transferCollection.Find(filter).ToListAsync();
   }
 
+  public async Task<List<Transfer>> GetByGroupIds(List<string> groupIds)
+  {
+    var filter = Builders<Transfer>.Filter.In(t => t.GroupId, groupIds);
+    var transfers = await _transferCollection.Find(filter).ToListAsync();
+    return transfers;
+  }
+
   public async Task<List<Transfer>> GetByGroupIdPerPage(string groupId, int pageNumber, int pageSize)
   {
 

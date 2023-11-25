@@ -8,6 +8,7 @@ using NMoneys;
 using SplitBackApi.Api.Helper;
 using Microsoft.IdentityModel.Tokens;
 using SplitBackApi.Domain.Services;
+using SplitBackApi.Api.Extensions;
 
 namespace SplitBackApi.Api.Services;
 
@@ -30,7 +31,7 @@ public class BudgetService
     DateTime startDate)
   {
     //TODO store as CurrencyIsoCode in DB?
-    var budgetCurrencyISO = MoneyHelper.StringToIsoCode(budgetCurrency);
+    var budgetCurrencyISO = budgetCurrency.StringToIsoCode();
 
     var groupIdToMemberIdMap = MemberIdHelper.GroupIdsToMemberIdsMap(groups, authenticatedUserId);
 

@@ -1,6 +1,6 @@
 namespace SplitBackApi.Api.Models;
 public class Usage {
-  public int Prompt_tokens { get; set; }
-  public int Completion_tokens { get; set; }
-  public int Total_tokens { get; set; }
+  public int PromptTokens { get; set; }
+  public int CompletionTokens { get; set; }
+  public int TotalTokens { get; set; }
 }

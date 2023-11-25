@@ -47,7 +47,7 @@ public class ExchangeRateMongoDbRepository : IExchangeRateRepository
     return Result.Success();
   }
 
-  public async Task<Result<decimal>> GetRate(string fromCurrency, string toCurrency, string date)
+  public async Task<Result<decimal>> GetRate(string fromCurrency, string toCurrency, string date) //Maybe
   {
     var ratesByDateResult = await GetExchangeRatesByDate(date);
     if (ratesByDateResult.IsFailure) return Result.Failure<decimal>($"Could not retrieve rates for {date}");

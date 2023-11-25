@@ -88,6 +88,15 @@ public class ExpenseMongoDbRepository : IExpenseRepository
     return expenses;
   }
 
+public async Task<List<Expense>> GetByGroupIds(List<string> groupIds)
+{
+    var filter = Builders<Expense>.Filter.In(e => e.GroupId, groupIds);
+
+    var expenses = await _expenseCollection.Find(filter).ToListAsync();
+
+    return expenses;
+}
+
   public async Task<List<Expense>> GetByGroupIdPerPage(string groupId, int pageNumber, int pageSize)
   {
     var filter = Builders<Expense>.Filter.Eq(e => e.GroupId, groupId);
