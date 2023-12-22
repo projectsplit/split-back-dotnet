@@ -19,5 +19,5 @@ public interface ITransferRepository {
     
   Task<Result> DeleteById(string transferId);
     
- Task<List<Transfer>> GetLatestByGroupsIdsMembersIdsAndStartDate(Dictionary<string, string> groupIdToMemberIdMap, DateTime startDate);
+ Task<List<Transfer>> GetLatestByGroupsIdsMembersIdsStartDateEndDate(Dictionary<string, string> groupIdToMemberIdMap, DateTime startDate,DateTime endDate);
 }

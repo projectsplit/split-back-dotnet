@@ -21,5 +21,5 @@ public interface IExpenseRepository
 
     Task<List<Expense>> GetLatest(string groupId, int limit, DateTime last);
 
-    Task<List<Expense>> GetLatestByGroupsIdsMembersIdsAndStartDate(Dictionary<string, string> groupIdToMemberIdMap, DateTime startDate);
+    Task<List<Expense>> GetLatestByGroupsIdsMembersIdsStartDateEndDate(Dictionary<string, string> groupIdToMemberIdMap, DateTime startDate, DateTime endDate);
 }

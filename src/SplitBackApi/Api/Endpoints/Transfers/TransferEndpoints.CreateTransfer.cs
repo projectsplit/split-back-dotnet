@@ -22,7 +22,7 @@ public static partial class TransferEndpoints {
     CreateTransferRequest request
   ) {
 
-    var authenticatedUserId =claimsPrincipal.GetAuthenticatedUserId();
+    var authenticatedUserId ="63ff33b09e4437f07d9d3982";//claimsPrincipal.GetAuthenticatedUserId();
 
     var groupResult = await groupRepository.GetById(request.GroupId);
     if(groupResult.IsFailure) return Results.BadRequest(groupResult.Error);

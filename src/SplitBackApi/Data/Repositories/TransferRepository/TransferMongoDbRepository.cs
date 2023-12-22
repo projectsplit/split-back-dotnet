@@ -133,16 +133,16 @@ public class TransferMongoDbRepository : ITransferRepository
     return Result.Success();
   }
 
-  public async Task<List<Transfer>> GetLatestByGroupsIdsMembersIdsAndStartDate(
+  public async Task<List<Transfer>> GetLatestByGroupsIdsMembersIdsStartDateEndDate(
       Dictionary<string, string> groupIdToMemberIdMap,
-      DateTime startDate)
+      DateTime startDate,DateTime endDate)
   {
     var groupIds = groupIdToMemberIdMap.Keys.ToList();
 
     var groupFilter = Builders<Transfer>.Filter.In(t => t.GroupId, groupIds);
     var creationTimeFilter =
         Builders<Transfer>.Filter.Gte(t => t.TransferTime, startDate) &
-        Builders<Transfer>.Filter.Lte(t => t.TransferTime, DateTime.Now);
+        Builders<Transfer>.Filter.Lte(t => t.TransferTime, endDate);
 
     var transfers = await _transferCollection.Find(groupFilter & creationTimeFilter).ToListAsync();
 

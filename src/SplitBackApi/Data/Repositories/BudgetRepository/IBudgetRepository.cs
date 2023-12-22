@@ -8,9 +8,8 @@ public interface IBudgetRepository
 {
     Task<Result> Create(Budget budget,string userId, CancellationToken ct);
 
-    Task<Maybe<DeleteResult>> DeleteByUserId(string userId);
+    Task<Result> DeleteByUserId(string userId);
 
     Task<Maybe<Budget>> GetByUserId(string userId);
     
-    // Task<Result<Expense>> GetExpensesByBudgetType(BudgetType BudgetType, string day);
 }

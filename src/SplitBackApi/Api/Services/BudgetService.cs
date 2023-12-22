@@ -28,16 +28,20 @@ public class BudgetService
     string authenticatedUserId,
     IEnumerable<Group> groups,
     string budgetCurrency,
-    DateTime startDate)
+    DateTime startDate,
+    DateTime endDate)
   {
     //TODO store as CurrencyIsoCode in DB?
     var budgetCurrencyISO = budgetCurrency.StringToIsoCode();
 
     var groupIdToMemberIdMap = MemberIdHelper.GroupIdsToMemberIdsMap(groups, authenticatedUserId);
 
-    var expenses = await _expenseRepository.GetLatestByGroupsIdsMembersIdsAndStartDate(groupIdToMemberIdMap, startDate);
-    var transfers = await _transferRepository.GetLatestByGroupsIdsMembersIdsAndStartDate(groupIdToMemberIdMap, startDate);
+    var expenses = await _expenseRepository.GetLatestByGroupsIdsMembersIdsStartDateEndDate(groupIdToMemberIdMap, startDate, endDate);
+    var transfers = await _transferRepository.GetLatestByGroupsIdsMembersIdsStartDateEndDate(groupIdToMemberIdMap, startDate, endDate);
     if (expenses.Count == 0 && transfers.Count == 0) return new Money(0, budgetCurrencyISO);
+
+    var transfersUserIsSender = transfers.Where(t => t.SenderId == groupIdToMemberIdMap[t.GroupId]).ToList();
+    var transfersUserIsReceiver = transfers.Where(t => t.ReceiverId == groupIdToMemberIdMap[t.GroupId]).ToList();
 
     var exchangeRates = await GetAllRatesFromAllOperations(expenses, transfers, budgetCurrency);
     if (!exchangeRates.Any()) return Result.Failure<Money>("exchange rates not in DB");
@@ -49,12 +53,12 @@ public class BudgetService
       .Select(p => new Money(p.ParticipationAmount.ToDecimal() / exchangeRates[e.Id], budgetCurrencyISO))))
       : Money.Zero(budgetCurrencyISO);
 
-    var transfersTotalSent = transfers.Any() ? Money.Total(transfers
+    var transfersTotalSent = transfersUserIsSender.Any() ? Money.Total(transfers
       .Where(t => t.SenderId == groupIdToMemberIdMap[t.GroupId])
       .Select(t => new Money(t.Amount.ToDecimal() / exchangeRates[t.Id], budgetCurrencyISO)))
       : Money.Zero(budgetCurrencyISO);
 
-    var transfersTotalReceived = transfers.Any() ? Money.Total(transfers
+    var transfersTotalReceived = transfersUserIsReceiver.Any() ? Money.Total(transfers
       .Where(t => t.ReceiverId == groupIdToMemberIdMap[t.GroupId])
       .Select(t => new Money(t.Amount.ToDecimal() / exchangeRates[t.Id], budgetCurrencyISO)))
       : Money.Zero(budgetCurrencyISO);
@@ -62,6 +66,81 @@ public class BudgetService
     var totalMoney = expensesTotalSpent.Plus(transfersTotalSent.Minus(transfersTotalReceived));
     return totalMoney;
   }
+
+  public async Task<Result<List<Money>>> CalculateCumulativeTotalSpentArray(
+    string authenticatedUserId,
+    IEnumerable<Group> groups,
+    string requestedCurrency,
+    DateTime startDate,
+    DateTime endDate)
+  {
+    endDate = endDate > DateTime.Now ? DateTime.Now : endDate;
+    var requestedCurrencyISO = requestedCurrency.StringToIsoCode();
+
+    var groupIdToMemberIdMap = MemberIdHelper.GroupIdsToMemberIdsMap(groups, authenticatedUserId);
+
+    var expenses = await _expenseRepository.GetLatestByGroupsIdsMembersIdsStartDateEndDate(groupIdToMemberIdMap, startDate, endDate);
+    var transfers = await _transferRepository.GetLatestByGroupsIdsMembersIdsStartDateEndDate(groupIdToMemberIdMap, startDate, endDate);
+    if (expenses.Count == 0 && transfers.Count == 0) return new List<Money>();
+
+    var transfersUserIsSender = transfers.Where(t => t.SenderId == groupIdToMemberIdMap[t.GroupId]).ToList();
+    var transfersUserIsReceiver = transfers.Where(t => t.ReceiverId == groupIdToMemberIdMap[t.GroupId]).ToList();
+
+    var exchangeRates = await GetAllRatesFromAllOperations(expenses, transfers, requestedCurrency);
+    if (!exchangeRates.Any()) return Result.Failure<List<Money>>("exchange rates not in DB");
+
+    var expensesDictionaryWithDatesSingleCurrency =
+     expenses
+     .ToDictionary(
+      e => e.ExpenseTime,
+      e => e.Participants
+      .Where(p => p.MemberId == groupIdToMemberIdMap[e.GroupId])
+      .Select(p => new Money(p.ParticipationAmount.ToDecimal() / exchangeRates[e.Id], requestedCurrencyISO))
+      .FirstOrDefault()
+     );
+
+    var transfersTotalSentDictionaryWithDatesSingleCurrency =
+      transfersUserIsSender.Where(t => t.SenderId == groupIdToMemberIdMap[t.GroupId])
+      .ToDictionary(
+      t => t.TransferTime,
+      t => new Money(t.Amount.ToDecimal() / exchangeRates[t.Id], requestedCurrencyISO));
+
+    var transfersTotalReceivedDictionaryWithDatesSingleCurrency =
+      transfersUserIsReceiver.Where(t => t.ReceiverId == groupIdToMemberIdMap[t.GroupId])
+      .ToDictionary(
+      t => t.TransferTime,
+      t => new Money(-t.Amount.ToDecimal() / exchangeRates[t.Id], requestedCurrencyISO));
+
+    var dateRange = Enumerable.Range(0, (int)(endDate - startDate).TotalDays + 1)
+      .Select(offset => startDate.AddDays(offset).Date);
+
+    // Create a dictionary with all dates initialized to Money(0, requestedCurrencyISO)
+    var defaultValues = dateRange.ToDictionary(date => date, _ => new Money(0, requestedCurrencyISO));
+
+    var mergedDictionary = defaultValues
+      .Concat(expensesDictionaryWithDatesSingleCurrency)
+      .Concat(transfersTotalSentDictionaryWithDatesSingleCurrency
+      .Concat(transfersTotalReceivedDictionaryWithDatesSingleCurrency))
+      .GroupBy(kvp => kvp.Key.Date)  // Group by date without time
+      .Select(groupedItem =>
+    {
+      var totalAmount = Money.Total(groupedItem.Select(g => g.Value));
+      return new KeyValuePair<DateTime, Money>(groupedItem.Key, totalAmount);
+    })
+    .OrderBy(kvp => kvp.Key).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+    var cumulativeArray = mergedDictionary
+      .Aggregate(new List<Money>(), (acc, kvp) =>
+      {
+        var previousTotal = acc.Count > 0 ? acc.Last() : Money.Zero(requestedCurrencyISO);
+        var currentTotal = previousTotal + kvp.Value;
+        acc.Add(currentTotal);
+        return acc;
+      });
+
+    return Result.Success(cumulativeArray);
+  }
+
 
   private async Task<Dictionary<string, decimal>> GetAllRatesFromAllOperations(
      List<Expense> expenses,
@@ -74,7 +153,7 @@ public class BudgetService
     var allDates = expenseDates.Concat(transferDates).Distinct().ToList();
 
     var allRatesMaybe = await _exchangeRateRepository.GetAllRatesForDates(allDates);
-    var allRates = allRatesMaybe.Value;
+    var allRates = allRatesMaybe;
 
     var dateToExchangeRatesDictionary = allDates.ToDictionary(
     date => date,
@@ -176,7 +255,7 @@ public class BudgetService
         //case where previous month has 30 and next month 31 days.
         //February does not have an issue as regardless at what day the previous month ends
         //adding a month to it will alwasy bring to the 28 or 29 of Feb.
-        endDate = (tempEndDate.Day == 30 && day2Int == 31) ? tempEndDate.AddDays(1) : tempEndDate;
+        endDate = (tempEndDate.Day == 30 && day2Int == 31 && tempEndDate.AddDays(1).Day == 31) ? tempEndDate.AddDays(1) : tempEndDate;
 
         if (endDate < currentDate)
         {

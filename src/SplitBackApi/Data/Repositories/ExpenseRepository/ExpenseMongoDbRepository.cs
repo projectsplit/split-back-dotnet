@@ -109,17 +109,17 @@ public async Task<List<Expense>> GetByGroupIds(List<string> groupIds)
     return await query.ToListAsync();
   }
 
-  public async Task<List<Expense>> GetLatestByGroupsIdsMembersIdsAndStartDate(
+  public async Task<List<Expense>> GetLatestByGroupsIdsMembersIdsStartDateEndDate(
 
       Dictionary<string, string> groupIdToMemberIdMap,
-      DateTime startDate)
+      DateTime startDate, DateTime endDate)
   {
     var groupIds = groupIdToMemberIdMap.Keys.ToList();
 
     var groupFilter = Builders<Expense>.Filter.In(e => e.GroupId, groupIds);
     var expenseTimeFilter =
         Builders<Expense>.Filter.Gte(e => e.ExpenseTime, startDate) &
-        Builders<Expense>.Filter.Lte(e => e.ExpenseTime, DateTime.Now);
+        Builders<Expense>.Filter.Lte(e => e.ExpenseTime, endDate);//DateTime.Now
 
     var expenses = await _expenseCollection.Find(groupFilter & expenseTimeFilter).ToListAsync();
 

@@ -181,7 +181,6 @@ public class TransactionService2
           currencyTransfersReceiver
               .Select(t => new Money(t.Amount.ToDecimal(), isoCurrency)) : new[] { Money.Zero(isoCurrency) };
 
-      // Update the outer list instead of declaring a new one
       transactionMembers.Add(new TransactionMember2(
           m.MemberId,
           Money.Total(TotalPaymentAmountFromExpenses.Concat(TotalAmountGivenFromTransfers)),
