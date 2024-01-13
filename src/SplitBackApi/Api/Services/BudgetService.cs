@@ -99,13 +99,13 @@ public class BudgetService
       .FirstOrDefault()
      );
 
-    var transfersTotalSentDictionaryWithDatesSingleCurrency =
+    var transfersUserIsSenderDictionaryWithDatesSingleCurrency =
       transfersUserIsSender.Where(t => t.SenderId == groupIdToMemberIdMap[t.GroupId])
       .ToDictionary(
       t => t.TransferTime,
       t => new Money(t.Amount.ToDecimal() / exchangeRates[t.Id], requestedCurrencyISO));
 
-    var transfersTotalReceivedDictionaryWithDatesSingleCurrency =
+    var transfersUserIsReceiverDictionaryWithDatesSingleCurrency =
       transfersUserIsReceiver.Where(t => t.ReceiverId == groupIdToMemberIdMap[t.GroupId])
       .ToDictionary(
       t => t.TransferTime,
@@ -119,8 +119,8 @@ public class BudgetService
 
     var mergedDictionary = defaultValues
       .Concat(expensesDictionaryWithDatesSingleCurrency)
-      .Concat(transfersTotalSentDictionaryWithDatesSingleCurrency
-      .Concat(transfersTotalReceivedDictionaryWithDatesSingleCurrency))
+      .Concat(transfersUserIsSenderDictionaryWithDatesSingleCurrency
+      .Concat(transfersUserIsReceiverDictionaryWithDatesSingleCurrency))
       .GroupBy(kvp => kvp.Key.Date)  // Group by date without time
       .Select(groupedItem =>
     {
@@ -141,6 +141,104 @@ public class BudgetService
     return Result.Success(cumulativeArray);
   }
 
+  public async Task<Result<List<Money>>> CalculateCumulativeTotalLentAndBorrowedArray(
+    string authenticatedUserId,
+    IEnumerable<Group> groups,
+    string requestedCurrency,
+    DateTime startDate,
+    DateTime endDate)
+  {
+    endDate = endDate > DateTime.Now ? DateTime.Now : endDate;
+    var requestedCurrencyISO = requestedCurrency.StringToIsoCode();
+
+    var groupIdToMemberIdMap = MemberIdHelper.GroupIdsToMemberIdsMap(groups, authenticatedUserId);
+
+    var expenses = await _expenseRepository.GetLatestByGroupsIdsMembersIdsStartDateEndDate(groupIdToMemberIdMap, startDate, endDate);
+    var transfers = await _transferRepository.GetLatestByGroupsIdsMembersIdsStartDateEndDate(groupIdToMemberIdMap, startDate, endDate);
+    if (expenses.Count == 0 && transfers.Count == 0) return new List<Money>();
+
+    var transfersUserIsSender = transfers.Where(t => t.SenderId == groupIdToMemberIdMap[t.GroupId]).ToList();
+    var transfersUserIsReceiver = transfers.Where(t => t.ReceiverId == groupIdToMemberIdMap[t.GroupId]).ToList();
+
+    var expensesUserIsLender = expenses
+        .Where(e =>
+            e.Payers.Any(p => p.MemberId == groupIdToMemberIdMap[e.GroupId] &&
+            e.Participants.Any(part => part.MemberId == groupIdToMemberIdMap[e.GroupId]))
+            &&
+            (
+             new Money(e.Payers.First(p => p.MemberId == groupIdToMemberIdMap[e.GroupId]).PaymentAmount.ToDecimal(), requestedCurrencyISO) >
+             new Money(e.Participants.First(p => p.MemberId == groupIdToMemberIdMap[e.GroupId]).ParticipationAmount.ToDecimal(), requestedCurrencyISO)
+            )
+            ||
+            (
+             e.Payers.Any(p => p.MemberId == groupIdToMemberIdMap[e.GroupId]) &&
+            !e.Participants.Any(p => p.MemberId == groupIdToMemberIdMap[e.GroupId])
+            )
+        ).ToList();
+
+
+
+    var exchangeRates = await GetAllRatesFromAllOperations(expenses, transfers, requestedCurrency);
+    if (!exchangeRates.Any()) return Result.Failure<List<Money>>("exchange rates not in DB");
+
+    var expensesUserIsLenderDictionaryWithDatesSingleCurrency = expensesUserIsLender.ToDictionary
+    (e => e.ExpenseTime,
+      e => e.Participants.Any(p => p.MemberId == groupIdToMemberIdMap[e.GroupId]) ?
+      new Money(e.Payers.FirstOrDefault(p => p.MemberId == groupIdToMemberIdMap[e.GroupId]).PaymentAmount.ToDecimal() / exchangeRates[e.Id], requestedCurrencyISO) -
+      new Money(e.Participants.FirstOrDefault(p => p.MemberId == groupIdToMemberIdMap[e.GroupId]).ParticipationAmount.ToDecimal() / exchangeRates[e.Id], requestedCurrencyISO) : 
+      new Money(e.Payers.FirstOrDefault(p => p.MemberId == groupIdToMemberIdMap[e.GroupId]).PaymentAmount.ToDecimal() / exchangeRates[e.Id], requestedCurrencyISO));
+
+    var expensesDictionaryWithDatesSingleCurrency =
+     expenses
+     .ToDictionary(
+      e => e.ExpenseTime,
+      e => e.Participants
+      .Where(p => p.MemberId == groupIdToMemberIdMap[e.GroupId])
+      .Select(p => new Money(p.ParticipationAmount.ToDecimal() / exchangeRates[e.Id], requestedCurrencyISO))
+      .FirstOrDefault()
+     );
+
+    var transfersUserIsSenderDictionaryWithDatesSingleCurrency =
+      transfersUserIsSender.Where(t => t.SenderId == groupIdToMemberIdMap[t.GroupId])
+      .ToDictionary(
+      t => t.TransferTime,
+      t => new Money(t.Amount.ToDecimal() / exchangeRates[t.Id], requestedCurrencyISO));
+
+    var transfersUserIsReceiverDictionaryWithDatesSingleCurrency =
+      transfersUserIsReceiver.Where(t => t.ReceiverId == groupIdToMemberIdMap[t.GroupId])
+      .ToDictionary(
+      t => t.TransferTime,
+      t => new Money(-t.Amount.ToDecimal() / exchangeRates[t.Id], requestedCurrencyISO));
+
+    var dateRange = Enumerable.Range(0, (int)(endDate - startDate).TotalDays + 1)
+      .Select(offset => startDate.AddDays(offset).Date);
+
+    // Create a dictionary with all dates initialized to Money(0, requestedCurrencyISO)
+    var defaultValues = dateRange.ToDictionary(date => date, _ => new Money(0, requestedCurrencyISO));
+
+    var mergedDictionary = defaultValues
+      .Concat(expensesDictionaryWithDatesSingleCurrency)
+      .Concat(transfersUserIsSenderDictionaryWithDatesSingleCurrency
+      .Concat(transfersUserIsReceiverDictionaryWithDatesSingleCurrency))
+      .GroupBy(kvp => kvp.Key.Date)  // Group by date without time
+      .Select(groupedItem =>
+    {
+      var totalAmount = Money.Total(groupedItem.Select(g => g.Value));
+      return new KeyValuePair<DateTime, Money>(groupedItem.Key, totalAmount);
+    })
+    .OrderBy(kvp => kvp.Key).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+    var cumulativeArray = mergedDictionary
+      .Aggregate(new List<Money>(), (acc, kvp) =>
+      {
+        var previousTotal = acc.Count > 0 ? acc.Last() : Money.Zero(requestedCurrencyISO);
+        var currentTotal = previousTotal + kvp.Value;
+        acc.Add(currentTotal);
+        return acc;
+      });
+
+    return Result.Success(cumulativeArray);
+  }
 
   private async Task<Dictionary<string, decimal>> GetAllRatesFromAllOperations(
      List<Expense> expenses,

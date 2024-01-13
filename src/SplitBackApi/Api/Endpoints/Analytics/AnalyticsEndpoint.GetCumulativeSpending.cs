@@ -38,7 +38,7 @@ public static partial class AnalyticsEndpoints
     var groups = await groupRepository.GetGroupsByUserId(authenticatedUserId);
     if (groups.IsNullOrEmpty()) return Results.BadRequest("No groups");
 
-    var cumulativeSpendingResult = await budgetService.CalculateCumulativeTotalSpentArray(
+    var cumulativeSpendingResult = await budgetService.CalculateCumulativeTotalLentAndBorrowedArray(
       authenticatedUserId,
       groups,
       "USD",
