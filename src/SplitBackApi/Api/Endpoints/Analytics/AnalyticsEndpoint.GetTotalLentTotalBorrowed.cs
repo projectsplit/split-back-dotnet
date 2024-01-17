@@ -13,7 +13,7 @@ namespace SplitBackApi.Api.Endpoints.Analytics;
 
 public static partial class AnalyticsEndpoints
 {
-  private static async Task<IResult> GetCumulativeSpending(
+  private static async Task<IResult> GetTotalLentTotalBorrowed(
     IExpenseRepository expenseRepository,
     ITransferRepository transferRepository,
     IGroupRepository groupRepository,
@@ -26,11 +26,11 @@ public static partial class AnalyticsEndpoints
 
     var startDateString = request.Query["startDate"].ToString();
     if (string.IsNullOrEmpty(startDateString))
-    return Results.BadRequest("startDate is missing, empty or invalid.");
+      return Results.BadRequest("startDate is missing, empty or invalid.");
 
     var endDateString = request.Query["endDate"].ToString();
     if (string.IsNullOrEmpty(startDateString))
-    return Results.BadRequest("endDate is missing, empty or invalid.");
+      return Results.BadRequest("endDate is missing, empty or invalid.");
 
     var startDate = DateTime.ParseExact(startDateString, "yyyy-MM-dd", null);
     var endDate = DateTime.ParseExact(endDateString, "yyyy-MM-dd", null);
@@ -38,7 +38,7 @@ public static partial class AnalyticsEndpoints
     var groups = await groupRepository.GetGroupsByUserId(authenticatedUserId);
     if (groups.IsNullOrEmpty()) return Results.BadRequest("No groups");
 
-    var cumulativeSpendingResult = await budgetService.CalculateCumulativeTotalSpentArray(
+    var totalLentBorowedResult = await budgetService.CalculateCumulativeTotalLentAndBorrowedArray(
       authenticatedUserId,
       groups,
       "USD",
@@ -46,12 +46,19 @@ public static partial class AnalyticsEndpoints
       endDate
       );
 
-    if (cumulativeSpendingResult.IsFailure) return Results.BadRequest(cumulativeSpendingResult.Error);
-    var cumulativeSpending = cumulativeSpendingResult.Value;
+    if (totalLentBorowedResult.IsFailure) return Results.BadRequest(totalLentBorowedResult.Error);
+    var (TotalLent, TotalBorrowed) = totalLentBorowedResult.Value;
 
-    var cummulativeArray = cumulativeSpending.Select(c => Math.Round(c.Amount,2)).ToList(); //TODO might not be the optimal way of returning amounts for all currencies
+    var totalLentArray = TotalLent.Select(c => Math.Round(c.Amount, 2)).ToList(); //TODO might not be the optimal way of returning amounts for all currencies
+    var totalBorrowedArray = TotalBorrowed.Select(c => Math.Round(c.Amount, 2)).ToList();
 
-    return Results.Ok(cummulativeArray);
+    var response = new Dictionary<string, List<decimal>>
+    {
+        { "totalLent", totalLentArray },
+        { "totalBorrowed", totalBorrowedArray }
+    };
+
+    return Results.Ok(response);
 
   }
 

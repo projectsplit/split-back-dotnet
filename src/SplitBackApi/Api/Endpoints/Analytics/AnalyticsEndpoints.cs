@@ -10,6 +10,7 @@ public static partial class AnalyticsEndpoints
         .AllowAnonymous();
 
     analyticsGroup.MapGet("/cumulativespending", GetCumulativeSpending);
+    analyticsGroup.MapGet("/totallentborrowed", GetTotalLentTotalBorrowed);
 
   }
 }

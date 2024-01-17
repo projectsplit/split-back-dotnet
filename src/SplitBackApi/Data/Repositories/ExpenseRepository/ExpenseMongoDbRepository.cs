@@ -124,7 +124,7 @@ public async Task<List<Expense>> GetByGroupIds(List<string> groupIds)
     var expenses = await _expenseCollection.Find(groupFilter & expenseTimeFilter).ToListAsync();
 
     var filteredExpenses = expenses
-        .Where(e => groupIds.Contains(e.GroupId) && e.Participants.Any(p => p.MemberId == groupIdToMemberIdMap[e.GroupId]))
+        .Where(e => groupIds.Contains(e.GroupId))
         .ToList();
 
     return filteredExpenses;
