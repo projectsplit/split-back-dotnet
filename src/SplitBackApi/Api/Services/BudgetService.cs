@@ -114,47 +114,18 @@ public class BudgetService
       t => t.TransferTime,
       t => new Money(-t.Amount.ToDecimal() / exchangeRates[t.Id], requestedCurrencyISO));
 
-    var dateRange = Enumerable.Range(0, (int)(endDate - startDate).TotalDays + 1)
-      .Select(offset => startDate.AddDays(offset).Date);
-
-    // Create a dictionary with all dates initialized to Money(0, requestedCurrencyISO)
-    var defaultValues = dateRange.ToDictionary(date => date, _ => new Money(0, requestedCurrencyISO));
-
-    var mergedDictionary = defaultValues
-          .Concat(expensesDictionaryWithDatesSingleCurrency)
-          .Concat(transfersUserIsSenderDictionaryWithDatesSingleCurrency
-          .Concat(transfersUserIsReceiverDictionaryWithDatesSingleCurrency))
-          .GroupBy(kvp => kvp.Key.Date)  // Group by date without time
-          .Select(groupedItem =>
-        {
-          var totalAmount = Money.Total(groupedItem.Select(g => g.Value));
-          return new KeyValuePair<DateTime, Money>(groupedItem.Key, totalAmount);
-        });
-
-    var orderedByKeyDictionary = isAnnualCalc ? mergedDictionary
-        .GroupBy(kvp => new DateTime(kvp.Key.Year, kvp.Key.Month, 1))  // if annual calc, Group by month
-        .Select(groupedItem =>
-        {
-          var totalAmount = Money.Total(groupedItem.Select(g => g.Value));
-          return new KeyValuePair<DateTime, Money>(groupedItem.Key, totalAmount);
-        })
-        .OrderBy(kvp => kvp.Key)
-        .ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
-        :
-        mergedDictionary.OrderBy(kvp => kvp.Key)
-        .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-
-    var cumulativeArray = orderedByKeyDictionary
-      .Aggregate(new List<Money>(), (acc, kvp) =>
-      {
-        var previousTotal = acc.Count > 0 ? acc.Last() : Money.Zero(requestedCurrencyISO);
-        var currentTotal = previousTotal + kvp.Value;
-        acc.Add(currentTotal);
-        return acc;
-      });
+    var cumulativeArray = BuildCumulativeArray(
+      isAnnualCalc,
+      requestedCurrencyISO,
+      startDate,
+      endDate,
+      expensesDictionaryWithDatesSingleCurrency,
+      transfersUserIsSenderDictionaryWithDatesSingleCurrency,
+      transfersUserIsReceiverDictionaryWithDatesSingleCurrency);
 
     return Result.Success(cumulativeArray);
   }
+
 
   public async Task<Result<(List<Money> TotalLent, List<Money> TotalBorrowed)>> CalculateCumulativeTotalLentAndBorrowedArray(
     string authenticatedUserId,
@@ -239,59 +210,70 @@ public class BudgetService
       t => t.TransferTime,
       t => new Money(t.Amount.ToDecimal() / exchangeRates[t.Id], requestedCurrencyISO));
 
+    var totalBorrowedCumulativeArray = BuildCumulativeArray(
+      isAnnualCalc,
+      requestedCurrencyISO,
+      startDate,
+      endDate,
+      expensesUserIsBorrowerDictionaryWithDatesSingleCurrency,
+      transfersUserIsReceiverDictionaryWithDatesSingleCurrency,
+      new Dictionary<DateTime, Money>()
+      );
+
+    var totalLentCumulativeArray = BuildCumulativeArray(
+      isAnnualCalc,
+      requestedCurrencyISO,
+      startDate,
+      endDate,
+      expensesUserIsLenderDictionaryWithDatesSingleCurrency,
+      transfersUserIsSenderDictionaryWithDatesSingleCurrency,
+      new Dictionary<DateTime, Money>()
+      );
+
+
+    return Result.Success((totalLentCumulativeArray, totalBorrowedCumulativeArray));
+  }
+
+  private static List<Money> BuildCumulativeArray(
+    bool isAnnualCalc,
+    CurrencyIsoCode requestedCurrencyISO,
+    DateTime startDate,
+    DateTime endDate,
+    Dictionary<DateTime, Money> expenses,
+    Dictionary<DateTime, Money> transfersUserIsSender,
+    Dictionary<DateTime, Money> transfersUserIsReceiver
+     )
+  {
     var dateRange = Enumerable.Range(0, (int)(endDate - startDate).TotalDays + 1)
       .Select(offset => startDate.AddDays(offset).Date);
 
-    // Create a dictionary with all dates initialized to Money(0, requestedCurrencyISO)
     var defaultValues = dateRange.ToDictionary(date => date, _ => new Money(0, requestedCurrencyISO));
 
-    var mergedDictionaryUserIsLender = defaultValues
-      .Concat(expensesUserIsLenderDictionaryWithDatesSingleCurrency)
-      .Concat(transfersUserIsSenderDictionaryWithDatesSingleCurrency)
-      .GroupBy(kvp => kvp.Key.Date)  // Group by date without time
-      .Select(groupedItem =>
-    {
-      var totalAmount = Money.Total(groupedItem.Select(g => g.Value));
-      return new KeyValuePair<DateTime, Money>(groupedItem.Key, totalAmount);
-    });
+    var mergedDictionary = defaultValues
+          .Concat(expenses)
+          .Concat(transfersUserIsSender
+          .Concat(transfersUserIsReceiver))
+          .GroupBy(kvp => kvp.Key.Date)  // Group by date without time
+          .Select(groupedItem =>
+        {
+          var totalAmount = Money.Total(groupedItem.Select(g => g.Value));
+          return new KeyValuePair<DateTime, Money>(groupedItem.Key, totalAmount);
+        });
 
-    var orderByKeyMergedDictionaryUserIsLender = isAnnualCalc ? mergedDictionaryUserIsLender
-    .GroupBy(kvp => new DateTime(kvp.Key.Year, kvp.Key.Month, 1))
-    .Select(groupedItem =>
-    {
-      var totalAmount = Money.Total(groupedItem.Select(g => g.Value));
-      return new KeyValuePair<DateTime, Money>(groupedItem.Key, totalAmount);
-    })
-    .OrderBy(kvp => kvp.Key)
-    .ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
-     :
-    mergedDictionaryUserIsLender.OrderBy(kvp => kvp.Key)
-    .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+    var orderedByKeyDictionary = isAnnualCalc ? mergedDictionary
+       .GroupBy(kvp => new DateTime(kvp.Key.Year, kvp.Key.Month, 1))  // if annual calc, Group by month
+       .Select(groupedItem =>
+       {
+         var totalAmount = Money.Total(groupedItem.Select(g => g.Value));
+         return new KeyValuePair<DateTime, Money>(groupedItem.Key, totalAmount);
+       })
+       .OrderBy(kvp => kvp.Key)
+       .ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
+       :
+       mergedDictionary.OrderBy(kvp => kvp.Key)
+       .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
-    var mergedDictionaryUserIsBorrower = defaultValues
-     .Concat(expensesUserIsBorrowerDictionaryWithDatesSingleCurrency)
-     .Concat(transfersUserIsReceiverDictionaryWithDatesSingleCurrency)
-     .GroupBy(kvp => kvp.Key.Date)  // Group by date without time
-     .Select(groupedItem =>
-   {
-     var totalAmount = Money.Total(groupedItem.Select(g => g.Value));
-     return new KeyValuePair<DateTime, Money>(groupedItem.Key, totalAmount);
-   });
-
-    var orderByKeyMergedDictionaryUserIsBorrower = isAnnualCalc ? mergedDictionaryUserIsBorrower
-     .GroupBy(kvp => new DateTime(kvp.Key.Year, kvp.Key.Month, 1))
-     .Select(groupedItem =>
-    {
-      var totalAmount = Money.Total(groupedItem.Select(g => g.Value));
-      return new KeyValuePair<DateTime, Money>(groupedItem.Key, totalAmount);
-    })
-    .OrderBy(kvp => kvp.Key)
-    .ToDictionary(kvp => kvp.Key, kvp => kvp.Value) 
-    : 
-    mergedDictionaryUserIsBorrower.OrderBy(kvp => kvp.Key)
-    .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-
-    var totalLentCumulativeArray = orderByKeyMergedDictionaryUserIsLender
+    var cumulativeArray = orderedByKeyDictionary
       .Aggregate(new List<Money>(), (acc, kvp) =>
       {
         var previousTotal = acc.Count > 0 ? acc.Last() : Money.Zero(requestedCurrencyISO);
@@ -300,18 +282,9 @@ public class BudgetService
         return acc;
       });
 
-    var totalBorrowedCumulativeArray = orderByKeyMergedDictionaryUserIsBorrower
-    .Aggregate(new List<Money>(), (acc, kvp) =>
-    {
-      var previousTotal = acc.Count > 0 ? acc.Last() : Money.Zero(requestedCurrencyISO);
-      var currentTotal = previousTotal + kvp.Value;
-      acc.Add(currentTotal);
-      return acc;
-    });
+    return cumulativeArray;
 
-    return Result.Success((totalLentCumulativeArray, totalBorrowedCumulativeArray));
   }
-
   private async Task<Dictionary<string, decimal>> GetAllRatesFromAllOperations(
      List<Expense> expenses,
      List<Transfer> transfers,

@@ -32,6 +32,10 @@ public static partial class AnalyticsEndpoints
     if (string.IsNullOrEmpty(startDateString))
     return Results.BadRequest("endDate is missing, empty or invalid.");
 
+    var currency = request.Query["currency"].ToString();
+    if (string.IsNullOrEmpty(currency))
+    return Results.BadRequest("currency is missing, empty or invalid.");
+
     var startDate = DateTime.ParseExact(startDateString, "yyyy-MM-dd", null);
     var endDate = DateTime.ParseExact(endDateString, "yyyy-MM-dd", null);
 
@@ -41,7 +45,7 @@ public static partial class AnalyticsEndpoints
     var cumulativeSpendingResult = await budgetService.CalculateCumulativeTotalSpentArray(
       authenticatedUserId,
       groups,
-      "USD",
+      currency,
       startDate,
       endDate
       );

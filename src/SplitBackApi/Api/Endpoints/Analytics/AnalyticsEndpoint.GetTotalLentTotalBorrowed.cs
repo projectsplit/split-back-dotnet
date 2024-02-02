@@ -32,6 +32,10 @@ public static partial class AnalyticsEndpoints
     if (string.IsNullOrEmpty(startDateString))
       return Results.BadRequest("endDate is missing, empty or invalid.");
 
+    var currency = request.Query["currency"].ToString();
+    if (string.IsNullOrEmpty(currency))
+      return Results.BadRequest("currency is missing, empty or invalid.");
+
     var startDate = DateTime.ParseExact(startDateString, "yyyy-MM-dd", null);
     var endDate = DateTime.ParseExact(endDateString, "yyyy-MM-dd", null);
 
@@ -41,7 +45,7 @@ public static partial class AnalyticsEndpoints
     var totalLentBorowedResult = await budgetService.CalculateCumulativeTotalLentAndBorrowedArray(
       authenticatedUserId,
       groups,
-      "USD",
+      currency,
       startDate,
       endDate
       );
@@ -49,7 +53,7 @@ public static partial class AnalyticsEndpoints
     if (totalLentBorowedResult.IsFailure) return Results.BadRequest(totalLentBorowedResult.Error);
     var (TotalLent, TotalBorrowed) = totalLentBorowedResult.Value;
 
-    var totalLentArray = TotalLent.Select(c => Math.Round(c.Amount, 2)).ToList(); //TODO might not be the optimal way of returning amounts for all currencies
+    var totalLentArray = TotalLent.Select(c => Math.Round(c.Amount, 2)).ToList(); //TODO might not be the optimal way of returning amounts for all currencies due to rounding
     var totalBorrowedArray = TotalBorrowed.Select(c => Math.Round(c.Amount, 2)).ToList();
 
     var response = new Dictionary<string, List<decimal>>
