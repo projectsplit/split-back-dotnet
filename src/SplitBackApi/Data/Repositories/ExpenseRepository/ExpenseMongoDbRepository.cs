@@ -159,7 +159,7 @@ public async Task<List<Expense>> GetByGroupIds(List<string> groupIds)
     return Result.Success();
   }
 
-  public async Task<List<Expense>> GetLatest(string groupId, int limit, DateTime lastDateTime)
+  public async Task<Result<List<Expense>>> GetPaginatedExpensesByGroupId(string groupId, int limit, DateTime lastDateTime)
   {
     var filterExpenseTime = Builders<Expense>.Filter.Lt(e => e.ExpenseTime, lastDateTime);
     var filterGroupId = Builders<Expense>.Filter.Eq(e => e.GroupId, groupId);

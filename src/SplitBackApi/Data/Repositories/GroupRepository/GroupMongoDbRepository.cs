@@ -10,6 +10,8 @@ namespace SplitBackApi.Data.Repositories.GroupRepository;
 public class GroupMongoDbRepository : IGroupRepository
 {
   private readonly IMongoCollection<Group> _groupCollection;
+  private readonly IMongoCollection<Expense> _expenseCollection;
+  private readonly IMongoCollection<Transfer> _transferCollection;
 
   public GroupMongoDbRepository(
       IOptions<AppSettings> appSettings)
@@ -19,6 +21,8 @@ public class GroupMongoDbRepository : IGroupRepository
     var mongoDatabase = mongoClient.GetDatabase(dbSettings.Database.Name);
 
     _groupCollection = mongoDatabase.GetCollection<Group>(dbSettings.Database.Collections.Groups);
+    _expenseCollection = mongoDatabase.GetCollection<Expense>(dbSettings.Database.Collections.Expenses);
+    _transferCollection = mongoDatabase.GetCollection<Transfer>(dbSettings.Database.Collections.Transfers);
   }
 
   public async Task Create(Group group)
