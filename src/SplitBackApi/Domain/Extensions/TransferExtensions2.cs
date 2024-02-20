@@ -1,6 +1,6 @@
 using MongoDB.Bson;
 using NMoneys;
-using SplitBackApi.Api.Helper;
+using SplitBackApi.Api.Extensions;
 using SplitBackApi.Domain.Models;
 
 namespace SplitBackApi.Domain.Extensions;
@@ -34,13 +34,13 @@ public static class TransferExtensions2
   {
     var isSender = transfer.SenderId == memberId;
     var isReceiver = transfer.ReceiverId == memberId;
-    var currency = MoneyHelper.StringToIsoCode(transfer.Currency);
+    var currency = transfer.Currency.StringToIsoCode();
 
     Money lent = Money.Zero(currency);
     Money borrowed = Money.Zero(currency);
     Money paid = Money.Zero(currency);
     Money participation = Money.Zero(currency);
-
+    
     switch (isSender, isReceiver)
     {
       case (true, false):

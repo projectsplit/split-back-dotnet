@@ -46,15 +46,15 @@ public class BudgetMongoDbRepository : IBudgetRepository
     return Result.Success();
   }
 
-  public async Task<Maybe<DeleteResult>> DeleteByUserId(string UserId)
+  public async Task<Result> DeleteByUserId(string UserId) //Task Result
   {
     var findBudgetFilter = Builders<Budget>.Filter.Eq(b => b.UserId, UserId);
 
     // var budgetFound = await _budgetCollection.Find(findBudgetFilter).FirstOrDefaultAsync();
     // if (budgetFound is null) return Result.Failure($"Budget from user {UserId} has not been found to be deleted");
-
-    return await _budgetCollection.DeleteOneAsync(findBudgetFilter);
-
+    await _budgetCollection.DeleteOneAsync(findBudgetFilter);
+    
+    return Result.Success();
   }
 
   public async Task<Maybe<Budget>> GetByUserId(string userId)

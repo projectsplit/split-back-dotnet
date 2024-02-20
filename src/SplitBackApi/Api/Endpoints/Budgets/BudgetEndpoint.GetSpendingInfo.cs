@@ -26,7 +26,7 @@ public static partial class BudgetsEndpoints
      IExchangeRateRepository exchangeRateRepository
    )
   {
-    var authenticatedUserId =claimsPrincipal.GetAuthenticatedUserId();
+    var authenticatedUserId ="63ff33b09e4437f07d9d3982";//claimsPrincipal.GetAuthenticatedUserId();
 
     var budgetTypeString = request.Query["budgetType"].ToString();
     if (string.IsNullOrEmpty(budgetTypeString) || !Enum.TryParse(budgetTypeString, out BudgetType budgetType))
@@ -43,12 +43,13 @@ public static partial class BudgetsEndpoints
 
 
     var startDate = budgetService.StartAndEndDateBasedOnBudgetAndDay(budgetType, day).Value.startDate;
-
+    var currentDate = DateTime.Now;
     var totalSpentResult = await budgetService.CalculateTotalSpentInSingleCurrency(
           authenticatedUserId,
           groups,
           budgetCurrency,
-          startDate
+          startDate,
+          currentDate
          );
 
     if (totalSpentResult.IsFailure) return Results.BadRequest(totalSpentResult.Error);

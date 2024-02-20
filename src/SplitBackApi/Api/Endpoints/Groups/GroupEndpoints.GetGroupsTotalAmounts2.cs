@@ -6,8 +6,6 @@ using SplitBackApi.Data.Repositories.GroupRepository;
 using SplitBackApi.Domain.Services;
 using SplitBackApi.Domain.Models;
 using NMoneys;
-using SplitBackApi.Api.Helper;
-using ZstdSharp.Unsafe;
 
 // https://stackoverflow.com/questions/50530363/aggregate-lookup-with-c-sharp
 
@@ -21,7 +19,7 @@ public static partial class GroupEndpoints
       HttpRequest request,
       TransactionService2 transactionService)
   {
-    var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
+    var authenticatedUserId =claimsPrincipal.GetAuthenticatedUserId();
 
     var groups = await groupRepository.GetGroupsByUserId(authenticatedUserId);
     if (groups.IsNullOrEmpty()) return Results.BadRequest("No groups");
@@ -29,46 +27,19 @@ public static partial class GroupEndpoints
     var userIsReceiverTotal = new Dictionary<string, Money>();
     var userIsSenderTotal = new Dictionary<string, Money>();
 
-    foreach (var group in groups)
-    {
-      var pendingResult = await transactionService.PendingTransactionsAsync2(group.Id);
-      if (pendingResult.IsFailure) return Results.BadRequest(pendingResult.Error);
-      var pendingTransactions = pendingResult.Value;
+    var pendingTransactionsResult = await transactionService.PendingTransactionsForAllGroupsAsync(groups);
+    if (pendingTransactionsResult.IsFailure) return Results.BadRequest(pendingTransactionsResult.Error);
+    var pendingTransactions = pendingTransactionsResult.Value;
 
-      pendingTransactions.ForEach(pendingTransaction =>
-      {
-        var userIsReceiver =
-        group.Members.Any(m =>
-            m is UserMember member &&
-            member.MemberId == pendingTransaction.ReceiverId &&
-            member.UserId == authenticatedUserId);
-
-        var userIsSender =
-        group.Members.Any(m =>
-            m is UserMember member &&
-            member.MemberId == pendingTransaction.SenderId &&
-            member.UserId == authenticatedUserId);
-            
-        switch (userIsReceiver, userIsSender)
-        {
-          case (true, false):
-            userIsReceiverTotal[pendingTransaction.Currency] = userIsReceiverTotal.ContainsKey(pendingTransaction.Currency) switch
-            {
-              true => userIsReceiverTotal[pendingTransaction.Currency].Plus(pendingTransaction.Amount),
-              _ => userIsReceiverTotal[pendingTransaction.Currency] = pendingTransaction.Amount
-            };
-            break;
-
-          case (false, true):
-            userIsSenderTotal[pendingTransaction.Currency] = userIsSenderTotal.ContainsKey(pendingTransaction.Currency) switch
-            {
-              true => userIsSenderTotal[pendingTransaction.Currency] = userIsSenderTotal[pendingTransaction.Currency].Plus(pendingTransaction.Amount),
-              _ => userIsSenderTotal[pendingTransaction.Currency] = pendingTransaction.Amount
-            };
-            break;
-        }
-      });
-    }
+    pendingTransactions.ForEach(pendingTransaction =>
+  {
+    ProcessPendingTransactionBasedOnUserIsSenderUserIsReceiver(
+      groups.SelectMany(g => g.Members).ToList(),
+      authenticatedUserId,
+      userIsReceiverTotal,
+      userIsSenderTotal,
+      pendingTransaction);
+  });
 
     var aggregatedSummary = new
     {
@@ -79,12 +50,49 @@ public static partial class GroupEndpoints
     var currenciesToRemoveUserIsSender = new List<string>();
     var currenciesToRemoveUserIsReceiver = new List<string>();
 
-    aggregatedSummary.userIsReceiverTotal.Keys.ToList().ForEach(currency =>
+    UpdateAggregatedSummaries(
+      aggregatedSummary.userIsSenderTotal,
+      aggregatedSummary.userIsReceiverTotal,
+      currenciesToRemoveUserIsSender,
+      currenciesToRemoveUserIsReceiver);
+
+    var aggregatedSummaryResponse = new GroupsAggregatedSummaryResponse
     {
-      if (aggregatedSummary.userIsSenderTotal.TryGetValue(currency, out Money userOwesAmount))
+      UserIsOwedAmounts = aggregatedSummary.userIsReceiverTotal.Where(kvp => kvp.Value.Amount != 0).ToDictionary(
+      kvp => kvp.Key,
+      kvp => kvp.Value.Amount
+    ),
+      UserOwesAmounts = aggregatedSummary.userIsSenderTotal.Where(kvp => kvp.Value.Amount != 0).ToDictionary(
+      kvp => kvp.Key,
+      kvp => kvp.Value.Amount
+    ),
+      NumberOfGroups = groups.Count
+    };
+
+    return Results.Ok(aggregatedSummaryResponse);
+  }
+
+  private static void UpdateTotals(Dictionary<string, Money> totals, string currency, Money amount)
+  {
+    totals[currency] = totals.ContainsKey(currency) switch
+    {
+      true => totals[currency] = totals[currency].Plus(amount),
+      _ => totals[currency] = amount
+    };
+  }
+
+  private static void UpdateAggregatedSummaries(
+    Dictionary<string, Money> userIsSenderTotal,
+    Dictionary<string, Money> userIsReceiverTotal,
+    List<string> currenciesToRemoveUserIsSender,
+    List<string> currenciesToRemoveUserIsReceiver)
+  {
+    foreach (var currency in userIsReceiverTotal.Keys.ToList())
+    {
+      if (userIsSenderTotal.TryGetValue(currency, out Money userOwesAmount))
       {
-        var userIsOwedAmount = aggregatedSummary.userIsReceiverTotal[currency];
-        var currencyIso = MoneyHelper.StringToIsoCode(currency);
+        var userIsOwedAmount = userIsReceiverTotal[currency];
+        var currencyIso = currency.StringToIsoCode();
 
         // Calculate the difference
         var difference = Math.Abs((userOwesAmount - userIsOwedAmount).Amount);
@@ -93,44 +101,51 @@ public static partial class GroupEndpoints
         switch (userOwesAmount.CompareTo(userIsOwedAmount))
         {
           case > 0:
-            aggregatedSummary.userIsSenderTotal[currency] = new Money(difference, currencyIso);
-            aggregatedSummary.userIsReceiverTotal[currency] = Money.Zero(currencyIso);
+            userIsSenderTotal[currency] = new Money(difference, currencyIso);
+            userIsReceiverTotal[currency] = Money.Zero(currencyIso);
             break;
           case < 0:
-            aggregatedSummary.userIsSenderTotal[currency] = Money.Zero(currencyIso);
-            aggregatedSummary.userIsReceiverTotal[currency] = new Money(difference, currencyIso);
+            userIsSenderTotal[currency] = Money.Zero(currencyIso);
+            userIsReceiverTotal[currency] = new Money(difference, currencyIso);
             break;
           default: // Both amounts are equal
-            aggregatedSummary.userIsSenderTotal[currency] = Money.Zero(currencyIso);
-            aggregatedSummary.userIsReceiverTotal[currency] = Money.Zero(currencyIso);
+            userIsSenderTotal[currency] = Money.Zero(currencyIso);
+            userIsReceiverTotal[currency] = Money.Zero(currencyIso);
             break;
         }
 
         // Check if the amount is zero, then add to the list to remove the entry
-        if (aggregatedSummary.userIsSenderTotal[currency] == Money.Zero(currencyIso)) currenciesToRemoveUserIsSender.Add(currency);
-
-        if (aggregatedSummary.userIsReceiverTotal[currency] == Money.Zero(currencyIso)) currenciesToRemoveUserIsReceiver.Add(currency);
+        if (userIsSenderTotal[currency] == Money.Zero(currencyIso)) currenciesToRemoveUserIsSender.Add(currency);
+        if (userIsReceiverTotal[currency] == Money.Zero(currencyIso)) currenciesToRemoveUserIsReceiver.Add(currency);
       }
-    });
+    }
 
+    // Remove currencies marked for removal
+    currenciesToRemoveUserIsSender.ForEach(currency => userIsSenderTotal.Remove(currency));
+    currenciesToRemoveUserIsReceiver.ForEach(currency => userIsReceiverTotal.Remove(currency));
+  }
 
-    currenciesToRemoveUserIsSender.Select(aggregatedSummary.userIsSenderTotal.Remove);
-    currenciesToRemoveUserIsReceiver.Select(aggregatedSummary.userIsReceiverTotal.Remove);
+  private static void ProcessPendingTransactionBasedOnUserIsSenderUserIsReceiver(
+      List<Member> members,
+      string authenticatedUserId,
+      Dictionary<string, Money> userIsReceiverTotal,
+      Dictionary<string, Money> userIsSenderTotal,
+      PendingTransaction2 pendingTransaction)
+  {
+    var userIsReceiver =
+        members.Any(m =>
+        m is UserMember member &&
+        member.MemberId == pendingTransaction.ReceiverId &&
+        member.UserId == authenticatedUserId);
 
-    var aggregatedSummaryResponse = new GroupsAggregatedSummaryResponse
-    {
-      UserIsOwedAmounts = aggregatedSummary.userIsReceiverTotal.Where(kvp => kvp.Value.Amount != 0).ToDictionary(
-      kvp => kvp.Key,
-      kvp => kvp.Value.Amount
-  ),
-      UserOwesAmounts = aggregatedSummary.userIsSenderTotal.Where(kvp => kvp.Value.Amount != 0).ToDictionary(
-      kvp => kvp.Key,
-      kvp => kvp.Value.Amount
-),
-      NumberOfGroups = groups.Count
-    };
+    var userIsSender =
+        members.Any(m =>
+        m is UserMember member &&
+        member.MemberId == pendingTransaction.SenderId &&
+        member.UserId == authenticatedUserId);
 
-    return Results.Ok(aggregatedSummaryResponse);
+    if (userIsReceiver) UpdateTotals(userIsReceiverTotal, pendingTransaction.Currency, pendingTransaction.Amount);
+    if (userIsSender) UpdateTotals(userIsSenderTotal, pendingTransaction.Currency, pendingTransaction.Amount);
 
   }
 }

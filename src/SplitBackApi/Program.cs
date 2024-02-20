@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using SplitBackApi.Api.Endpoints.Authentication;
+using SplitBackApi.Api.Endpoints.Analytics;
 using SplitBackApi.Api.Endpoints.Comments;
 using SplitBackApi.Api.Endpoints.Expenses;
 using SplitBackApi.Api.Endpoints.Groups;
@@ -156,6 +157,7 @@ public class Program
     app.MapTransactionEndpoints();
     app.MapPermissionEndpoints();
     app.MapOpenAIEndpoints();
+    app.MapAnalyticsEndpoints();
     app.UseMiddleware<ExceptionHandlerMiddleware>();
     app.UseAuthorization();
 

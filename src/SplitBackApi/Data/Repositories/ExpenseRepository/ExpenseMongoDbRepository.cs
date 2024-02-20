@@ -88,6 +88,15 @@ public class ExpenseMongoDbRepository : IExpenseRepository
     return expenses;
   }
 
+public async Task<List<Expense>> GetByGroupIds(List<string> groupIds)
+{
+    var filter = Builders<Expense>.Filter.In(e => e.GroupId, groupIds);
+
+    var expenses = await _expenseCollection.Find(filter).ToListAsync();
+
+    return expenses;
+}
+
   public async Task<List<Expense>> GetByGroupIdPerPage(string groupId, int pageNumber, int pageSize)
   {
     var filter = Builders<Expense>.Filter.Eq(e => e.GroupId, groupId);
@@ -100,22 +109,22 @@ public class ExpenseMongoDbRepository : IExpenseRepository
     return await query.ToListAsync();
   }
 
-  public async Task<List<Expense>> GetLatestByGroupsIdsMembersIdsAndStartDate(
+  public async Task<List<Expense>> GetLatestByGroupsIdsMembersIdsStartDateEndDate(
 
       Dictionary<string, string> groupIdToMemberIdMap,
-      DateTime startDate)
+      DateTime startDate, DateTime endDate)
   {
     var groupIds = groupIdToMemberIdMap.Keys.ToList();
 
     var groupFilter = Builders<Expense>.Filter.In(e => e.GroupId, groupIds);
     var expenseTimeFilter =
         Builders<Expense>.Filter.Gte(e => e.ExpenseTime, startDate) &
-        Builders<Expense>.Filter.Lte(e => e.ExpenseTime, DateTime.Now);
+        Builders<Expense>.Filter.Lte(e => e.ExpenseTime, endDate);//DateTime.Now
 
     var expenses = await _expenseCollection.Find(groupFilter & expenseTimeFilter).ToListAsync();
 
     var filteredExpenses = expenses
-        .Where(e => groupIds.Contains(e.GroupId) && e.Participants.Any(p => p.MemberId == groupIdToMemberIdMap[e.GroupId]))
+        .Where(e => groupIds.Contains(e.GroupId))
         .ToList();
 
     return filteredExpenses;
@@ -150,7 +159,7 @@ public class ExpenseMongoDbRepository : IExpenseRepository
     return Result.Success();
   }
 
-  public async Task<List<Expense>> GetLatest(string groupId, int limit, DateTime lastDateTime)
+  public async Task<Result<List<Expense>>> GetPaginatedExpensesByGroupId(string groupId, int limit, DateTime lastDateTime)
   {
     var filterExpenseTime = Builders<Expense>.Filter.Lt(e => e.ExpenseTime, lastDateTime);
     var filterGroupId = Builders<Expense>.Filter.Eq(e => e.GroupId, groupId);

@@ -14,7 +14,7 @@ public static partial class TransactionEndpoints {
 
   private static async Task<IResult> Pending(
     ClaimsPrincipal claimsPrincipal,
-    TransactionService transactionService,
+    TransactionService2 transactionService,
     IGroupRepository groupRepository,
     IUserRepository userRepository,
     PendingTransactionsRequest request
@@ -29,7 +29,7 @@ public static partial class TransactionEndpoints {
     var member = group.GetMemberByUserId(authenticatedUserId);
     if(member is null) return Results.BadRequest($"User with id {authenticatedUserId} is not a member of group with id {request.GroupId}"); //not required? idk
 
-    var pendingResult = await transactionService.PendingTransactionsAsync(group.Id);
+    var pendingResult = await transactionService.PendingTransactionsAsync2(group.Id);
     if(pendingResult.IsFailure) return Results.BadRequest(pendingResult.Error);
     var pendingTransactions = pendingResult.Value;
 
@@ -38,7 +38,7 @@ public static partial class TransactionEndpoints {
     var membersWithNames = membersWithNamesResult.Value;
 
     var response = pendingTransactions.Select(p => new PendingTransactionResponse {
-      Amount = p.Amount,
+      Amount = p.Amount.Amount,
       Currency = p.Currency,
       ReceiverId = p.ReceiverId,
       SenderId = p.SenderId,
