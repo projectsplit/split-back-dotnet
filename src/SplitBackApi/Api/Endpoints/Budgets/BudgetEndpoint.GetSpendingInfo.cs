@@ -26,7 +26,7 @@ public static partial class BudgetsEndpoints
      IExchangeRateRepository exchangeRateRepository
    )
   {
-    var authenticatedUserId ="63ff33b09e4437f07d9d3982";//claimsPrincipal.GetAuthenticatedUserId();
+    var authenticatedUserId =claimsPrincipal.GetAuthenticatedUserId();
 
     var budgetTypeString = request.Query["budgetType"].ToString();
     if (string.IsNullOrEmpty(budgetTypeString) || !Enum.TryParse(budgetTypeString, out BudgetType budgetType))

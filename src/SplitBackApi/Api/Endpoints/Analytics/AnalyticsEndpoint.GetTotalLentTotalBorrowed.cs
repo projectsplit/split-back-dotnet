@@ -22,7 +22,7 @@ public static partial class AnalyticsEndpoints
     BudgetService budgetService
   )
   {
-    var authenticatedUserId = "63ff33b09e4437f07d9d3982"; //claimsPrincipal.GetAuthenticatedUserId();
+    var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
 
     var startDateString = request.Query["startDate"].ToString();
     if (string.IsNullOrEmpty(startDateString))
