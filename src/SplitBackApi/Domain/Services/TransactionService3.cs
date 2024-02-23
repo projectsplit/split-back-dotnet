@@ -1,5 +1,6 @@
 using CSharpFunctionalExtensions;
 using NMoneys;
+using SplitBackApi.Api.Extensions;
 using SplitBackApi.Api.Helper;
 using SplitBackApi.Data.Repositories.ExpenseRepository;
 using SplitBackApi.Data.Repositories.GroupRepository;
@@ -47,7 +48,7 @@ public class TransactionService3
     {
       // New list of TransactionMemberDetail
       var transactionMemberDetails = new List<TransactionMemberDetail2>();
-      var isoCurrency = MoneyHelper.StringToIsoCode(currency);
+      var isoCurrency = currency.StringToIsoCode();
 
       // Loop all expenses & add to list
       expenses.Where(e => e.Currency == currency).ToList().ForEach(expense =>
@@ -107,7 +108,7 @@ public class TransactionService3
     {
 
       var transactionMembers = new List<TransactionMember2>();
-      var isoCurrency = MoneyHelper.StringToIsoCode(currency);
+      var isoCurrency = currency.StringToIsoCode();
 
       group.Members.ToList().ForEach(member => transactionMembers
       .Add(new TransactionMember2(member.MemberId, Money.Zero(isoCurrency), Money.Zero(currency))));

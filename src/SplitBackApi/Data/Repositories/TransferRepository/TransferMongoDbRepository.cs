@@ -82,18 +82,25 @@ public class TransferMongoDbRepository : ITransferRepository
     return await _transferCollection.Find(filter).ToListAsync();
   }
 
-  public async Task<List<Transfer>> GetByGroupIdPerPage(string groupId, int pageNumber, int pageSize)
+  public async Task<List<Transfer>> GetByGroupIds(List<string> groupIds)
   {
-
-    var filter = Builders<Transfer>.Filter.Eq(e => e.GroupId, groupId);
-    var query = _transferCollection.Find(filter);
-
-    int skipCount = (pageNumber - 1) * pageSize;
-    query = query.Limit(pageSize);
-    query = query.Skip(skipCount);
-
-    return await query.ToListAsync();
+    var filter = Builders<Transfer>.Filter.In(t => t.GroupId, groupIds);
+    var transfers = await _transferCollection.Find(filter).ToListAsync();
+    return transfers;
   }
+
+  // public async Task<List<Transfer>> GetByGroupIdPerPage(string groupId, int pageNumber, int pageSize)
+  // {
+
+  //   var filter = Builders<Transfer>.Filter.Eq(e => e.GroupId, groupId);
+  //   var query = _transferCollection.Find(filter);
+
+  //   int skipCount = (pageNumber - 1) * pageSize;
+  //   query = query.Limit(pageSize);
+  //   query = query.Skip(skipCount);
+
+  //   return await query.ToListAsync();
+  // }
 
   public async Task<Result> Update(Transfer editedTransfer)
   {
@@ -126,16 +133,17 @@ public class TransferMongoDbRepository : ITransferRepository
     return Result.Success();
   }
 
-  public async Task<List<Transfer>> GetLatestByGroupsIdsMembersIdsAndStartDate(
+
+  public async Task<List<Transfer>> GetLatestByGroupsIdsMembersIdsStartDateEndDate(
       Dictionary<string, string> groupIdToMemberIdMap,
-      DateTime startDate)
+      DateTime startDate, DateTime endDate)
   {
     var groupIds = groupIdToMemberIdMap.Keys.ToList();
 
     var groupFilter = Builders<Transfer>.Filter.In(t => t.GroupId, groupIds);
     var creationTimeFilter =
         Builders<Transfer>.Filter.Gte(t => t.TransferTime, startDate) &
-        Builders<Transfer>.Filter.Lte(t => t.TransferTime, DateTime.Now);
+        Builders<Transfer>.Filter.Lte(t => t.TransferTime, endDate);
 
     var transfers = await _transferCollection.Find(groupFilter & creationTimeFilter).ToListAsync();
 
@@ -150,5 +158,17 @@ public class TransferMongoDbRepository : ITransferRepository
     var filteredTransfers = senderFilter.Concat(receiverFilter).ToList();
 
     return filteredTransfers;
+  }
+
+  public async Task<Result<List<Transfer>>> GetPaginatedTransfersByGroupId(string groupId, int limit, DateTime last)
+  {
+    var filterTransferTime = Builders<Transfer>.Filter.Lt(t => t.TransferTime, last);
+    var filterGroupId = Builders<Transfer>.Filter.Eq(e => e.GroupId, groupId);
+
+    var combinedFilter = filterTransferTime & filterGroupId;
+
+    var sort = Builders<Transfer>.Sort.Descending(t => t.TransferTime);
+
+    return await _transferCollection.Find(combinedFilter).Sort(sort).Limit(limit).ToListAsync();
   }
 }

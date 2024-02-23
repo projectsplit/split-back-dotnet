@@ -10,6 +10,8 @@ public interface IExpenseRepository
     Task<Result<Expense>> GetById(string expenseId);
 
     Task<List<Expense>> GetByGroupId(string groupId);
+    
+    Task<List<Expense>> GetByGroupIds(List<string> groupIds);
 
     Task<List<Expense>> GetByGroupIdPerPage(string groupId, int pageNumber, int pageSize);
 
@@ -17,7 +19,8 @@ public interface IExpenseRepository
 
     Task<Result> DeleteById(string expenseId);
 
-    Task<List<Expense>> GetLatest(string groupId, int limit, DateTime last);
+    Task<Result<List<Expense>>> GetPaginatedExpensesByGroupId(string groupId, int limit, DateTime last);
 
-    Task<List<Expense>> GetLatestByGroupsIdsMembersIdsAndStartDate(Dictionary<string, string> groupIdToMemberIdMap, DateTime startDate);
+    Task<List<Expense>> GetLatestByGroupsIdsMembersIdsStartDateEndDate(Dictionary<string, string> groupIdToMemberIdMap, DateTime startDate, DateTime endDate);
+    
 }

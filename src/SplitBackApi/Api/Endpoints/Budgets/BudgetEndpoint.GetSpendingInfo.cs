@@ -43,12 +43,13 @@ public static partial class BudgetsEndpoints
 
 
     var startDate = budgetService.StartAndEndDateBasedOnBudgetAndDay(budgetType, day).Value.startDate;
-
+    var currentDate = DateTime.Now;
     var totalSpentResult = await budgetService.CalculateTotalSpentInSingleCurrency(
           authenticatedUserId,
           groups,
           budgetCurrency,
-          startDate
+          startDate,
+          currentDate
          );
 
     if (totalSpentResult.IsFailure) return Results.BadRequest(totalSpentResult.Error);

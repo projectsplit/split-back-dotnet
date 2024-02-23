@@ -15,6 +15,7 @@ public static partial class AuthenticationEndpoints {
     authGroup.MapGet("/email/connect", EmailConnect);
     
     authGroup.MapPost("/google/connect", GoogleConnect);
+    authGroup.MapPost("/google/connect2", GoogleConnect2);
     authGroup.MapGet("/google/url", GoogleUrl);
   }
 }

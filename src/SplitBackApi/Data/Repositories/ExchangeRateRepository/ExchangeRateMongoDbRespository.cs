@@ -25,7 +25,7 @@ public class ExchangeRateMongoDbRepository : IExchangeRateRepository
 
   }
 
-  public async Task<Maybe<List<ExchangeRates>>> GetAllRatesForDates(List<string> dates)
+  public async Task<List<ExchangeRates>> GetAllRatesForDates(List<string> dates)
   {
     var filter = Builders<ExchangeRates>.Filter.In("Date", dates);
     var exchangeRates = await _exchangeRatesCollection.Find(filter).ToListAsync();
@@ -46,31 +46,6 @@ public class ExchangeRateMongoDbRepository : IExchangeRateRepository
 
     return Result.Success();
   }
-
-  public async Task<Result<decimal>> GetRate(string fromCurrency, string toCurrency, string date)
-  {
-    var ratesByDateResult = await GetExchangeRatesByDate(date);
-    if (ratesByDateResult.IsFailure) return Result.Failure<decimal>($"Could not retrieve rates for {date}");
-    var ratesByDate = ratesByDateResult.Value;
-
-    if (!ratesByDate.Rates.ContainsKey(fromCurrency) ||
-        !ratesByDate.Rates.ContainsKey(toCurrency))
-      return Result.Failure<decimal>($" {fromCurrency}/{toCurrency} rate does not exist on {date} or in DB");
-
-    switch (fromCurrency)
-    {
-      case "USD":
-        var rate = ratesByDate.Rates[toCurrency];
-        return Result.Success(rate);
-
-      default:
-        var denominatorRate = ratesByDate.Rates[fromCurrency];
-        var nominatorRate = ratesByDate.Rates[toCurrency];
-        rate = nominatorRate / denominatorRate;
-        return Result.Success(rate);
-    }
-  }
-
   public async Task<Result<ExchangeRates>> GetExchangeRatesByDate(string date)
   {
     var filter = Builders<ExchangeRates>.Filter.Eq(e => e.Date, date);

@@ -52,7 +52,8 @@ public static partial class BudgetsEndpoints
           authenticatedUserId,
           groups,
           budgetCurrency,
-          startDate
+          startDate,
+          currentDate
          );
 
     if (totalSpentResult.IsFailure) return Results.BadRequest(totalSpentResult.Error);

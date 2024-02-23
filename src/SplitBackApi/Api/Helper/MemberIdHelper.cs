@@ -18,4 +18,16 @@ public static class MemberIdHelper
          group => group.Id,
          group => UserIdToMemberId(group, userId));
   }
+
+  public static string MemberIdToUserId(Group group, string memberId)
+  {
+    if (group.Members.FirstOrDefault(m => m is UserMember member && member.MemberId == memberId) is UserMember userMember)
+    {
+      return userMember.UserId;
+    }
+    else
+    {
+      return "";
+    }
+  }
 }

@@ -10,7 +10,8 @@ using SplitBackApi.Domain.Validators;
 
 namespace SplitBackApi.Api.Endpoints.Transfers;
 
-public static partial class TransferEndpoints {
+public static partial class TransferEndpoints
+{
 
   private static async Task<IResult> CreateTransfer(
     ITransferRepository transferRepository,
@@ -20,26 +21,28 @@ public static partial class TransferEndpoints {
     ClaimsPrincipal claimsPrincipal,
     TransferValidator transferValidator,
     CreateTransferRequest request
-  ) {
+  )
+  {
 
-    var authenticatedUserId =claimsPrincipal.GetAuthenticatedUserId();
+    var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
 
     var groupResult = await groupRepository.GetById(request.GroupId);
-    if(groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
+    if (groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
     var group = groupResult.Value;
 
     var groupMemberIds = group.Members.Select(m => m.MemberId).ToList();
 
     var requestMemberIds = new List<string> { request.ReceiverId, request.SenderId };
     var memberIdsAreValid = requestMemberIds.Intersect(groupMemberIds).Count() == requestMemberIds.Count();
-    if(memberIdsAreValid is false) return Results.BadRequest("Sender and/or Receiver Id(s) are not valid");
+    if (memberIdsAreValid is false) return Results.BadRequest("Sender and/or Receiver Id(s) are not valid");
 
     var member = group.GetMemberByUserId(authenticatedUserId);
-    if(member is null) return Results.BadRequest($"{authenticatedUserId} is not a member of group with id {request.GroupId}");
+    if (member is null) return Results.BadRequest($"{authenticatedUserId} is not a member of group with id {request.GroupId}");
 
-    if(member.Permissions.HasFlag(Domain.Models.Permissions.WriteAccess) is false) return Results.Forbid();
+    if (member.Permissions.HasFlag(Domain.Models.Permissions.WriteAccess) is false) return Results.Forbid();
 
-    var newTransfer = new Transfer {
+    var newTransfer = new Transfer
+    {
       CreationTime = DateTime.UtcNow,
       LastUpdateTime = DateTime.UtcNow,
       Amount = request.Amount,
@@ -52,7 +55,7 @@ public static partial class TransferEndpoints {
     };
 
     var validationResult = transferValidator.Validate(newTransfer);
-    if(validationResult.IsValid is false) return Results.BadRequest(validationResult.ToErrorResponse());
+    if (validationResult.IsValid is false) return Results.BadRequest(validationResult.ToErrorResponse());
 
     await transferRepository.Create(newTransfer);
 
