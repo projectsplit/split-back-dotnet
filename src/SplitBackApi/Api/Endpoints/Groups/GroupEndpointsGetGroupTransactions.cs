@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using SplitBackApi.Api.Endpoints.Groups.Responses;
+using SplitBackApi.Api.Extensions;
 using SplitBackApi.Api.Helper;
 using SplitBackApi.Data.Repositories.ExpenseRepository;
 using SplitBackApi.Data.Repositories.GroupRepository;
@@ -20,6 +21,8 @@ public static partial class GroupEndpoints
     HttpRequest request
   )
   {
+    var authenticatedUserId = claimsPrincipal.GetAuthenticatedUserId();
+
     var groupId = request.Query["groupid"].ToString();
     if (string.IsNullOrEmpty(groupId)) return Results.BadRequest("Group id is missing");
 
@@ -59,8 +62,10 @@ public static partial class GroupEndpoints
       // Id = e.Id,
       Labels = e.Labels,
       LastUpdateTime = e.LastUpdateTime,
-      Participants = e.Participants.Select(p => new ParticipantWithName { ParticipationAmount = p.ParticipationAmount, Name = membersWithNames.Single(mn => mn.Id == p.MemberId).Name }).ToList(),
-      Payers = e.Payers.Select(p => new PayerWithName { PaymentAmount = p.PaymentAmount, Name = membersWithNames.Single(mn => mn.Id == p.MemberId).Name }).ToList()
+      Participants = e.Participants.Select(p => new ParticipantWithName { ParticipationAmount = p.ParticipationAmount, Name = membersWithNames.Single(mn => mn.Id == p.MemberId).Name, UserId = MemberIdHelper.MemberIdToUserId(group, p.MemberId) }).ToList(),
+      Payers = e.Payers.Select(p => new PayerWithName { PaymentAmount = p.PaymentAmount, Name = membersWithNames.Single(mn => mn.Id == p.MemberId).Name, UserId = MemberIdHelper.MemberIdToUserId(group, p.MemberId) }).ToList(),
+      Id = e.Id
+
     }).ToList();
 
     var transfersWithMemberNames = transfers.Select(t => new TransferWithMemberNames
@@ -70,11 +75,13 @@ public static partial class GroupEndpoints
       Currency = t.Currency,
       Description = t.Description,
       // GroupId = t.GroupId,
-      // Id = t.Id,
+      Id = t.Id,
       LastUpdateTime = t.LastUpdateTime,
       TransferTime = t.TransferTime,
       ReceiverName = membersWithNames.Single(mn => mn.Id == t.ReceiverId).Name,
-      SenderName = membersWithNames.Single(mn => mn.Id == t.SenderId).Name
+      ReceiverUserId = MemberIdHelper.MemberIdToUserId(group, t.ReceiverId),
+      SenderName = membersWithNames.Single(mn => mn.Id == t.SenderId).Name,
+      SenderUserId = MemberIdHelper.MemberIdToUserId(group, t.SenderId)
     }).ToList();
 
     var allTransactions = expensesWithMemberNames
@@ -82,7 +89,7 @@ public static partial class GroupEndpoints
      .Concat(transfersWithMemberNames
      .Select(t => new GroupAllTransactionsResponse(t)));
 
-    var sortedTransactionWrappers = allTransactions.OrderBy(tw => tw.TransactionTime).ToList();
+    var sortedTransactionWrappers = allTransactions.OrderByDescending(tw => tw.TransactionTime).ToList();
 
     return Results.Ok(sortedTransactionWrappers);
   }
