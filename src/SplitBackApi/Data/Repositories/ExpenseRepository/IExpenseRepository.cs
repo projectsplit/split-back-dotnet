@@ -19,7 +19,7 @@ public interface IExpenseRepository
 
     Task<Result> DeleteById(string expenseId);
 
-    Task<Result<List<Expense>>> GetPaginatedExpensesByGroupId(string groupId, int limit, DateTime last);
+    Task<Result<List<Expense>>> GetPaginatedExpensesByGroupId(string groupId, int limit, DateTime last, string[] payersIds, string[] participantsIds);
 
     Task<List<Expense>> GetLatestByGroupsIdsMembersIdsStartDateEndDate(Dictionary<string, string> groupIdToMemberIdMap, DateTime startDate, DateTime endDate);
     

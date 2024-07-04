@@ -34,11 +34,17 @@ public static partial class GroupEndpoints
     if (string.IsNullOrEmpty(lastQuery)) return Results.BadRequest("last query is missing");
     if (DateTime.TryParse(lastQuery, out var last) is false) return Results.BadRequest("invalid last");
 
+    var payersIds = request.Query["payersIds"].ToString().Split(',');
+    if (payersIds.All(string.IsNullOrEmpty)) return Results.BadRequest("payersIds is missing");
+
+    var participantsIds = request.Query["participantsIds"].ToString().Split(',');
+    if (participantsIds.All(string.IsNullOrEmpty)) return Results.BadRequest("participantsIds is missing");
+
     var groupResult = await groupRepository.GetById(groupId);
     if (groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
     var group = groupResult.Value;
 
-    var paginatedExpensesResult = await expenseRepository.GetPaginatedExpensesByGroupId(groupId, limit, last);
+    var paginatedExpensesResult = await expenseRepository.GetPaginatedExpensesByGroupId(groupId, limit, last, payersIds,participantsIds);
     if (paginatedExpensesResult.IsFailure) return Results.BadRequest(paginatedExpensesResult.Error);
 
     var paginatedTransfersResult = await transferRepository.GetPaginatedTransfersByGroupId(groupId, limit, last);

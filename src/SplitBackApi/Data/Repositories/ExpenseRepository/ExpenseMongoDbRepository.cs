@@ -88,14 +88,14 @@ public class ExpenseMongoDbRepository : IExpenseRepository
     return expenses;
   }
 
-public async Task<List<Expense>> GetByGroupIds(List<string> groupIds)
-{
+  public async Task<List<Expense>> GetByGroupIds(List<string> groupIds)
+  {
     var filter = Builders<Expense>.Filter.In(e => e.GroupId, groupIds);
 
     var expenses = await _expenseCollection.Find(filter).ToListAsync();
 
     return expenses;
-}
+  }
 
   public async Task<List<Expense>> GetByGroupIdPerPage(string groupId, int pageNumber, int pageSize)
   {
@@ -159,15 +159,31 @@ public async Task<List<Expense>> GetByGroupIds(List<string> groupIds)
     return Result.Success();
   }
 
-  public async Task<Result<List<Expense>>> GetPaginatedExpensesByGroupId(string groupId, int limit, DateTime lastDateTime)
+  public async Task<Result<List<Expense>>> GetPaginatedExpensesByGroupId(string groupId, int limit, DateTime lastDateTime, string[] payersIds, string[] participantsIds)
   {
     var filterExpenseTime = Builders<Expense>.Filter.Lt(e => e.ExpenseTime, lastDateTime);
     var filterGroupId = Builders<Expense>.Filter.Eq(e => e.GroupId, groupId);
 
-    var combinedFilter = filterExpenseTime & filterGroupId;
+    var filters = new List<FilterDefinition<Expense>> { filterExpenseTime, filterGroupId };
+
+    if ( !(payersIds.Length == 1 && payersIds[0]==""))
+    {
+      var filterPayers = Builders<Expense>.Filter.ElemMatch(e => e.Payers, payer => payersIds.Contains(payer.MemberId));
+      filters.Add(filterPayers);
+    }
+
+    if (!(participantsIds.Length == 1 && participantsIds[0]==""))
+    {
+      var filterParticipants = Builders<Expense>.Filter.ElemMatch(e => e.Participants, participant => participantsIds.Contains(participant.MemberId));
+      filters.Add(filterParticipants);
+    }
+
+    var combinedFilter = Builders<Expense>.Filter.And(filters);
 
     var sort = Builders<Expense>.Sort.Descending(e => e.ExpenseTime);
 
-    return await _expenseCollection.Find(combinedFilter).Sort(sort).Limit(limit).ToListAsync();
+    var expenses = await _expenseCollection.Find(combinedFilter).Sort(sort).Limit(limit).ToListAsync();
+
+    return Result.Success(expenses);
   }
 }

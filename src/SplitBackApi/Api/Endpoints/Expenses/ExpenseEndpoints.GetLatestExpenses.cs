@@ -23,7 +23,10 @@ public static partial class ExpenseEndpoints
     var groupId = request.Query["groupId"].ToString();
     if (string.IsNullOrEmpty(groupId)) return Results.BadRequest("group query is missing");
 
-    var expensesResult = await expenseRepository.GetPaginatedExpensesByGroupId(groupId, limit, last);
+    var payersIds = request.Query["payersIds"].ToString().Split(',');
+    var participantsIds = request.Query["participantsIds"].ToString().Split(',');
+
+    var expensesResult = await expenseRepository.GetPaginatedExpensesByGroupId(groupId, limit, last, payersIds, participantsIds);
     if (expensesResult.IsFailure) return Results.BadRequest(expensesResult.Error);
 
     var expenses = expensesResult.Value;
