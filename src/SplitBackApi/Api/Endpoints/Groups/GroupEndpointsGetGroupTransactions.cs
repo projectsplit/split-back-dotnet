@@ -35,10 +35,10 @@ public static partial class GroupEndpoints
     if (DateTime.TryParse(lastQuery, out var last) is false) return Results.BadRequest("invalid last");
 
     var payersIds = request.Query["payersIds"].ToString().Split(',');
-    if (payersIds.All(string.IsNullOrEmpty)) return Results.BadRequest("payersIds is missing");
+    // if (payersIds.All(string.IsNullOrEmpty)) return Results.BadRequest("payersIds is missing");
 
     var participantsIds = request.Query["participantsIds"].ToString().Split(',');
-    if (participantsIds.All(string.IsNullOrEmpty)) return Results.BadRequest("participantsIds is missing");
+    // if (participantsIds.All(string.IsNullOrEmpty)) return Results.BadRequest("participantsIds is missing");
 
     var groupResult = await groupRepository.GetById(groupId);
     if (groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
