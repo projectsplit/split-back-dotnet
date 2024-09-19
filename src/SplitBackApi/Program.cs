@@ -30,6 +30,7 @@ using SplitBackApi.Api.Services.GoogleAuthService;
 using SplitBackApi.Data.Repositories.BudgetRepository;
 using SplitBackApi.Api.Services.HttpClients;
 using SplitBackApi.Data.Repositories.ExchangeRateRepository;
+using SplitBackApi.Data.Repositories.GroupFiltersRepository;
 
 namespace SplitBackApi;
 
@@ -84,7 +85,7 @@ public class Program
     builder.Services.AddScoped<IInvitationRepository, InvitationMongoDbRepository>();
     builder.Services.AddScoped<IBudgetRepository, BudgetMongoDbRepository>();
     builder.Services.AddScoped<IExchangeRateRepository, ExchangeRateMongoDbRepository>();
-
+    builder.Services.AddScoped<IGroupFiltersRepository, GroupFiltersMongoDbRepository>();
 
     // Services
     builder.Services.AddScoped<AuthService>();
