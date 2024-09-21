@@ -14,5 +14,5 @@ public class GroupFilter : EntityBase
     public DateTime Before { get; set; }
     public DateTime After { get; set; }
     
-    //NEED TO ADD RANGE AND LABELS
+    //TODO: ADD RANGE AND LABELS
 }

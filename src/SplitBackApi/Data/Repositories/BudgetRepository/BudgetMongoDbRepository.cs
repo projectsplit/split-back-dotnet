@@ -34,7 +34,8 @@ public class BudgetMongoDbRepository : IBudgetRepository
     try
     {
       await DeleteByUserId(userId);
-      await _budgetCollection.InsertOneAsync(budget, ct).ExecuteResultAsync();
+      var insertOptions = new InsertOneOptions();
+      await _budgetCollection.InsertOneAsync(budget, insertOptions,ct).ExecuteResultAsync();
     }
     catch (MongoException e)
     {

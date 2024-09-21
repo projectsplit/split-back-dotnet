@@ -5,9 +5,7 @@ namespace SplitBackApi.Data.Repositories.GroupFiltersRepository;
 
 public interface IGroupFiltersRepository
 {
-    Task<Result> Create(GroupFilter groupFilter);
-
-    Task<Result> Update(GroupFilter groupFilter);
+    Task<Result> Create(GroupFilter groupFilter,CancellationToken ct);
 
     Task<Result<GroupFilter>> GetByGroupId(string groupId);
 }

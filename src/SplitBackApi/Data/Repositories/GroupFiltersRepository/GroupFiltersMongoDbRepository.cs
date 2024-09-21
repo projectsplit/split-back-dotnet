@@ -1,49 +1,65 @@
 
 using CSharpFunctionalExtensions;
-using MongoDB.Bson;
 using MongoDB.Driver;
 using SplitBackApi.Domain.Models;
 using Microsoft.Extensions.Options;
-
+using SplitBackApi.Common;
 using SplitBackApi.Configuration;
+
 
 namespace SplitBackApi.Data.Repositories.GroupFiltersRepository;
 
 public class GroupFiltersMongoDbRepository : IGroupFiltersRepository
 {
 
-    private readonly IMongoCollection<GroupFilter> _groupFiltersCollection;
+  private readonly IMongoCollection<GroupFilter> _groupFiltersCollection;
+  private readonly MongoClient _mongoClient;
 
-    public GroupFiltersMongoDbRepository(
-        IOptions<AppSettings> appSettings)
+  public GroupFiltersMongoDbRepository(IOptions<AppSettings> appSettings)
+  {
+    var dbSettings = appSettings.Value.MongoDb;
+    var _mongoClient = new MongoClient(dbSettings.ConnectionString);
+    var mongoDatabase = _mongoClient.GetDatabase(dbSettings.Database.Name);
+
+    _groupFiltersCollection = mongoDatabase.GetCollection<GroupFilter>(dbSettings.Database.Collections.GroupFilters);
+
+  }
+
+  public async Task<Result> Create(GroupFilter groupFilter, CancellationToken ct)
+  {
+    using var session = await _mongoClient.StartSessionAsync(cancellationToken: ct);
+    session.StartTransaction();
+
+    try
     {
-        var dbSettings = appSettings.Value.MongoDb;
-        var mongoClient = new MongoClient(dbSettings.ConnectionString);
-        var mongoDatabase = mongoClient.GetDatabase(dbSettings.Database.Name);
-
-        _groupFiltersCollection = mongoDatabase.GetCollection<GroupFilter>(dbSettings.Database.Collections.GroupFilters);
-
+      await DeleteByGroupId(groupFilter.GroupId);
+      var insertOptions = new InsertOneOptions();
+      await _groupFiltersCollection.InsertOneAsync(groupFilter, insertOptions, ct).ExecuteResultAsync();
     }
-    public async Task<Result> Create(GroupFilter groupFilter)
+    catch (MongoException e)
     {
-        groupFilter.Id = ObjectId.GenerateNewId().ToString();
 
-        await _groupFiltersCollection.InsertOneAsync(groupFilter);
-    }
-
-    public Task<Result<GroupFilter>> GetByGroupId(string groupId)
-    {
-        throw new NotImplementedException();
-    }
-
-    public async Task<Result> Update(GroupFilter groupFilter)
-    {
-        var filter = Builders<GroupFilter>.Filter.Eq(g => g.Id, groupFilter.Id);
-
-        var replaceResult = await _groupFiltersCollection.ReplaceOneAsync(filter, groupFilter);
-
-        return replaceResult.IsAcknowledged ? Result.Success() : Result.Failure("Failed to update filter");
+      await session.AbortTransactionAsync(ct);
+      return Result.Failure(e.ToString());
     }
 
+    return Result.Success();
+
+  }
+  public async Task<Result> DeleteByGroupId(string groupId) //Task Result
+  {
+    var findGroupFilter = Builders<GroupFilter>.Filter.Eq(gf => gf.GroupId, groupId);
+
+    await _groupFiltersCollection.DeleteOneAsync(findGroupFilter);
+
+    return Result.Success();
+  }
+
+  public async Task<Result<GroupFilter>> GetByGroupId(string groupId)
+  {
+    var filter = Builders<GroupFilter>.Filter.Eq(gf => gf.GroupId, groupId);
+
+    return await _groupFiltersCollection.Find(filter).FirstOrDefaultAsync();
+  }
 }
 
