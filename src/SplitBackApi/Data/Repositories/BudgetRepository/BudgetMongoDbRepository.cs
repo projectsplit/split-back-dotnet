@@ -11,7 +11,6 @@ public class BudgetMongoDbRepository : IBudgetRepository
 {
   private readonly MongoClient _mongoClient;
   private readonly IMongoCollection<Budget> _budgetCollection;
-  private readonly IMongoCollection<Expense> _expenseCollection;
 
   public BudgetMongoDbRepository(
     IOptions<AppSettings> appSettings
@@ -23,7 +22,7 @@ public class BudgetMongoDbRepository : IBudgetRepository
     var mongoDatabase = _mongoClient.GetDatabase(dbSettings.Database.Name);
 
     _budgetCollection = mongoDatabase.GetCollection<Budget>(dbSettings.Database.Collections.Budgets);
-    _expenseCollection = mongoDatabase.GetCollection<Expense>(dbSettings.Database.Collections.Expenses);
+
 
   }
   public async Task<Result> Create(Budget budget, string userId, CancellationToken ct)
