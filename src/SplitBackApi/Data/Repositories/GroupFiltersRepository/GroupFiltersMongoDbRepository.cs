@@ -11,14 +11,14 @@ namespace SplitBackApi.Data.Repositories.GroupFiltersRepository;
 
 public class GroupFiltersMongoDbRepository : IGroupFiltersRepository
 {
-
-  private readonly IMongoCollection<GroupFilter> _groupFiltersCollection;
   private readonly MongoClient _mongoClient;
+  private readonly IMongoCollection<GroupFilter> _groupFiltersCollection;
+
 
   public GroupFiltersMongoDbRepository(IOptions<AppSettings> appSettings)
   {
     var dbSettings = appSettings.Value.MongoDb;
-    var _mongoClient = new MongoClient(dbSettings.ConnectionString);
+     _mongoClient = new MongoClient(dbSettings.ConnectionString);
     var mongoDatabase = _mongoClient.GetDatabase(dbSettings.Database.Name);
 
     _groupFiltersCollection = mongoDatabase.GetCollection<GroupFilter>(dbSettings.Database.Collections.GroupFilters);

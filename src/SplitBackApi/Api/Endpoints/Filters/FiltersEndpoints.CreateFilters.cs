@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using MongoDB.Bson;
 using SplitBackApi.Api.Endpoints.Filters.Requests;
 using SplitBackApi.Api.Extensions;
 using SplitBackApi.Data.Repositories.GroupFiltersRepository;
@@ -17,6 +18,7 @@ public static partial class FiltersEndpoints
   {
     var newFilter = new GroupFilter
     {
+      GroupId = request.GroupId,
       CreationTime = DateTime.UtcNow,
       LastUpdateTime = DateTime.UtcNow,
       ParticipantsIds = request.ParticipantsIds,

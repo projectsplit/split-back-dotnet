@@ -10,7 +10,7 @@ public static partial class FiltersEndpoints
         .AllowAnonymous();
 
     filtersGroup.MapPost("/create", CreateFilters);
-    //filtersGroup.MapGet("/getfilters",GetGroupFilters);
+    filtersGroup.MapGet("/getfilters",GetGroupFilters);
 
   }
 }

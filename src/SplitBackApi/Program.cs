@@ -31,6 +31,7 @@ using SplitBackApi.Data.Repositories.BudgetRepository;
 using SplitBackApi.Api.Services.HttpClients;
 using SplitBackApi.Data.Repositories.ExchangeRateRepository;
 using SplitBackApi.Data.Repositories.GroupFiltersRepository;
+using SplitBackApi.Api.Endpoints.Filters;
 
 namespace SplitBackApi;
 
@@ -159,6 +160,7 @@ public class Program
     app.MapPermissionEndpoints();
     app.MapOpenAIEndpoints();
     app.MapAnalyticsEndpoints();
+    app.MapFiltersEndpoints();
     app.UseMiddleware<ExceptionHandlerMiddleware>();
     app.UseAuthorization();
 
