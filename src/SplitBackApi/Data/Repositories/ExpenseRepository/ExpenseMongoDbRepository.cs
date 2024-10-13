@@ -166,13 +166,13 @@ public class ExpenseMongoDbRepository : IExpenseRepository
 
     var filters = new List<FilterDefinition<Expense>> { filterExpenseTime, filterGroupId };
 
-    if ( !(payersIds.Length == 1 && payersIds[0]==""))
+    if (payersIds != null && payersIds.Length > 0)
     {
       var filterPayers = Builders<Expense>.Filter.ElemMatch(e => e.Payers, payer => payersIds.Contains(payer.MemberId));
       filters.Add(filterPayers);
     }
 
-    if (!(participantsIds.Length == 1 && participantsIds[0]==""))
+    if (participantsIds != null && participantsIds.Length > 0)
     {
       var filterParticipants = Builders<Expense>.Filter.ElemMatch(e => e.Participants, participant => participantsIds.Contains(participant.MemberId));
       filters.Add(filterParticipants);

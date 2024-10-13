@@ -3,6 +3,7 @@ using SplitBackApi.Api.Endpoints.Groups.Responses;
 using SplitBackApi.Api.Extensions;
 using SplitBackApi.Api.Helper;
 using SplitBackApi.Data.Repositories.ExpenseRepository;
+using SplitBackApi.Data.Repositories.GroupFiltersRepository;
 using SplitBackApi.Data.Repositories.GroupRepository;
 using SplitBackApi.Data.Repositories.TransferRepository;
 using SplitBackApi.Data.Repositories.UserRepository;
@@ -18,6 +19,7 @@ public static partial class GroupEndpoints
     IUserRepository userRepository,
     IGroupRepository groupRepository,
     ITransferRepository transferRepository,
+    IGroupFiltersRepository filtersRepository,
     HttpRequest request
   )
   {
@@ -34,11 +36,16 @@ public static partial class GroupEndpoints
     if (string.IsNullOrEmpty(lastQuery)) return Results.BadRequest("last query is missing");
     if (DateTime.TryParse(lastQuery, out var last) is false) return Results.BadRequest("invalid last");
 
-    var payersIds = request.Query["payersIds"].ToString().Split(',');
-    // if (payersIds.All(string.IsNullOrEmpty)) return Results.BadRequest("payersIds is missing");
+    var fitlerResult = await filtersRepository.GetByGroupId(groupId);
+    if (fitlerResult.IsFailure) return Results.BadRequest(fitlerResult.Error);
+    var filters = fitlerResult.Value;
 
-    var participantsIds = request.Query["participantsIds"].ToString().Split(',');
-    // if (participantsIds.All(string.IsNullOrEmpty)) return Results.BadRequest("participantsIds is missing");
+    var payersIds = filters.PayersIds.ToArray();
+    var participantsIds = filters.ParticipantsIds.ToArray();
+    var sendersIds = filters.SendersIds.ToArray();
+    var receiversIds = filters.ReceiversIds.ToArray();
+
+    //TBC add all other filters that will be required.
 
     var groupResult = await groupRepository.GetById(groupId);
     if (groupResult.IsFailure) return Results.BadRequest(groupResult.Error);
