@@ -40,12 +40,12 @@ public static partial class GroupEndpoints
     if (fitlerResult.IsFailure) return Results.BadRequest(fitlerResult.Error);
     var filters = fitlerResult.Value;
 
-    var payersIds = filters.PayersIds.ToArray();
-    var participantsIds = filters.ParticipantsIds.ToArray();
-    var sendersIds = filters.SendersIds.ToArray();
-    var receiversIds = filters.ReceiversIds.ToArray();
+    var payersIds = filters?.PayersIds?.ToArray() ?? Array.Empty<string>();
+    var participantsIds = filters?.ParticipantsIds?.ToArray() ?? Array.Empty<string>();
+    var sendersIds = filters?.SendersIds?.ToArray() ?? Array.Empty<string>();
+    var receiversIds = filters?.ReceiversIds?.ToArray() ?? Array.Empty<string>();
 
-    //TBC add all other filters that will be required.
+    //TODO add all other filters that will be required.
 
     var groupResult = await groupRepository.GetById(groupId);
     if (groupResult.IsFailure) return Results.BadRequest(groupResult.Error);

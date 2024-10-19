@@ -35,28 +35,32 @@ public static partial class FiltersEndpoints
 
     var response = new GetGroupFiltersResponse
     {
-      Participants = filters.ParticipantsIds.Select(participantId => new FilteredMember
+      Participants = filters?.ParticipantsIds.Select(participantId => new FilteredMember
       {
         MemberId = participantId,
-        Value = membersWithNames.Single(mn => mn.Id == participantId).Name
-      }).ToList(),
-      Payers = filters.PayersIds.Select(payerId => new FilteredMember
+        Value = membersWithNames.SingleOrDefault(mn => mn.Id == participantId)?.Name ?? string.Empty
+      }).ToList() ?? new List<FilteredMember>(),
+
+      Payers = filters?.PayersIds.Select(payerId => new FilteredMember
       {
         MemberId = payerId,
-        Value = membersWithNames.Single(mn => mn.Id == payerId).Name
-      }).ToList(),
+        Value = membersWithNames.SingleOrDefault(mn => mn.Id == payerId)?.Name ?? string.Empty
+      }).ToList() ?? new List<FilteredMember>(),
 
-      Senders = filters.SendersIds.Select(senderId => new FilteredMember
+      Senders = filters?.SendersIds.Select(senderId => new FilteredMember
       {
         MemberId = senderId,
-        Value = membersWithNames.Single(mn => mn.Id == senderId).Name
-      }).ToList(),
-      Receivers = filters.ReceiversIds.Select(receiverId => new FilteredMember
+        Value = membersWithNames.SingleOrDefault(mn => mn.Id == senderId)?.Name ?? string.Empty
+      }).ToList() ?? new List<FilteredMember>(),
+
+      Receivers = filters?.ReceiversIds.Select(receiverId => new FilteredMember
       {
         MemberId = receiverId,
-        Value = membersWithNames.Single(mn => mn.Id == receiverId).Name
-      }).ToList()
+        Value = membersWithNames.SingleOrDefault(mn => mn.Id == receiverId)?.Name ?? string.Empty
+      }).ToList() ?? new List<FilteredMember>()
     };
+
+
     return Results.Ok(response);
 
   }
